@@ -22,6 +22,7 @@ class Tool {
   final String name;
   final String description;
   final String? path;
+  final String? iconPath;
   final bool isInstalled;
 
   const Tool({
@@ -29,11 +30,13 @@ class Tool {
     required this.name,
     required this.description,
     this.path,
+    this.iconPath,
     required this.isInstalled,
   });
 
   Tool copyWith({
     String? path,
+    String? iconPath,
     bool? isInstalled,
   }) {
     return Tool(
@@ -41,6 +44,7 @@ class Tool {
       name: name,
       description: description,
       path: path ?? this.path,
+      iconPath: iconPath ?? this.iconPath,
       isInstalled: isInstalled ?? this.isInstalled,
     );
   }

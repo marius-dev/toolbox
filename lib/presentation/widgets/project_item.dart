@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../domain/models/project.dart';
+import '../../domain/models/tool.dart';
 import '../../core/theme/theme_provider.dart';
 import '../../core/utils/string_utils.dart';
+import 'tool_icon.dart';
 
 enum OpenWithApp {
   vscode,
@@ -21,6 +23,7 @@ enum OpenWithApp {
 
 class ProjectItem extends StatelessWidget {
   final Project project;
+  final List<Tool> installedTools;
   final VoidCallback onTap;
   final VoidCallback onStarToggle;
   final VoidCallback onShowInFinder;
@@ -30,6 +33,7 @@ class ProjectItem extends StatelessWidget {
   const ProjectItem({
     Key? key,
     required this.project,
+    required this.installedTools,
     required this.onTap,
     required this.onStarToggle,
     required this.onShowInFinder,
@@ -194,6 +198,7 @@ class ProjectItem extends StatelessWidget {
         ? Colors.white.withOpacity(0.08)
         : Colors.black.withOpacity(0.06);
     final textColor = Theme.of(context).textTheme.bodyLarge!.color!;
+    final openWithItems = _buildOpenWithItems(textColor);
 
     return PopupMenuButton<String>(
       icon: Icon(
@@ -239,187 +244,107 @@ class ProjectItem extends StatelessWidget {
             style: TextStyle(fontWeight: FontWeight.w600, fontSize: 12),
           ),
         ),
-        PopupMenuItem<String>(
-          value: 'open_vscode',
-          child: Row(
-            children: [
-              const Icon(Icons.code, size: 18),
-              const SizedBox(width: 8),
-              Text('VS Code', style: TextStyle(color: textColor)),
-            ],
-          ),
-        ),
-        PopupMenuItem<String>(
-          value: 'open_intellij',
-          child: Row(
-            children: [
-              const Icon(Icons.terminal, size: 18),
-              const SizedBox(width: 8),
-              Text('IntelliJ', style: TextStyle(color: textColor)),
-            ],
-          ),
-        ),
-        PopupMenuItem<String>(
-          value: 'open_webstorm',
-          child: Row(
-            children: [
-              const Icon(Icons.web, size: 18),
-              const SizedBox(width: 8),
-              Text('WebStorm', style: TextStyle(color: textColor)),
-            ],
-          ),
-        ),
-        PopupMenuItem<String>(
-          value: 'open_phpstorm',
-          child: Row(
-            children: [
-              const Icon(Icons.php, size: 18),
-              const SizedBox(width: 8),
-              Text('PhpStorm', style: TextStyle(color: textColor)),
-            ],
-          ),
-        ),
-        PopupMenuItem<String>(
-          value: 'open_pycharm',
-          child: Row(
-            children: [
-              const Icon(Icons.data_object, size: 18),
-              const SizedBox(width: 8),
-              Text('PyCharm', style: TextStyle(color: textColor)),
-            ],
-          ),
-        ),
-        PopupMenuItem<String>(
-          value: 'open_clion',
-          child: Row(
-            children: [
-              const Icon(Icons.memory, size: 18),
-              const SizedBox(width: 8),
-              Text('CLion', style: TextStyle(color: textColor)),
-            ],
-          ),
-        ),
-        PopupMenuItem<String>(
-          value: 'open_goland',
-          child: Row(
-            children: [
-              const Icon(Icons.golf_course, size: 18),
-              const SizedBox(width: 8),
-              Text('GoLand', style: TextStyle(color: textColor)),
-            ],
-          ),
-        ),
-        PopupMenuItem<String>(
-          value: 'open_datagrip',
-          child: Row(
-            children: [
-              const Icon(Icons.storage, size: 18),
-              const SizedBox(width: 8),
-              Text('DataGrip', style: TextStyle(color: textColor)),
-            ],
-          ),
-        ),
-        PopupMenuItem<String>(
-          value: 'open_rider',
-          child: Row(
-            children: [
-              const Icon(Icons.toys, size: 18),
-              const SizedBox(width: 8),
-              Text('Rider', style: TextStyle(color: textColor)),
-            ],
-          ),
-        ),
-        PopupMenuItem<String>(
-          value: 'open_rubymine',
-          child: Row(
-            children: [
-              const Icon(Icons.diamond, size: 18),
-              const SizedBox(width: 8),
-              Text('RubyMine', style: TextStyle(color: textColor)),
-            ],
-          ),
-        ),
-        PopupMenuItem<String>(
-          value: 'open_appcode',
-          child: Row(
-            children: [
-              const Icon(Icons.phone_iphone, size: 18),
-              const SizedBox(width: 8),
-              Text('AppCode', style: TextStyle(color: textColor)),
-            ],
-          ),
-        ),
-        PopupMenuItem<String>(
-          value: 'open_fleet',
-          child: Row(
-            children: [
-              const Icon(Icons.sailing, size: 18),
-              const SizedBox(width: 8),
-              Text('Fleet', style: TextStyle(color: textColor)),
-            ],
-          ),
-        ),
-        PopupMenuItem<String>(
-          value: 'open_preview',
-          child: Row(
-            children: [
-              const Icon(Icons.insert_drive_file_outlined, size: 18),
-              const SizedBox(width: 8),
-              Text('Preview', style: TextStyle(color: textColor)),
-            ],
-          ),
-        ),
+        ...openWithItems,
       ],
-      onSelected: (String value) {
-        switch (value) {
-          case 'show_finder':
-            onShowInFinder();
-            break;
-          case 'delete':
-            onDelete();
-            break;
-          case 'open_vscode':
-            onOpenWith(OpenWithApp.vscode);
-            break;
-          case 'open_intellij':
-            onOpenWith(OpenWithApp.intellij);
-            break;
-          case 'open_webstorm':
-            onOpenWith(OpenWithApp.webstorm);
-            break;
-          case 'open_phpstorm':
-            onOpenWith(OpenWithApp.phpstorm);
-            break;
-          case 'open_pycharm':
-            onOpenWith(OpenWithApp.pycharm);
-            break;
-          case 'open_clion':
-            onOpenWith(OpenWithApp.clion);
-            break;
-          case 'open_goland':
-            onOpenWith(OpenWithApp.goland);
-            break;
-          case 'open_datagrip':
-            onOpenWith(OpenWithApp.datagrip);
-            break;
-          case 'open_rider':
-            onOpenWith(OpenWithApp.rider);
-            break;
-          case 'open_rubymine':
-            onOpenWith(OpenWithApp.rubymine);
-            break;
-          case 'open_appcode':
-            onOpenWith(OpenWithApp.appcode);
-            break;
-          case 'open_fleet':
-            onOpenWith(OpenWithApp.fleet);
-            break;
-          case 'open_preview':
-            onOpenWith(OpenWithApp.preview);
-            break;
-        }
-      },
+      onSelected: _handleMenuSelection,
     );
+  }
+
+  List<PopupMenuEntry<String>> _buildOpenWithItems(Color textColor) {
+    if (installedTools.isEmpty) {
+      return [
+        PopupMenuItem<String>(
+          enabled: false,
+          child: Text(
+            'No installed tools found',
+            style: TextStyle(
+              color: textColor.withOpacity(0.7),
+              fontSize: 12,
+            ),
+          ),
+        ),
+      ];
+    }
+
+    return installedTools.map((tool) {
+      return PopupMenuItem<String>(
+        value: 'open_${tool.id.name}',
+        child: Row(
+          children: [
+            ToolIcon(
+              tool: tool,
+              size: 22,
+              borderRadius: 6,
+            ),
+            const SizedBox(width: 8),
+            Text(tool.name, style: TextStyle(color: textColor)),
+          ],
+        ),
+      );
+    }).toList(growable: false);
+  }
+
+  void _handleMenuSelection(String value) {
+    if (value == 'show_finder') {
+      onShowInFinder();
+      return;
+    }
+
+    if (value == 'delete') {
+      onDelete();
+      return;
+    }
+
+    final toolId = _toolIdFromValue(value);
+    if (toolId == null) return;
+
+    final app = _mapToOpenWithApp(toolId);
+    if (app != null) {
+      onOpenWith(app);
+    }
+  }
+
+  ToolId? _toolIdFromValue(String value) {
+    const prefix = 'open_';
+    if (!value.startsWith(prefix)) return null;
+
+    final idName = value.substring(prefix.length);
+    try {
+      return ToolId.values.firstWhere((id) => id.name == idName);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  OpenWithApp? _mapToOpenWithApp(ToolId id) {
+    switch (id) {
+      case ToolId.vscode:
+        return OpenWithApp.vscode;
+      case ToolId.intellij:
+        return OpenWithApp.intellij;
+      case ToolId.webstorm:
+        return OpenWithApp.webstorm;
+      case ToolId.phpstorm:
+        return OpenWithApp.phpstorm;
+      case ToolId.pycharm:
+        return OpenWithApp.pycharm;
+      case ToolId.clion:
+        return OpenWithApp.clion;
+      case ToolId.goland:
+        return OpenWithApp.goland;
+      case ToolId.datagrip:
+        return OpenWithApp.datagrip;
+      case ToolId.rider:
+        return OpenWithApp.rider;
+      case ToolId.rubymine:
+        return OpenWithApp.rubymine;
+      case ToolId.appcode:
+        return OpenWithApp.appcode;
+      case ToolId.fleet:
+        return OpenWithApp.fleet;
+      case ToolId.preview:
+        return OpenWithApp.preview;
+    }
   }
 
   Color _lighten(Color color, double amount) {

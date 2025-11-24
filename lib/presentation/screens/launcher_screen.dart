@@ -201,7 +201,7 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
       ),
       Expanded(
         child: AnimatedBuilder(
-          animation: _projectProvider,
+          animation: Listenable.merge([_projectProvider, _toolsProvider]),
           builder: (context, _) {
             if (_projectProvider.isLoading) {
               return const Center(child: CircularProgressIndicator());
@@ -215,6 +215,7 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
 
             return ProjectList(
               projects: _projectProvider.projects,
+              installedTools: _toolsProvider.installed,
               onProjectTap: _projectProvider.openProject,
               onStarToggle: _projectProvider.toggleStar,
               onShowInFinder: (project) =>

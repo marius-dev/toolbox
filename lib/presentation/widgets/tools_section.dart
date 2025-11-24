@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/theme/theme_provider.dart';
 import '../../core/utils/string_utils.dart';
 import '../../domain/models/tool.dart';
+import 'tool_icon.dart';
 
 class ToolsSection extends StatefulWidget {
   final List<Tool> installed;
@@ -19,20 +20,6 @@ class ToolsSection extends StatefulWidget {
     required this.onRefresh,
     this.onLaunch,
   }) : super(key: key);
-
-  static const Set<ToolId> _jetBrainsIds = {
-    ToolId.intellij,
-    ToolId.webstorm,
-    ToolId.phpstorm,
-    ToolId.pycharm,
-    ToolId.clion,
-    ToolId.goland,
-    ToolId.datagrip,
-    ToolId.rider,
-    ToolId.rubymine,
-    ToolId.appcode,
-    ToolId.fleet,
-  };
 
   @override
   State<ToolsSection> createState() => _ToolsSectionState();
@@ -295,7 +282,7 @@ class _ToolTileState extends State<_ToolTile> {
         ),
         child: Row(
           children: [
-            _buildIcon(tool),
+            ToolIcon(tool: tool),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
@@ -362,44 +349,6 @@ class _ToolTileState extends State<_ToolTile> {
         ),
       ),
     );
-  }
-
-  Widget _buildIcon(Tool tool) {
-    final colors = _iconGradient(tool);
-    return Container(
-      width: 42,
-      height: 42,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(colors: colors),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Icon(_iconData(tool), color: Colors.white, size: 22),
-    );
-  }
-
-  IconData _iconData(Tool tool) {
-    if (ToolsSection._jetBrainsIds.contains(tool.id)) {
-      return Icons.developer_mode_rounded;
-    }
-    if (tool.id == ToolId.vscode) {
-      return Icons.code_rounded;
-    }
-    if (tool.id == ToolId.preview) {
-      return Icons.image_rounded;
-    }
-    return Icons.extension_rounded;
-  }
-
-  List<Color> _iconGradient(Tool tool) {
-    if (ToolsSection._jetBrainsIds.contains(tool.id)) {
-      return [const Color(0xFF5C2D91), const Color(0xFF9A4DFF)];
-    }
-
-    if (tool.id == ToolId.vscode) {
-      return [const Color(0xFF007ACC), const Color(0xFF00B4FF)];
-    }
-
-    return [const Color(0xFF1FA2FF), const Color(0xFF12D8FA)];
   }
 
   Widget _buildStatusBadge(Tool tool, Color accentColor) {

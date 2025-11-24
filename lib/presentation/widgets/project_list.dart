@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import '../../domain/models/project.dart';
+import '../../domain/models/tool.dart';
 import 'project_item.dart';
 
 class ProjectList extends StatelessWidget {
   final List<Project> projects;
+  final List<Tool> installedTools;
   final ValueChanged<Project> onProjectTap;
   final ValueChanged<Project> onStarToggle;
   final ValueChanged<Project> onShowInFinder;
@@ -13,6 +15,7 @@ class ProjectList extends StatelessWidget {
   const ProjectList({
     Key? key,
     required this.projects,
+    required this.installedTools,
     required this.onProjectTap,
     required this.onStarToggle,
     required this.onShowInFinder,
@@ -29,6 +32,7 @@ class ProjectList extends StatelessWidget {
         final project = projects[index];
         return ProjectItem(
           project: project,
+          installedTools: installedTools,
           onTap: () => onProjectTap(project),
           onStarToggle: () => onStarToggle(project),
           onShowInFinder: () => onShowInFinder(project),

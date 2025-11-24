@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 
 import '../../domain/models/tool.dart';
+import 'app_icon_resolver.dart';
 
 class _JetBrainsProduct {
   final String name;
@@ -176,6 +177,9 @@ class ToolDiscoveryService {
 
   Future<Tool> _probeTool(ToolId id) async {
     final detectedPath = await _detectPath(id);
+    final iconPath = detectedPath != null
+        ? await AppIconResolver.instance.resolve(detectedPath)
+        : null;
 
     return Tool(
       id: id,
@@ -183,6 +187,7 @@ class ToolDiscoveryService {
       description: _description(id),
       path: detectedPath,
       isInstalled: detectedPath != null,
+      iconPath: iconPath,
     );
   }
 
