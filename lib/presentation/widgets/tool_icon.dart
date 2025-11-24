@@ -42,7 +42,7 @@ class ToolIcon extends StatelessWidget {
         File(iconPath).existsSync();
 
     if (!tool.isInstalled) {
-      return _buildUnavailableIcon();
+      return _buildUnavailableIcon(tool);
     }
 
     if (hasExternalIcon) {
@@ -53,15 +53,51 @@ class ToolIcon extends StatelessWidget {
           width: size,
           height: size,
           fit: BoxFit.cover,
-          errorBuilder: (_, __, ___) => _buildFallbackIcon(),
+          errorBuilder: (_, __, ___) => _buildFallbackIcon(tool),
         ),
       );
     }
 
-    return _buildFallbackIcon();
+    return _buildFallbackIcon(tool);
   }
 
-  Widget _buildFallbackIcon() {
+  Widget _buildFallbackIcon(Tool tool) {
+    return _buildGradientIcon(tool);
+  }
+
+  Widget _buildUnavailableIcon(Tool tool) {
+    return SizedBox(
+      width: size,
+      height: size,
+      child: Stack(
+        clipBehavior: Clip.none,
+        alignment: Alignment.center,
+        children: [
+          _buildGradientIcon(tool),
+          Positioned(
+            bottom: size * 0.05,
+            right: size * 0.05,
+            child: Container(
+              width: size * 0.36,
+              height: size * 0.36,
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.72),
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.white70, width: 1),
+              ),
+              child: Icon(
+                Icons.download_for_offline_rounded,
+                color: Colors.white,
+                size: size * 0.2,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGradientIcon(Tool tool) {
     final colors = _iconGradient(tool);
     return Container(
       width: size,
@@ -72,23 +108,6 @@ class ToolIcon extends StatelessWidget {
       ),
       child: Icon(
         _iconData(tool),
-        color: Colors.white,
-        size: size * 0.52,
-      ),
-    );
-  }
-
-  Widget _buildUnavailableIcon() {
-    final colors = _uninstalledGradient();
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(colors: colors),
-        borderRadius: BorderRadius.circular(borderRadius),
-      ),
-      child: Icon(
-        Icons.download_for_offline_rounded,
         color: Colors.white,
         size: size * 0.52,
       ),
@@ -120,10 +139,4 @@ class ToolIcon extends StatelessWidget {
     return [const Color(0xFF1FA2FF), const Color(0xFF12D8FA)];
   }
 
-  List<Color> _uninstalledGradient() {
-    return [
-      Colors.blueGrey.shade700,
-      Colors.blueGrey.shade500,
-    ];
-  }
 }

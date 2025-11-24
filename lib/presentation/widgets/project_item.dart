@@ -230,12 +230,13 @@ class ProjectItem extends StatelessWidget {
       );
     }
 
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bgColor = isDark ? const Color(0xFF2A1F3D) : Colors.white;
-    final borderColor = isDark
-        ? Colors.white.withOpacity(0.08)
-        : Colors.black.withOpacity(0.06);
-    final textColor = Theme.of(context).textTheme.bodyLarge!.color!;
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final bgColor = colorScheme.surface;
+    final borderColor = colorScheme.onSurface.withOpacity(
+      theme.brightness == Brightness.dark ? 0.08 : 0.06,
+    );
+    final textColor = theme.textTheme.bodyLarge!.color!;
     final openWithItems = _buildOpenWithItems(textColor);
 
     return PopupMenuButton<String>(
