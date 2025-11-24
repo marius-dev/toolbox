@@ -234,6 +234,10 @@ class ProjectItem extends StatelessWidget {
   }
 
   Widget _buildStarButton(BuildContext context) {
+    if (!isSelected) {
+      return const SizedBox.shrink();
+    }
+
     return IconButton(
       icon: Icon(
         project.isStarred ? Icons.star : Icons.star_border,

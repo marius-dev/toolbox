@@ -58,23 +58,44 @@ class Project {
     'lastUsedToolId': lastUsedToolId?.name,
   };
 
-  factory Project.fromJson(Map<String, dynamic> json) => Project(
-    id: json['id'],
-    name: json['name'],
-    path: json['path'],
-    type: ProjectType.fromString(json['type']),
-    isStarred: json['isStarred'] ?? false,
-    lastOpened: DateTime.parse(json['lastOpened']),
-    createdAt: json['createdAt'] != null
-        ? DateTime.parse(json['createdAt'])
-        : DateTime.parse(json['lastOpened']),
-    lastUsedToolId: json['lastUsedToolId'] != null
-        ? ToolId.values.firstWhere(
-            (id) => id.name == json['lastUsedToolId'],
-            orElse: () => ToolId.values.first,
-          )
-        : null,
-  );
+  factory Project.fromJson(Map<String, dynamic> json) {
+    final now = DateTime.now();
+
+    DateTime _parseDate(dynamic value, {DateTime? fallback}) {
+      if (value is String && value.isNotEmpty) {
+        try {
+          return DateTime.parse(value);
+        } catch (_) {}
+      }
+      return fallback ?? now;
+    }
+
+    final createdAt = _parseDate(
+      json['createdAt'],
+      fallback: _parseDate(json['lastOpened'], fallback: now),
+    );
+
+    final lastOpened = _parseDate(
+      json['lastOpened'],
+      fallback: createdAt,
+    );
+
+    return Project(
+      id: json['id'],
+      name: json['name'],
+      path: json['path'],
+      type: ProjectType.fromString(json['type']),
+      isStarred: json['isStarred'] ?? false,
+      lastOpened: lastOpened,
+      createdAt: createdAt,
+      lastUsedToolId: json['lastUsedToolId'] != null
+          ? ToolId.values.firstWhere(
+              (id) => id.name == json['lastUsedToolId'],
+              orElse: () => ToolId.values.first,
+            )
+          : null,
+    );
+  }
 
   static Project create({
     required String name,
