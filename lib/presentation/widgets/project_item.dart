@@ -30,6 +30,7 @@ class ProjectItem extends StatelessWidget {
   final VoidCallback onShowInFinder;
   final void Function(OpenWithApp app) onOpenWith;
   final VoidCallback onDelete;
+  final bool isSelected;
 
   const ProjectItem({
     Key? key,
@@ -41,18 +42,32 @@ class ProjectItem extends StatelessWidget {
     required this.onShowInFinder,
     required this.onOpenWith,
     required this.onDelete,
+    this.isSelected = false,
   }) : super(key: key);
-
   @override
   Widget build(BuildContext context) {
     final isDisabled = !project.pathExists;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final panelColor = isDark
+    final accentColor = ThemeProvider.instance.accentColor;
+    final basePanelColor = isDark
         ? Colors.black.withOpacity(0.2)
         : Colors.white.withOpacity(0.9);
-    final borderColor = isDark
+    final baseBorderColor = isDark
         ? Colors.white.withOpacity(0.08)
         : Colors.black.withOpacity(0.06);
+    final highlightedColor = isDark
+        ? Color.lerp(basePanelColor, Colors.white, 0.07)!
+        : Color.lerp(basePanelColor, Colors.black, 0.07)!;
+    final interactionActive = !isDisabled && isSelected;
+    final panelColor = interactionActive ? highlightedColor : basePanelColor;
+    final borderColor = interactionActive
+        ? accentColor.withOpacity(0.7)
+        : baseBorderColor;
+    final shadowColor = interactionActive
+        ? (isDark
+            ? Colors.white.withOpacity(0.15)
+            : Colors.black.withOpacity(0.15))
+        : Colors.transparent;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
@@ -67,17 +82,26 @@ class ProjectItem extends StatelessWidget {
               color: panelColor.withOpacity(isDisabled ? 0.7 : 1),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(color: borderColor, width: 1),
+              boxShadow: interactionActive
+                  ? [
+                      BoxShadow(
+                        color: shadowColor,
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      )
+                    ]
+                  : null,
             ),
             child: Row(
-            children: [
-              _buildAvatar(context, isDisabled),
-              const SizedBox(width: 12),
-              Expanded(child: _buildInfo(context, isDisabled)),
-              const SizedBox(width: 8),
-              _buildStarButton(context),
-              _buildActions(context, isDisabled),
-            ],
-          ),
+              children: [
+                _buildAvatar(context, isDisabled),
+                const SizedBox(width: 12),
+                Expanded(child: _buildInfo(context, isDisabled)),
+                const SizedBox(width: 8),
+                _buildStarButton(context),
+                _buildActions(context, isDisabled),
+              ],
+            ),
           ),
         ),
       ),
@@ -100,8 +124,8 @@ class ProjectItem extends StatelessWidget {
         borderRadius: BorderRadius.circular(8),
       ),
       child: Center(
-        child: Text(
-          project.name.substring(0, 2).toUpperCase(),
+          child: Text(
+            project.name.substring(0, 2).toUpperCase(),
           style: TextStyle(
             color: textColor,
             fontWeight: FontWeight.bold,
@@ -177,7 +201,8 @@ class ProjectItem extends StatelessWidget {
 
     if (project.lastUsedToolId != null) {
       try {
-        tool = installedTools.firstWhere((t) => t.id == project.lastUsedToolId);
+        tool = installedTools
+            .firstWhere((t) => t.id == project.lastUsedToolId);
       } catch (_) {}
     }
 

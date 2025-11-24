@@ -60,7 +60,6 @@ class _ToolsSectionState extends State<ToolsSection> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildToolbar(context),
           const SizedBox(height: 8),
           Expanded(
             child: widget.isLoading
@@ -141,41 +140,6 @@ class _ToolsSectionState extends State<ToolsSection> {
         expanded: expanded,
         onToggle: onToggle,
       ),
-    );
-  }
-
-  Widget _buildToolbar(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-    final mutedText = textTheme.bodyMedium!.color!;
-    final installedCount = widget.installed.length;
-    final availableCount = widget.available.length;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Tools',
-          style: textTheme.bodyLarge!.copyWith(
-            fontSize: 18,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-        const SizedBox(height: 4),
-        Row(
-          children: [
-            Text(
-              '$installedCount installed',
-              style: textTheme.bodyMedium!.copyWith(color: mutedText),
-            ),
-            const SizedBox(width: 12),
-            Text(
-              '$availableCount suggested',
-              style: textTheme.bodyMedium!.copyWith(color: mutedText),
-            ),
-          ],
-        ),
-        const SizedBox(height: 6),
-      ],
     );
   }
 

@@ -26,6 +26,8 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
   late final ProjectProvider _projectProvider;
   late final ToolsProvider _toolsProvider;
   final TextEditingController _searchController = TextEditingController();
+  final FocusNode _searchFocusNode = FocusNode();
+  final FocusNode _projectListFocusNode = FocusNode();
   bool _showSettings = false;
   LauncherTab _selectedTab = LauncherTab.projects;
 
@@ -37,12 +39,15 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
     _projectProvider.loadProjects();
     _toolsProvider.loadTools();
     windowManager.addListener(this);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _focusSearchField());
   }
 
   @override
   void dispose() {
     windowManager.removeListener(this);
     _searchController.dispose();
+    _searchFocusNode.dispose();
+    _projectListFocusNode.dispose();
     _projectProvider.dispose();
     _toolsProvider.dispose();
     super.dispose();
@@ -57,6 +62,19 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
 
   void _toggleSettings() {
     setState(() => _showSettings = !_showSettings);
+    if (!_showSettings) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _focusSearchField());
+    }
+  }
+
+  void _focusSearchField() {
+    if (!mounted || _selectedTab != LauncherTab.projects || _showSettings) return;
+    FocusScope.of(context).requestFocus(_searchFocusNode);
+  }
+
+  void _focusProjectList() {
+    if (!mounted) return;
+    FocusScope.of(context).requestFocus(_projectListFocusNode);
   }
 
   @override
@@ -147,10 +165,12 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
         TabBarWidget(
           selectedTab: _selectedTab,
           toolsBadge: _toolsProvider.installedCount,
-          onTabSelected: (tab) {
-              setState(() => _selectedTab = tab);
+        onTabSelected: (tab) {
+            setState(() => _selectedTab = tab);
             if (_selectedTab == LauncherTab.tools) {
               _toolsProvider.loadTools();
+            } else {
+              WidgetsBinding.instance.addPostFrameCallback((_) => _focusSearchField());
             }
           },
         ),
@@ -198,6 +218,8 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
     return [
       SearchSortBar(
         controller: _searchController,
+        focusNode: _searchFocusNode,
+        onNavigateNext: _focusProjectList,
         onSearchChanged: _projectProvider.setSearchQuery,
         currentSort: _projectProvider.sortOption,
         onSortChanged: _projectProvider.setSortOption,
@@ -220,6 +242,7 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
               projects: _projectProvider.projects,
               installedTools: _toolsProvider.installed,
               defaultToolId: _toolsProvider.defaultToolId,
+              focusNode: _projectListFocusNode,
               onProjectTap: (project) => _projectProvider.openProject(
                 project,
                 defaultToolId: _toolsProvider.defaultToolId,
@@ -236,6 +259,7 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
               ),
               onDelete: (project) =>
                   _projectProvider.deleteProject(project.id),
+              onFocusSearch: _focusSearchField,
             );
           },
         ),

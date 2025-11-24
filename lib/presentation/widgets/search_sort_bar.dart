@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../domain/models/project.dart';
 import '../../core/theme/theme_provider.dart';
 
@@ -7,6 +8,8 @@ class SearchSortBar extends StatelessWidget {
   final ValueChanged<String> onSearchChanged;
   final SortOption currentSort;
   final ValueChanged<SortOption> onSortChanged;
+  final FocusNode? focusNode;
+  final VoidCallback? onNavigateNext;
 
   const SearchSortBar({
     Key? key,
@@ -14,6 +17,8 @@ class SearchSortBar extends StatelessWidget {
     required this.onSearchChanged,
     required this.currentSort,
     required this.onSortChanged,
+    this.focusNode,
+    this.onNavigateNext,
   }) : super(key: key);
 
   @override
@@ -43,53 +48,64 @@ class SearchSortBar extends StatelessWidget {
     return ValueListenableBuilder<TextEditingValue>(
       valueListenable: controller,
       builder: (context, value, _) {
-        return TextField(
-          controller: controller,
-          onChanged: onSearchChanged,
-          style: Theme.of(context).textTheme.bodyMedium,
-          decoration: InputDecoration(
-            isDense: true,
-            filled: true,
-            fillColor: panelColor,
-            hintText: 'Search by name or path',
-            prefixIcon: Icon(
-              Icons.search,
-              size: 18,
-              color: Theme.of(context).iconTheme.color,
-            ),
-            prefixIconConstraints: const BoxConstraints(
-              minWidth: 40,
-              minHeight: 40,
-            ),
-            suffixIcon: value.text.isNotEmpty
-                ? IconButton(
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(
-                      minHeight: 36,
-                      minWidth: 36,
-                    ),
-                    icon: Icon(
-                      Icons.close,
-                      size: 16,
-                      color: Theme.of(context).iconTheme.color,
-                    ),
-                    onPressed: () {
-                      controller.clear();
-                      onSearchChanged('');
-                    },
-                  )
-                : null,
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 12,
-              vertical: 10,
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: borderColor),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: accentColor, width: 1.5),
+        return Focus(
+          onKeyEvent: (node, event) {
+            if (event is KeyDownEvent &&
+                event.logicalKey == LogicalKeyboardKey.arrowDown) {
+              onNavigateNext?.call();
+              return KeyEventResult.handled;
+            }
+            return KeyEventResult.ignored;
+          },
+          child: TextField(
+            focusNode: focusNode,
+            controller: controller,
+            onChanged: onSearchChanged,
+            style: Theme.of(context).textTheme.bodyMedium,
+            decoration: InputDecoration(
+              isDense: true,
+              filled: true,
+              fillColor: panelColor,
+              hintText: 'Search by name or path',
+              prefixIcon: Icon(
+                Icons.search,
+                size: 18,
+                color: Theme.of(context).iconTheme.color,
+              ),
+              prefixIconConstraints: const BoxConstraints(
+                minWidth: 40,
+                minHeight: 40,
+              ),
+              suffixIcon: value.text.isNotEmpty
+                  ? IconButton(
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(
+                        minHeight: 36,
+                        minWidth: 36,
+                      ),
+                      icon: Icon(
+                        Icons.close,
+                        size: 16,
+                        color: Theme.of(context).iconTheme.color,
+                      ),
+                      onPressed: () {
+                        controller.clear();
+                        onSearchChanged('');
+                      },
+                    )
+                  : null,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 10,
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: borderColor),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: accentColor, width: 1.5),
+              ),
             ),
           ),
         );
