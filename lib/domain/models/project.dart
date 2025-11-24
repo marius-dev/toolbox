@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'tool.dart';
+
 class Project {
   final String id;
   final String name;
@@ -8,6 +10,7 @@ class Project {
   final bool isStarred;
   final DateTime lastOpened;
   final DateTime createdAt;
+  final ToolId? lastUsedToolId;
 
   Project({
     required this.id,
@@ -17,6 +20,7 @@ class Project {
     this.isStarred = false,
     required this.lastOpened,
     required this.createdAt,
+    this.lastUsedToolId,
   });
 
   bool get pathExists => Directory(path).existsSync();
@@ -29,6 +33,7 @@ class Project {
     bool? isStarred,
     DateTime? lastOpened,
     DateTime? createdAt,
+    ToolId? lastUsedToolId,
   }) {
     return Project(
       id: id ?? this.id,
@@ -38,6 +43,7 @@ class Project {
       isStarred: isStarred ?? this.isStarred,
       lastOpened: lastOpened ?? this.lastOpened,
       createdAt: createdAt ?? this.createdAt,
+      lastUsedToolId: lastUsedToolId ?? this.lastUsedToolId,
     );
   }
 
@@ -49,6 +55,7 @@ class Project {
     'isStarred': isStarred,
     'lastOpened': lastOpened.toIso8601String(),
     'createdAt': createdAt.toIso8601String(),
+    'lastUsedToolId': lastUsedToolId?.name,
   };
 
   factory Project.fromJson(Map<String, dynamic> json) => Project(
@@ -61,6 +68,12 @@ class Project {
     createdAt: json['createdAt'] != null
         ? DateTime.parse(json['createdAt'])
         : DateTime.parse(json['lastOpened']),
+    lastUsedToolId: json['lastUsedToolId'] != null
+        ? ToolId.values.firstWhere(
+            (id) => id.name == json['lastUsedToolId'],
+            orElse: () => ToolId.values.first,
+          )
+        : null,
   );
 
   static Project create({
@@ -76,6 +89,7 @@ class Project {
       type: type,
       lastOpened: now,
       createdAt: now,
+      lastUsedToolId: null,
     );
   }
 }

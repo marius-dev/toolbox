@@ -216,12 +216,21 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
             return ProjectList(
               projects: _projectProvider.projects,
               installedTools: _toolsProvider.installed,
-              onProjectTap: _projectProvider.openProject,
+              defaultToolId: _toolsProvider.defaultToolId,
+              onProjectTap: (project) => _projectProvider.openProject(
+                project,
+                defaultToolId: _toolsProvider.defaultToolId,
+                installedTools: _toolsProvider.installed,
+              ),
               onStarToggle: _projectProvider.toggleStar,
               onShowInFinder: (project) =>
                   _projectProvider.showInFinder(project.path),
-              onOpenWith: (project, app) =>
-                  _projectProvider.openWith(project.path, app),
+              onOpenWith: (project, app) => _projectProvider.openWith(
+                project,
+                app,
+                defaultToolId: _toolsProvider.defaultToolId,
+                installedTools: _toolsProvider.installed,
+              ),
               onDelete: (project) =>
                   _projectProvider.deleteProject(project.id),
             );
@@ -241,6 +250,8 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
             available: _toolsProvider.available,
             isLoading: _toolsProvider.isLoading,
             onRefresh: () => _toolsProvider.refresh(),
+            defaultToolId: _toolsProvider.defaultToolId,
+            onDefaultChanged: (id) => _toolsProvider.setDefaultTool(id),
             onLaunch: (tool) => _toolsProvider.launch(tool),
           );
         },

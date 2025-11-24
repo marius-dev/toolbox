@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import '../../domain/models/project.dart';
+import '../../domain/models/tool.dart';
 import '../../domain/use_cases/project_use_cases.dart';
 import '../../domain/repositories/project_repository.dart';
 import '../widgets/project_item.dart';
@@ -73,8 +74,16 @@ class ProjectProvider extends ChangeNotifier {
     await loadProjects();
   }
 
-  Future<void> openProject(Project project) async {
-    await _useCases.openProject(project);
+  Future<void> openProject(
+    Project project, {
+    ToolId? defaultToolId,
+    List<Tool> installedTools = const [],
+  }) async {
+    await _useCases.openProject(
+      project,
+      defaultToolId: defaultToolId,
+      installedTools: installedTools,
+    );
     await loadProjects();
   }
 
@@ -82,8 +91,19 @@ class ProjectProvider extends ChangeNotifier {
     await _useCases.showInFinder(path);
   }
 
-  Future<void> openWith(String path, OpenWithApp app) async {
-    await _useCases.openWith(path, app);
+  Future<void> openWith(
+    Project project,
+    OpenWithApp app, {
+    ToolId? defaultToolId,
+    List<Tool> installedTools = const [],
+  }) async {
+    await _useCases.openWith(
+      project,
+      app,
+      defaultToolId: defaultToolId,
+      installedTools: installedTools,
+    );
+    await loadProjects();
   }
 
   void _applyFiltersAndSort() {

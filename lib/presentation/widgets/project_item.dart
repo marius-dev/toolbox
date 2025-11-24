@@ -24,6 +24,7 @@ enum OpenWithApp {
 class ProjectItem extends StatelessWidget {
   final Project project;
   final List<Tool> installedTools;
+  final ToolId? defaultToolId;
   final VoidCallback onTap;
   final VoidCallback onStarToggle;
   final VoidCallback onShowInFinder;
@@ -34,6 +35,7 @@ class ProjectItem extends StatelessWidget {
     Key? key,
     required this.project,
     required this.installedTools,
+    required this.defaultToolId,
     required this.onTap,
     required this.onStarToggle,
     required this.onShowInFinder,
@@ -67,15 +69,15 @@ class ProjectItem extends StatelessWidget {
               border: Border.all(color: borderColor, width: 1),
             ),
             child: Row(
-              children: [
-                _buildAvatar(context, isDisabled),
-                const SizedBox(width: 12),
-                Expanded(child: _buildInfo(context, isDisabled)),
-                const SizedBox(width: 8),
-                _buildStarButton(context),
-                _buildActions(context, isDisabled),
-              ],
-            ),
+            children: [
+              _buildAvatar(context, isDisabled),
+              const SizedBox(width: 12),
+              Expanded(child: _buildInfo(context, isDisabled)),
+              const SizedBox(width: 8),
+              _buildStarButton(context),
+              _buildActions(context, isDisabled),
+            ],
+          ),
           ),
         ),
       ),
@@ -137,7 +139,7 @@ class ProjectItem extends StatelessWidget {
         const SizedBox(height: 4),
         Row(
           children: [
-            Icon(Icons.insert_drive_file_outlined, size: 12, color: mutedText),
+            _buildPathAppIcon(mutedText),
             const SizedBox(width: 4),
             Expanded(
               child: Text(
@@ -166,6 +168,42 @@ class ProjectItem extends StatelessWidget {
           fontSize: 10,
           fontWeight: FontWeight.w600,
         ),
+      ),
+    );
+  }
+
+  Tool? _resolvePreferredTool() {
+    Tool? tool;
+
+    if (project.lastUsedToolId != null) {
+      try {
+        tool = installedTools.firstWhere((t) => t.id == project.lastUsedToolId);
+      } catch (_) {}
+    }
+
+    if (tool == null && defaultToolId != null) {
+      try {
+        tool = installedTools.firstWhere((t) => t.id == defaultToolId);
+      } catch (_) {}
+    }
+
+    tool ??= installedTools.isNotEmpty ? installedTools.first : null;
+
+    return tool;
+  }
+
+  Widget _buildPathAppIcon(Color mutedText) {
+    final tool = _resolvePreferredTool();
+    if (tool == null) {
+      return Icon(Icons.insert_drive_file_outlined, size: 12, color: mutedText);
+    }
+
+    return Tooltip(
+      message: 'Last opened with ${tool.name}',
+      child: ToolIcon(
+        tool: tool,
+        size: 16,
+        borderRadius: 4,
       ),
     );
   }

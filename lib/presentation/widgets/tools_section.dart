@@ -10,6 +10,8 @@ class ToolsSection extends StatefulWidget {
   final List<Tool> available;
   final bool isLoading;
   final VoidCallback onRefresh;
+  final ToolId? defaultToolId;
+  final ValueChanged<ToolId>? onDefaultChanged;
   final void Function(Tool tool)? onLaunch;
 
   const ToolsSection({
@@ -18,6 +20,8 @@ class ToolsSection extends StatefulWidget {
     required this.available,
     required this.isLoading,
     required this.onRefresh,
+    required this.defaultToolId,
+    this.onDefaultChanged,
     this.onLaunch,
   }) : super(key: key);
 
@@ -46,49 +50,83 @@ class _ToolsSectionState extends State<ToolsSection> {
           _buildToolbar(context),
           const SizedBox(height: 8),
           Expanded(
-            child: Container(
-              decoration: BoxDecoration(
-                color: panelColor,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: borderColor),
-              ),
-              padding: const EdgeInsets.all(5),
-              child: widget.isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : ListView(
-                      padding: const EdgeInsets.all(5),
-                      children: [
-                        _buildSection(
-                          context,
-                          title: 'Installed',
-                          subtitle: 'Tools already available on this device',
-                          tools: widget.installed,
-                          emptyLabel:
-                              'Nothing detected yet. Try rescanning or installing a tool.',
-                          expanded: _installedExpanded,
-                          onToggle: () => setState(
-                            () => _installedExpanded = !_installedExpanded,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        _buildSection(
-                          context,
-                          title: 'Available tools',
-                          subtitle:
-                              'Autodiscovered locations for common editors and viewers',
-                          tools: widget.available,
-                          emptyLabel:
-                              'Everything we know is already installed. Add more tools to see them here.',
-                          expanded: _availableExpanded,
-                          onToggle: () => setState(
-                            () => _availableExpanded = !_availableExpanded,
-                          ),
-                        ),
-                      ],
+            child: widget.isLoading
+                ? Container(
+                    decoration: BoxDecoration(
+                      color: panelColor,
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: borderColor),
                     ),
-            ),
+                    padding: const EdgeInsets.all(12),
+                    child: const Center(child: CircularProgressIndicator()),
+                  )
+                : ListView(
+                    padding: const EdgeInsets.only(top: 2, bottom: 4),
+                    children: [
+                      _buildSectionCard(
+                        context,
+                        panelColor: panelColor,
+                        borderColor: borderColor,
+                        title: 'Installed',
+                        subtitle: 'Tools already available on this device',
+                        tools: widget.installed,
+                        emptyLabel:
+                            'Nothing detected yet. Try rescanning or installing a tool.',
+                        expanded: _installedExpanded,
+                        onToggle: () => setState(
+                          () => _installedExpanded = !_installedExpanded,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      _buildSectionCard(
+                        context,
+                        panelColor: panelColor,
+                        borderColor: borderColor,
+                        title: 'Available tools',
+                        subtitle:
+                            'Autodiscovered locations for common editors and viewers',
+                        tools: widget.available,
+                        emptyLabel:
+                            'Everything we know is already installed. Add more tools to see them here.',
+                        expanded: _availableExpanded,
+                        onToggle: () => setState(
+                          () => _availableExpanded = !_availableExpanded,
+                        ),
+                      ),
+                    ],
+                  ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildSectionCard(
+    BuildContext context, {
+    required Color panelColor,
+    required Color borderColor,
+    required String title,
+    required String subtitle,
+    required List<Tool> tools,
+    required String emptyLabel,
+    required bool expanded,
+    required VoidCallback onToggle,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: panelColor,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: borderColor),
+      ),
+      padding: const EdgeInsets.all(12),
+      child: _buildSection(
+        context,
+        title: title,
+        subtitle: subtitle,
+        tools: tools,
+        emptyLabel: emptyLabel,
+        expanded: expanded,
+        onToggle: onToggle,
       ),
     );
   }
@@ -96,6 +134,14 @@ class _ToolsSectionState extends State<ToolsSection> {
   Widget _buildToolbar(BuildContext context) {
     final accentColor = ThemeProvider.instance.accentColor;
     final mutedText = Theme.of(context).textTheme.bodyMedium!.color!;
+    Tool? defaultTool;
+    try {
+      defaultTool = widget.installed.firstWhere(
+        (tool) => tool.id == widget.defaultToolId,
+      );
+    } catch (_) {
+      defaultTool = null;
+    }
 
     return Row(
       children: [
@@ -104,22 +150,21 @@ class _ToolsSectionState extends State<ToolsSection> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Tool autodiscovery',
+                'Tools',
                 style: Theme.of(context).textTheme.bodyLarge!.copyWith(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
                 ),
               ),
               const SizedBox(height: 4),
-              Text(
-                'We look for VS Code, the JetBrains IDEs (IntelliJ, WebStorm, PhpStorm, etc.) and Preview and surface the install paths.',
-                style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                  color: mutedText.withOpacity(0.8),
-                ),
-              ),
             ],
           ),
         ),
+        if (widget.installed.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: _buildDefaultPicker(context, defaultTool, accentColor),
+          ),
         TextButton.icon(
           onPressed: widget.onRefresh,
           style: TextButton.styleFrom(
@@ -130,6 +175,61 @@ class _ToolsSectionState extends State<ToolsSection> {
           label: const Text('Rescan'),
         ),
       ],
+    );
+  }
+
+  Widget _buildDefaultPicker(
+    BuildContext context,
+    Tool? defaultTool,
+    Color accentColor,
+  ) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final borderColor = isDark
+        ? Colors.white.withOpacity(0.08)
+        : Colors.black.withOpacity(0.08);
+    final selectedTool = defaultTool ?? widget.installed.first;
+
+    return PopupMenuButton<ToolId>(
+      tooltip: 'Set default app',
+      onSelected: (id) => widget.onDefaultChanged?.call(id),
+      itemBuilder: (context) => widget.installed
+          .map(
+            (tool) => PopupMenuItem<ToolId>(
+              value: tool.id,
+              child: Row(
+                children: [
+                  ToolIcon(tool: tool, size: 20, borderRadius: 6),
+                  const SizedBox(width: 8),
+                  Text(tool.name),
+                ],
+              ),
+            ),
+          )
+          .toList(growable: false),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        decoration: BoxDecoration(
+          color: isDark ? Colors.white.withOpacity(0.04) : Colors.white,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: borderColor),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ToolIcon(tool: selectedTool, size: 20, borderRadius: 6),
+            const SizedBox(width: 8),
+            Text(
+              selectedTool.name,
+              style: TextStyle(
+                color: Theme.of(context).textTheme.bodyLarge!.color,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(width: 6),
+            Icon(Icons.arrow_drop_down, color: accentColor),
+          ],
+        ),
+      ),
     );
   }
 
@@ -300,7 +400,6 @@ class _ToolTileState extends State<_ToolTile> {
                           ),
                         ),
                       ),
-                      _buildStatusBadge(tool, accentColor),
                     ],
                   ),
                   const SizedBox(height: 4),
@@ -351,37 +450,4 @@ class _ToolTileState extends State<_ToolTile> {
     );
   }
 
-  Widget _buildStatusBadge(Tool tool, Color accentColor) {
-    final isInstalled = tool.isInstalled;
-    final color = isInstalled ? accentColor : Colors.orange;
-    final background = isInstalled
-        ? accentColor.withOpacity(0.14)
-        : Colors.orange.withOpacity(0.14);
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: background,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        children: [
-          Icon(
-            isInstalled ? Icons.check_circle : Icons.search_rounded,
-            color: color,
-            size: 14,
-          ),
-          const SizedBox(width: 4),
-          Text(
-            isInstalled ? 'Installed' : 'Not found',
-            style: TextStyle(
-              color: color,
-              fontWeight: FontWeight.w700,
-              fontSize: 11,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 }

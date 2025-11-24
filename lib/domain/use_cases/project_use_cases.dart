@@ -34,13 +34,33 @@ class ProjectUseCases {
     await _repository.updateProject(updated);
   }
 
-  Future<void> openProject(Project project) async {
-    if (project.pathExists) {
-      final updated = project.copyWith(lastOpened: DateTime.now());
+  Future<void> openProject(
+    Project project, {
+    ToolId? defaultToolId,
+    List<Tool> installedTools = const [],
+  }) async {
+    if (!project.pathExists) return;
+
+    final discovery = ToolDiscoveryService.instance;
+    final resolved = await _pickToolForProject(
+      project,
+      defaultToolId: defaultToolId,
+      installedTools: installedTools,
+    );
+
+    if (resolved != null) {
+      await discovery.launchTool(resolved.tool, targetPath: project.path);
+      final updated = project.copyWith(
+        lastOpened: DateTime.now(),
+        lastUsedToolId: resolved.tool.id,
+      );
       await _repository.updateProject(updated);
-      // TODO: Add actual project opening logic
-      print('Opening project: ${project.path}');
+      return;
     }
+
+    await _fallbackOpen(project.path, null);
+    final updated = project.copyWith(lastOpened: DateTime.now());
+    await _repository.updateProject(updated);
   }
 
   Future<void> showInFinder(String path) async {
@@ -62,18 +82,38 @@ class ProjectUseCases {
     }
   }
 
-  Future<void> openWith(String path, OpenWithApp app) async {
+  Future<void> openWith(
+    Project project,
+    OpenWithApp app, {
+    ToolId? defaultToolId,
+    List<Tool> installedTools = const [],
+  }) async {
     try {
       final toolId = _mapToToolId(app);
       final discovery = ToolDiscoveryService.instance;
-      final tool = await discovery.discoverTool(toolId);
+      Tool? tool;
+      try {
+        tool = installedTools.firstWhere((t) => t.id == toolId);
+      } catch (_) {
+        tool = await discovery.discoverTool(toolId);
+      }
 
-      if (tool.isInstalled) {
-        await discovery.launchTool(tool, targetPath: path);
+      if (tool != null && tool.isInstalled && tool.path != null) {
+        await discovery.launchTool(tool, targetPath: project.path);
+        final updated = project.copyWith(
+          lastOpened: DateTime.now(),
+          lastUsedToolId: tool.id,
+        );
+        await _repository.updateProject(updated);
         return;
       }
 
-      await _fallbackOpen(path, app);
+      await _fallbackOpen(project.path, app);
+      final updated = project.copyWith(
+        lastOpened: DateTime.now(),
+        lastUsedToolId: toolId,
+      );
+      await _repository.updateProject(updated);
     } catch (e) {
       print('Error opening with $app: $e');
     }
@@ -110,8 +150,49 @@ class ProjectUseCases {
     }
   }
 
-  Future<void> _fallbackOpen(String path, OpenWithApp app) async {
-    String command = app.name;
+  Future<_ResolvedTool?> _pickToolForProject(
+    Project project, {
+    ToolId? defaultToolId,
+    List<Tool> installedTools = const [],
+  }) async {
+    final discovery = ToolDiscoveryService.instance;
+
+    Tool? candidate;
+
+    if (project.lastUsedToolId != null) {
+      try {
+        candidate =
+            installedTools.firstWhere((t) => t.id == project.lastUsedToolId);
+      } catch (_) {
+        candidate = await discovery.discoverTool(project.lastUsedToolId!);
+      }
+
+      if (candidate != null &&
+          (!candidate.isInstalled || candidate.path == null)) {
+        candidate = null;
+      }
+    }
+
+    if (candidate == null && defaultToolId != null) {
+      final fallback = await discovery.discoverTool(defaultToolId);
+      if (fallback.isInstalled && fallback.path != null) {
+        candidate = fallback;
+      }
+    }
+
+    if (candidate == null && installedTools.isNotEmpty) {
+      candidate = installedTools.first;
+    }
+
+    if (candidate != null && candidate.path != null) {
+      return _ResolvedTool(candidate);
+    }
+
+    return null;
+  }
+
+  Future<void> _fallbackOpen(String path, OpenWithApp? app) async {
+    String command = app?.name ?? 'open';
     List<String> args = [path];
 
     switch (app) {
@@ -136,6 +217,19 @@ class ProjectUseCases {
         if (Platform.isMacOS) {
           command = 'open';
           args = ['-a', 'Preview', path];
+        } else if (Platform.isWindows) {
+          command = 'cmd';
+          args = ['/c', 'start', ''];
+          args.add(path);
+        } else {
+          command = 'xdg-open';
+          args = [path];
+        }
+        break;
+      case null:
+        if (Platform.isMacOS) {
+          command = 'open';
+          args = [path];
         } else if (Platform.isWindows) {
           command = 'cmd';
           args = ['/c', 'start', ''];
@@ -183,4 +277,10 @@ class ProjectUseCases {
           project.path.toLowerCase().contains(lowerQuery);
     }).toList();
   }
+}
+
+class _ResolvedTool {
+  final Tool tool;
+
+  _ResolvedTool(this.tool);
 }

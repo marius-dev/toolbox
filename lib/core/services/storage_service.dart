@@ -111,4 +111,24 @@ class StorageService {
     }
     await _writePreferences(prefs);
   }
+
+  // Default tool preference
+  Future<String?> getDefaultToolId() async {
+    final prefs = await _readPreferences();
+    final id = prefs['defaultToolId'];
+    if (id is String && id.isNotEmpty) {
+      return id;
+    }
+    return null;
+  }
+
+  Future<void> saveDefaultToolId(String? toolId) async {
+    final prefs = await _readPreferences();
+    if (toolId == null) {
+      prefs.remove('defaultToolId');
+    } else {
+      prefs['defaultToolId'] = toolId;
+    }
+    await _writePreferences(prefs);
+  }
 }
