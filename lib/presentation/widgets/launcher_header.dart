@@ -7,10 +7,10 @@ class LauncherHeader extends StatelessWidget {
   final VoidCallback onAddProject;
 
   const LauncherHeader({
-    Key? key,
+    super.key,
     required this.onSettingsPressed,
     required this.onAddProject,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

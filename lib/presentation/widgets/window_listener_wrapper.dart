@@ -4,8 +4,7 @@ import 'package:window_manager/window_manager.dart';
 class WindowListenerWrapper extends StatefulWidget {
   final Widget child;
 
-  const WindowListenerWrapper({Key? key, required this.child})
-    : super(key: key);
+  const WindowListenerWrapper({super.key, required this.child});
 
   @override
   State<WindowListenerWrapper> createState() => _WindowListenerWrapperState();

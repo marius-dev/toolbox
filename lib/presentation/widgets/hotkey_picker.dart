@@ -7,7 +7,7 @@ import '../../core/theme/theme_provider.dart';
 import 'settings_tile.dart';
 
 class HotkeyPicker extends StatefulWidget {
-  const HotkeyPicker({Key? key}) : super(key: key);
+  const HotkeyPicker({super.key});
 
   @override
   State<HotkeyPicker> createState() => _HotkeyPickerState();
@@ -48,8 +48,9 @@ class _HotkeyPickerState extends State<HotkeyPicker> {
     if (l.contains('command') ||
         l.contains('meta') ||
         l == 'cmd' ||
-        l == 'super')
+        l == 'super') {
       return '⌘';
+    }
     if (l.contains('shift')) return '⇧';
     if (l.contains('option') || l == 'alt') return '⌥';
     if (l.contains('control') || l == 'ctrl') return '⌃';

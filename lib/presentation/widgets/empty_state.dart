@@ -4,7 +4,7 @@ import '../../core/theme/theme_provider.dart';
 class EmptyState extends StatelessWidget {
   final VoidCallback onAddProject;
 
-  const EmptyState({Key? key, required this.onAddProject}) : super(key: key);
+  const EmptyState({super.key, required this.onAddProject});
 
   @override
   Widget build(BuildContext context) {

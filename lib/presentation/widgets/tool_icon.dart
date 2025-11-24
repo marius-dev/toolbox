@@ -26,17 +26,17 @@ class ToolIcon extends StatelessWidget {
   final double borderRadius;
 
   const ToolIcon({
-    Key? key,
+    super.key,
     required this.tool,
     this.size = 42,
     double? borderRadius,
-  })  : borderRadius = borderRadius ?? 10,
-        super(key: key);
+  }) : borderRadius = borderRadius ?? 10;
 
   @override
   Widget build(BuildContext context) {
     final iconPath = tool.iconPath;
-    final hasExternalIcon = iconPath != null &&
+    final hasExternalIcon =
+        iconPath != null &&
         iconPath.isNotEmpty &&
         tool.isInstalled &&
         File(iconPath).existsSync();
@@ -49,7 +49,7 @@ class ToolIcon extends StatelessWidget {
       return ClipRRect(
         borderRadius: BorderRadius.circular(borderRadius),
         child: Image.file(
-          File(iconPath!),
+          File(iconPath),
           width: size,
           height: size,
           fit: BoxFit.cover,
@@ -106,11 +106,7 @@ class ToolIcon extends StatelessWidget {
         gradient: LinearGradient(colors: colors),
         borderRadius: BorderRadius.circular(borderRadius),
       ),
-      child: Icon(
-        _iconData(tool),
-        color: Colors.white,
-        size: size * 0.52,
-      ),
+      child: Icon(_iconData(tool), color: Colors.white, size: size * 0.52),
     );
   }
 
@@ -138,5 +134,4 @@ class ToolIcon extends StatelessWidget {
 
     return [const Color(0xFF1FA2FF), const Color(0xFF12D8FA)];
   }
-
 }

@@ -104,7 +104,7 @@ class ProjectUseCases {
         tool = await discovery.discoverTool(toolId);
       }
 
-      if (tool != null && tool.isInstalled && tool.path != null) {
+      if (tool.isInstalled && tool.path != null) {
         await discovery.launchTool(tool, targetPath: project.path);
         final updated = project.copyWith(
           lastOpened: DateTime.now(),
@@ -167,14 +167,14 @@ class ProjectUseCases {
 
     if (project.lastUsedToolId != null) {
       try {
-        candidate =
-            installedTools.firstWhere((t) => t.id == project.lastUsedToolId);
+        candidate = installedTools.firstWhere(
+          (t) => t.id == project.lastUsedToolId,
+        );
       } catch (_) {
         candidate = await discovery.discoverTool(project.lastUsedToolId!);
       }
 
-      if (candidate != null &&
-          (!candidate.isInstalled || candidate.path == null)) {
+      if ((!candidate.isInstalled || candidate.path == null)) {
         candidate = null;
       }
     }

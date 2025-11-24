@@ -7,12 +7,12 @@ class GlassButton extends StatelessWidget {
   final String? tooltip;
 
   const GlassButton({
-    Key? key,
+    super.key,
     required this.icon,
     required this.onPressed,
     this.size = 32,
     this.tooltip,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

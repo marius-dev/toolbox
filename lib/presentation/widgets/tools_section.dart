@@ -14,14 +14,14 @@ class ToolsSection extends StatefulWidget {
   final void Function(Tool tool)? onLaunch;
 
   const ToolsSection({
-    Key? key,
+    super.key,
     required this.installed,
     required this.available,
     required this.isLoading,
     required this.defaultToolId,
     this.onDefaultChanged,
     this.onLaunch,
-  }) : super(key: key);
+  });
 
   @override
   State<ToolsSection> createState() => _ToolsSectionState();
@@ -283,8 +283,6 @@ class _ToolTileState extends State<_ToolTile> {
     final pathText = tool.path != null
         ? StringUtils.ellipsisStart(tool.path!, maxLength: 60)
         : 'Path not found';
-    final mutedText = Theme.of(context).textTheme.bodyMedium!.color!;
-    final hintColor = mutedText.withOpacity(0.7);
     final canToggleDefault =
         tool.isInstalled && widget.onDefaultChanged != null;
 

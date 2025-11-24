@@ -20,7 +20,7 @@ class ProjectList extends StatefulWidget {
   final VoidCallback onFocusSearch;
 
   const ProjectList({
-    Key? key,
+    super.key,
     required this.projects,
     required this.installedTools,
     required this.defaultToolId,
@@ -31,7 +31,7 @@ class ProjectList extends StatefulWidget {
     required this.onDelete,
     required this.focusNode,
     required this.onFocusSearch,
-  }) : super(key: key);
+  });
 
   @override
   State<ProjectList> createState() => _ProjectListState();
@@ -135,8 +135,10 @@ class _ProjectListState extends State<ProjectList> {
 
     if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
       setState(() {
-        _selectedIndex =
-            math.min(widget.projects.length - 1, _selectedIndex + 1);
+        _selectedIndex = math.min(
+          widget.projects.length - 1,
+          _selectedIndex + 1,
+        );
         _highlightedIndex = _selectedIndex;
       });
       _scrollToSelected();

@@ -9,11 +9,11 @@ class TabBarWidget extends StatelessWidget {
   final int toolsBadge;
 
   const TabBarWidget({
-    Key? key,
+    super.key,
     required this.selectedTab,
     required this.onTabSelected,
     this.toolsBadge = 0,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -44,11 +44,7 @@ class TabBarWidget extends StatelessWidget {
                 tab: LauncherTab.tools,
                 badge: toolsBadge > 0 ? toolsBadge.toString() : null,
               ),
-              _buildTab(
-                context,
-                label: 'Projects',
-                tab: LauncherTab.projects,
-              ),
+              _buildTab(context, label: 'Projects', tab: LauncherTab.projects),
             ],
           ),
         );

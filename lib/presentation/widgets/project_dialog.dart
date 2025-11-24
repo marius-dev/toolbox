@@ -16,14 +16,15 @@ class ProjectDialog extends StatefulWidget {
     String path,
     ProjectType type,
     ToolId? preferredToolId,
-  ) onSave;
+  )
+  onSave;
 
   const ProjectDialog({
-    Key? key,
+    super.key,
     this.project,
     this.defaultToolId,
     required this.onSave,
-  }) : super(key: key);
+  });
 
   @override
   State<ProjectDialog> createState() => _ProjectDialogState();
@@ -58,8 +59,9 @@ class _ProjectDialogState extends State<ProjectDialog> {
   }
 
   Future<void> _pickProjectFolder() async {
-    final selectedPath = await WindowService.instance
-        .runWithAutoHideSuppressed(() => FilePicker.platform.getDirectoryPath());
+    final selectedPath = await WindowService.instance.runWithAutoHideSuppressed(
+      () => FilePicker.platform.getDirectoryPath(),
+    );
     if (selectedPath != null) {
       setState(() {
         _pathController.text = selectedPath;
@@ -76,12 +78,13 @@ class _ProjectDialogState extends State<ProjectDialog> {
     });
 
     final tools = await ToolDiscoveryService.instance.discoverTools();
-    final installed = tools
-        .where(
-          (tool) => tool.isInstalled && tool.id != ToolId.preview,
-        )
-        .toList()
-      ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+    final installed =
+        tools
+            .where((tool) => tool.isInstalled && tool.id != ToolId.preview)
+            .toList()
+          ..sort(
+            (a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()),
+          );
 
     ToolId? initialId;
     if (widget.project?.lastUsedToolId != null &&
@@ -114,8 +117,9 @@ class _ProjectDialogState extends State<ProjectDialog> {
 
   void _save() {
     if (_nameController.text.isNotEmpty && _pathController.text.isNotEmpty) {
-      final preferredToolId =
-          widget.project == null ? _selectedToolId : widget.project?.lastUsedToolId;
+      final preferredToolId = widget.project == null
+          ? _selectedToolId
+          : widget.project?.lastUsedToolId;
       widget.onSave(
         _nameController.text,
         _pathController.text,
@@ -165,7 +169,9 @@ class _ProjectDialogState extends State<ProjectDialog> {
               ],
             )
           : _buildWizardContent(context),
-      actions: isEditing ? _buildEditActions(accentColor) : _buildWizardActions(accentColor),
+      actions: isEditing
+          ? _buildEditActions(accentColor)
+          : _buildWizardActions(accentColor),
     );
   }
 
@@ -184,9 +190,7 @@ class _ProjectDialogState extends State<ProjectDialog> {
         onPressed: _save,
         style: ElevatedButton.styleFrom(
           backgroundColor: accentColor,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
         child: const Text(
           'Save',
@@ -221,10 +225,9 @@ class _ProjectDialogState extends State<ProjectDialog> {
         const SizedBox(height: 8),
         Text(
           'Choose the folder that contains your project.',
-          style: Theme.of(context)
-              .textTheme
-              .bodySmall!
-              .copyWith(color: mutedText.withOpacity(0.8)),
+          style: Theme.of(
+            context,
+          ).textTheme.bodySmall!.copyWith(color: mutedText.withOpacity(0.8)),
         ),
       ],
     );
@@ -244,10 +247,9 @@ class _ProjectDialogState extends State<ProjectDialog> {
         const SizedBox(height: 8),
         Text(
           'We prefilled this from the folder name, but you can change it.',
-          style: Theme.of(context)
-              .textTheme
-              .bodySmall!
-              .copyWith(color: mutedText.withOpacity(0.8)),
+          style: Theme.of(
+            context,
+          ).textTheme.bodySmall!.copyWith(color: mutedText.withOpacity(0.8)),
         ),
       ],
     );
@@ -273,17 +275,16 @@ class _ProjectDialogState extends State<ProjectDialog> {
         children: [
           Text(
             'Preferred IDE',
-            style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium!.copyWith(fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 8),
           Text(
             'No installed IDEs were detected. You can change the default tool later from the Tools tab.',
-            style: Theme.of(context)
-                .textTheme
-                .bodySmall!
-                .copyWith(color: mutedText.withOpacity(0.8)),
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall!.copyWith(color: mutedText.withOpacity(0.8)),
           ),
         ],
       );
@@ -294,9 +295,9 @@ class _ProjectDialogState extends State<ProjectDialog> {
       children: [
         Text(
           'Preferred IDE',
-          style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
+          style: Theme.of(
+            context,
+          ).textTheme.bodyMedium!.copyWith(fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 8),
         SizedBox(
@@ -319,11 +320,7 @@ class _ProjectDialogState extends State<ProjectDialog> {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
-                secondary: ToolIcon(
-                  tool: tool,
-                  size: 28,
-                  borderRadius: 6,
-                ),
+                secondary: ToolIcon(tool: tool, size: 28, borderRadius: 6),
               );
             },
           ),
@@ -372,9 +369,7 @@ class _ProjectDialogState extends State<ProjectDialog> {
           foregroundColor: Colors.white,
           disabledBackgroundColor: accentColor.withOpacity(0.3),
           disabledForegroundColor: Colors.white.withOpacity(0.7),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
         child: Text(
           isLastStep ? 'Save' : 'Next',
@@ -427,7 +422,7 @@ class _ProjectDialogState extends State<ProjectDialog> {
     final dropdownBg = isDark ? const Color(0xFF2A1F3D) : Colors.white;
 
     return DropdownButtonFormField<ProjectType>(
-      value: _selectedType,
+      initialValue: _selectedType,
       dropdownColor: dropdownBg,
       style: Theme.of(context).textTheme.bodyLarge,
       decoration: InputDecoration(

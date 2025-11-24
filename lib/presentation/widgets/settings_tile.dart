@@ -8,12 +8,12 @@ class SettingsTile extends StatelessWidget {
   final Widget trailing;
 
   const SettingsTile({
-    Key? key,
+    super.key,
     required this.title,
     required this.subtitle,
     required this.icon,
     required this.trailing,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

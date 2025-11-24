@@ -16,7 +16,7 @@ import '../../core/services/window_service.dart';
 import '../../core/theme/theme_provider.dart';
 
 class LauncherScreen extends StatefulWidget {
-  const LauncherScreen({Key? key}) : super(key: key);
+  const LauncherScreen({super.key});
 
   @override
   State<LauncherScreen> createState() => _LauncherScreenState();
@@ -69,7 +69,8 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
   }
 
   void _focusSearchField() {
-    if (!mounted || _selectedTab != LauncherTab.projects || _showSettings) return;
+    if (!mounted || _selectedTab != LauncherTab.projects || _showSettings)
+      return;
     FocusScope.of(context).requestFocus(_searchFocusNode);
   }
 
@@ -166,12 +167,14 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
         TabBarWidget(
           selectedTab: _selectedTab,
           toolsBadge: _toolsProvider.installedCount,
-        onTabSelected: (tab) {
+          onTabSelected: (tab) {
             setState(() => _selectedTab = tab);
             if (_selectedTab == LauncherTab.tools) {
               _toolsProvider.loadTools();
             } else {
-              WidgetsBinding.instance.addPostFrameCallback((_) => _focusSearchField());
+              WidgetsBinding.instance.addPostFrameCallback(
+                (_) => _focusSearchField(),
+              );
             }
           },
         ),
@@ -265,8 +268,7 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
                 defaultToolId: _toolsProvider.defaultToolId,
                 installedTools: _toolsProvider.installed,
               ),
-              onDelete: (project) =>
-                  _projectProvider.deleteProject(project.id),
+              onDelete: (project) => _projectProvider.deleteProject(project.id),
               onFocusSearch: _focusSearchField,
             );
           },

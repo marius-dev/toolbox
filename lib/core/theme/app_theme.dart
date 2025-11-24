@@ -100,8 +100,6 @@ class AppTheme {
       onSecondary: Colors.white,
       error: Colors.red,
       onError: Colors.white,
-      background: isDark ? const Color(0xFF0B0D14) : Colors.white,
-      onBackground: isDark ? Colors.white : Colors.black87,
       surface: isDark
           ? Colors.black.withOpacity(0.2)
           : Colors.white.withOpacity(0.9),

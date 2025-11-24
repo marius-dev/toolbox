@@ -9,10 +9,10 @@ class SettingsScreen extends StatelessWidget {
   final VoidCallback onRescan;
 
   const SettingsScreen({
-    Key? key,
+    super.key,
     required this.onBack,
     required this.onRescan,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -20,18 +20,18 @@ class SettingsScreen extends StatelessWidget {
       children: [
         _buildHeader(context),
         Expanded(
-            child: ListView(
-              padding: const EdgeInsets.all(20),
-              children: [
-                const HotkeyPicker(),
-                const SizedBox(height: 12),
-                _buildToolsRescanTile(context),
-                const SizedBox(height: 12),
-                _buildThemeToggle(context),
-                const SizedBox(height: 12),
-                _buildAccentColorPicker(context),
-              ],
-            ),
+          child: ListView(
+            padding: const EdgeInsets.all(20),
+            children: [
+              const HotkeyPicker(),
+              const SizedBox(height: 12),
+              _buildToolsRescanTile(context),
+              const SizedBox(height: 12),
+              _buildThemeToggle(context),
+              const SizedBox(height: 12),
+              _buildAccentColorPicker(context),
+            ],
+          ),
         ),
       ],
     );
@@ -93,7 +93,7 @@ class SettingsScreen extends StatelessWidget {
           trailing: Switch(
             value: !isDark,
             onChanged: (_) => themeProvider.toggleTheme(),
-            activeColor: themeProvider.accentColor,
+            activeThumbColor: themeProvider.accentColor,
           ),
         );
       },

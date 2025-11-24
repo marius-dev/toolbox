@@ -61,7 +61,7 @@ class Project {
   factory Project.fromJson(Map<String, dynamic> json) {
     final now = DateTime.now();
 
-    DateTime _parseDate(dynamic value, {DateTime? fallback}) {
+    DateTime parseDate(dynamic value, {DateTime? fallback}) {
       if (value is String && value.isNotEmpty) {
         try {
           return DateTime.parse(value);
@@ -70,15 +70,12 @@ class Project {
       return fallback ?? now;
     }
 
-    final createdAt = _parseDate(
+    final createdAt = parseDate(
       json['createdAt'],
-      fallback: _parseDate(json['lastOpened'], fallback: now),
+      fallback: parseDate(json['lastOpened'], fallback: now),
     );
 
-    final lastOpened = _parseDate(
-      json['lastOpened'],
-      fallback: createdAt,
-    );
+    final lastOpened = parseDate(json['lastOpened'], fallback: createdAt);
 
     return Project(
       id: json['id'],

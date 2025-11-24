@@ -12,14 +12,14 @@ class SearchSortBar extends StatelessWidget {
   final VoidCallback? onNavigateNext;
 
   const SearchSortBar({
-    Key? key,
+    super.key,
     required this.controller,
     required this.onSearchChanged,
     required this.currentSort,
     required this.onSortChanged,
     this.focusNode,
     this.onNavigateNext,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -191,11 +191,11 @@ class SearchSortBar extends StatelessWidget {
           Text(
             option.displayName,
             style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                  color: isSelected
-                      ? accentColor
-                      : Theme.of(context).textTheme.bodyMedium!.color,
-                ),
+              fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+              color: isSelected
+                  ? accentColor
+                  : Theme.of(context).textTheme.bodyMedium!.color,
+            ),
           ),
         ],
       ),

@@ -1,14 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'dart:io';
 import 'package:window_manager/window_manager.dart';
-import 'package:tray_manager/tray_manager.dart';
-import 'package:hotkey_manager/hotkey_manager.dart';
-
 import 'core/services/window_service.dart';
 import 'core/services/tray_service.dart';
 import 'core/services/hotkey_service.dart';
-import 'core/services/storage_service.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_provider.dart';
 import 'presentation/screens/launcher_screen.dart';
@@ -30,7 +24,7 @@ Future<void> _initializeServices() async {
 }
 
 class ProjectLauncherApp extends StatefulWidget {
-  const ProjectLauncherApp({Key? key}) : super(key: key);
+  const ProjectLauncherApp({super.key});
 
   @override
   State<ProjectLauncherApp> createState() => _ProjectLauncherAppState();

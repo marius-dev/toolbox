@@ -33,7 +33,7 @@ class ProjectItem extends StatelessWidget {
   final bool isSelected;
 
   const ProjectItem({
-    Key? key,
+    super.key,
     required this.project,
     required this.installedTools,
     required this.defaultToolId,
@@ -43,7 +43,7 @@ class ProjectItem extends StatelessWidget {
     required this.onOpenWith,
     required this.onDelete,
     this.isSelected = false,
-  }) : super(key: key);
+  });
   @override
   Widget build(BuildContext context) {
     final isDisabled = !project.pathExists;
@@ -65,8 +65,8 @@ class ProjectItem extends StatelessWidget {
         : baseBorderColor;
     final shadowColor = interactionActive
         ? (isDark
-            ? Colors.white.withOpacity(0.15)
-            : Colors.black.withOpacity(0.15))
+              ? Colors.white.withOpacity(0.15)
+              : Colors.black.withOpacity(0.15))
         : Colors.transparent;
 
     return Container(
@@ -88,7 +88,7 @@ class ProjectItem extends StatelessWidget {
                         color: shadowColor,
                         blurRadius: 12,
                         offset: const Offset(0, 4),
-                      )
+                      ),
                     ]
                   : null,
             ),
@@ -124,8 +124,8 @@ class ProjectItem extends StatelessWidget {
         borderRadius: BorderRadius.circular(8),
       ),
       child: Center(
-          child: Text(
-            project.name.substring(0, 2).toUpperCase(),
+        child: Text(
+          project.name.substring(0, 2).toUpperCase(),
           style: TextStyle(
             color: textColor,
             fontWeight: FontWeight.bold,
@@ -201,8 +201,7 @@ class ProjectItem extends StatelessWidget {
 
     if (project.lastUsedToolId != null) {
       try {
-        tool = installedTools
-            .firstWhere((t) => t.id == project.lastUsedToolId);
+        tool = installedTools.firstWhere((t) => t.id == project.lastUsedToolId);
       } catch (_) {}
     }
 
@@ -225,11 +224,7 @@ class ProjectItem extends StatelessWidget {
 
     return Tooltip(
       message: 'Last opened with ${tool.name}',
-      child: ToolIcon(
-        tool: tool,
-        size: 16,
-        borderRadius: 4,
-      ),
+      child: ToolIcon(tool: tool, size: 16, borderRadius: 4),
     );
   }
 
@@ -325,31 +320,26 @@ class ProjectItem extends StatelessWidget {
           enabled: false,
           child: Text(
             'No installed tools found',
-            style: TextStyle(
-              color: textColor.withOpacity(0.7),
-              fontSize: 12,
-            ),
+            style: TextStyle(color: textColor.withOpacity(0.7), fontSize: 12),
           ),
         ),
       ];
     }
 
-    return installedTools.map((tool) {
-      return PopupMenuItem<String>(
-        value: 'open_${tool.id.name}',
-        child: Row(
-          children: [
-            ToolIcon(
-              tool: tool,
-              size: 22,
-              borderRadius: 6,
+    return installedTools
+        .map((tool) {
+          return PopupMenuItem<String>(
+            value: 'open_${tool.id.name}',
+            child: Row(
+              children: [
+                ToolIcon(tool: tool, size: 22, borderRadius: 6),
+                const SizedBox(width: 8),
+                Text(tool.name, style: TextStyle(color: textColor)),
+              ],
             ),
-            const SizedBox(width: 8),
-            Text(tool.name, style: TextStyle(color: textColor)),
-          ],
-        ),
-      );
-    }).toList(growable: false);
+          );
+        })
+        .toList(growable: false);
   }
 
   void _handleMenuSelection(String value) {
