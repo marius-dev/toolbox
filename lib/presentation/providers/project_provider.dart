@@ -1,0 +1,95 @@
+import 'package:flutter/foundation.dart';
+import '../../domain/models/project.dart';
+import '../../domain/use_cases/project_use_cases.dart';
+import '../../domain/repositories/project_repository.dart';
+import '../widgets/project_item.dart';
+
+class ProjectProvider extends ChangeNotifier {
+  final ProjectUseCases _useCases;
+
+  List<Project> _projects = [];
+  List<Project> _filteredProjects = [];
+  String _searchQuery = '';
+  SortOption _sortOption = SortOption.recent;
+  bool _isLoading = false;
+
+  ProjectProvider(this._useCases);
+
+  factory ProjectProvider.create() {
+    return ProjectProvider(ProjectUseCases(ProjectRepository.instance));
+  }
+
+  // Getters
+  List<Project> get projects => _filteredProjects;
+  SortOption get sortOption => _sortOption;
+  bool get isLoading => _isLoading;
+  bool get hasProjects => _filteredProjects.isNotEmpty;
+
+  // Methods
+  Future<void> loadProjects() async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      _projects = await _useCases.getAllProjects();
+      _applyFiltersAndSort();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  void setSearchQuery(String query) {
+    _searchQuery = query;
+    _applyFiltersAndSort();
+  }
+
+  void setSortOption(SortOption option) {
+    _sortOption = option;
+    _applyFiltersAndSort();
+  }
+
+  Future<void> addProject({
+    required String name,
+    required String path,
+    required ProjectType type,
+  }) async {
+    await _useCases.addProject(name: name, path: path, type: type);
+    await loadProjects();
+  }
+
+  Future<void> updateProject(Project project) async {
+    await _useCases.updateProject(project);
+    await loadProjects();
+  }
+
+  Future<void> deleteProject(String projectId) async {
+    await _useCases.deleteProject(projectId);
+    await loadProjects();
+  }
+
+  Future<void> toggleStar(Project project) async {
+    await _useCases.toggleStar(project);
+    await loadProjects();
+  }
+
+  Future<void> openProject(Project project) async {
+    await _useCases.openProject(project);
+    await loadProjects();
+  }
+
+  Future<void> showInFinder(String path) async {
+    await _useCases.showInFinder(path);
+  }
+
+  Future<void> openWith(String path, OpenWithApp app) async {
+    await _useCases.openWith(path, app);
+  }
+
+  void _applyFiltersAndSort() {
+    var filtered = _useCases.filterProjects(_projects, _searchQuery);
+    filtered = _useCases.sortProjects(filtered, _sortOption);
+    _filteredProjects = filtered;
+    notifyListeners();
+  }
+}
