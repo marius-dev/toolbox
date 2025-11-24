@@ -12,6 +12,31 @@ class WindowService {
 
   WindowService._internal();
 
+  int _autoHideSuppressionCount = 0;
+
+  bool get shouldAutoHideOnBlur => _autoHideSuppressionCount == 0;
+
+  void pushAutoHideSuppression() {
+    _autoHideSuppressionCount++;
+  }
+
+  void popAutoHideSuppression() {
+    if (_autoHideSuppressionCount > 0) {
+      _autoHideSuppressionCount--;
+    }
+  }
+
+  Future<T?> runWithAutoHideSuppressed<T>(
+    Future<T?> Function() operation,
+  ) async {
+    pushAutoHideSuppression();
+    try {
+      return await operation();
+    } finally {
+      popAutoHideSuppression();
+    }
+  }
+
   Future<void> initialize() async {
     final windowOptions = WindowOptions(
       size: _windowSize,

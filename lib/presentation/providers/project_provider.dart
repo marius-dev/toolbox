@@ -54,8 +54,14 @@ class ProjectProvider extends ChangeNotifier {
     required String name,
     required String path,
     required ProjectType type,
+    ToolId? preferredToolId,
   }) async {
-    await _useCases.addProject(name: name, path: path, type: type);
+    await _useCases.addProject(
+      name: name,
+      path: path,
+      type: type,
+      preferredToolId: preferredToolId,
+    );
     await loadProjects();
   }
 

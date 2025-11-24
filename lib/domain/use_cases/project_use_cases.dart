@@ -16,8 +16,14 @@ class ProjectUseCases {
     required String name,
     required String path,
     required ProjectType type,
+    ToolId? preferredToolId,
   }) async {
-    final project = Project.create(name: name, path: path, type: type);
+    final project = Project.create(
+      name: name,
+      path: path,
+      type: type,
+      preferredToolId: preferredToolId,
+    );
     await _repository.addProject(project);
   }
 

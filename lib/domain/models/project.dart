@@ -101,6 +101,7 @@ class Project {
     required String name,
     required String path,
     required ProjectType type,
+    ToolId? preferredToolId,
   }) {
     final now = DateTime.now();
     return Project(
@@ -110,7 +111,7 @@ class Project {
       type: type,
       lastOpened: now,
       createdAt: now,
-      lastUsedToolId: null,
+      lastUsedToolId: preferredToolId,
     );
   }
 }

@@ -56,6 +56,7 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
   @override
   void onWindowBlur() {
     Future.delayed(const Duration(milliseconds: 100), () {
+      if (!WindowService.instance.shouldAutoHideOnBlur) return;
       WindowService.instance.hide();
     });
   }
@@ -193,8 +194,14 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
     showDialog(
       context: context,
       builder: (context) => ProjectDialog(
-        onSave: (name, path, type) {
-          _projectProvider.addProject(name: name, path: path, type: type);
+        defaultToolId: _toolsProvider.defaultToolId,
+        onSave: (name, path, type, preferredToolId) {
+          _projectProvider.addProject(
+            name: name,
+            path: path,
+            type: type,
+            preferredToolId: preferredToolId,
+          );
         },
       ),
     );
@@ -205,7 +212,8 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
       context: context,
       builder: (context) => ProjectDialog(
         project: project,
-        onSave: (name, path, type) {
+        defaultToolId: _toolsProvider.defaultToolId,
+        onSave: (name, path, type, _) {
           _projectProvider.updateProject(
             project.copyWith(name: name, path: path, type: type),
           );
