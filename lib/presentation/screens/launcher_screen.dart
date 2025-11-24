@@ -129,7 +129,10 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
         borderRadius: BorderRadius.circular(20),
       ),
       child: _showSettings
-          ? SettingsScreen(onBack: _toggleSettings)
+          ? SettingsScreen(
+              onBack: _toggleSettings,
+              onRescan: _toolsProvider.refresh,
+            )
           : _buildMainView(),
     );
   }
@@ -249,7 +252,6 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
             installed: _toolsProvider.installed,
             available: _toolsProvider.available,
             isLoading: _toolsProvider.isLoading,
-            onRefresh: () => _toolsProvider.refresh(),
             defaultToolId: _toolsProvider.defaultToolId,
             onDefaultChanged: (id) => _toolsProvider.setDefaultTool(id),
             onLaunch: (tool) => _toolsProvider.launch(tool),

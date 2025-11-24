@@ -6,8 +6,13 @@ import '../widgets/settings_tile.dart';
 
 class SettingsScreen extends StatelessWidget {
   final VoidCallback onBack;
+  final VoidCallback onRescan;
 
-  const SettingsScreen({Key? key, required this.onBack}) : super(key: key);
+  const SettingsScreen({
+    Key? key,
+    required this.onBack,
+    required this.onRescan,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -15,16 +20,18 @@ class SettingsScreen extends StatelessWidget {
       children: [
         _buildHeader(context),
         Expanded(
-          child: ListView(
-            padding: const EdgeInsets.all(20),
-            children: [
-              const HotkeyPicker(),
-              const SizedBox(height: 12),
-              _buildThemeToggle(context),
-              const SizedBox(height: 12),
-              _buildAccentColorPicker(context),
-            ],
-          ),
+            child: ListView(
+              padding: const EdgeInsets.all(20),
+              children: [
+                const HotkeyPicker(),
+                const SizedBox(height: 12),
+                _buildToolsRescanTile(context),
+                const SizedBox(height: 12),
+                _buildThemeToggle(context),
+                const SizedBox(height: 12),
+                _buildAccentColorPicker(context),
+              ],
+            ),
         ),
       ],
     );
@@ -50,6 +57,24 @@ class SettingsScreen extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildToolsRescanTile(BuildContext context) {
+    final accentColor = ThemeProvider.instance.accentColor;
+
+    return SettingsTile(
+      title: 'Rescan tools',
+      subtitle: 'Redetect editors and viewers installed on this device',
+      icon: Icons.refresh,
+      trailing: TextButton(
+        onPressed: onRescan,
+        style: TextButton.styleFrom(
+          foregroundColor: accentColor,
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        ),
+        child: const Text('Rescan'),
       ),
     );
   }
