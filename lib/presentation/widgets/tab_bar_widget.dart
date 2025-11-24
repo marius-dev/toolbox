@@ -1,15 +1,19 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/theme_provider.dart';
 
-class TabBarWidget extends StatefulWidget {
-  const TabBarWidget({Key? key}) : super(key: key);
+enum LauncherTab { tools, projects }
 
-  @override
-  State<TabBarWidget> createState() => _TabBarWidgetState();
-}
+class TabBarWidget extends StatelessWidget {
+  final LauncherTab selectedTab;
+  final ValueChanged<LauncherTab> onTabSelected;
+  final int toolsBadge;
 
-class _TabBarWidgetState extends State<TabBarWidget> {
-  String _selectedTab = 'Projects';
+  const TabBarWidget({
+    Key? key,
+    required this.selectedTab,
+    required this.onTabSelected,
+    this.toolsBadge = 0,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -34,8 +38,17 @@ class _TabBarWidgetState extends State<TabBarWidget> {
           ),
           child: Row(
             children: [
-              _buildTab('Tools', false, badge: '1'),
-              _buildTab('Projects', true),
+              _buildTab(
+                context,
+                label: 'Tools',
+                tab: LauncherTab.tools,
+                badge: toolsBadge > 0 ? toolsBadge.toString() : null,
+              ),
+              _buildTab(
+                context,
+                label: 'Projects',
+                tab: LauncherTab.projects,
+              ),
             ],
           ),
         );
@@ -43,16 +56,22 @@ class _TabBarWidgetState extends State<TabBarWidget> {
     );
   }
 
-  Widget _buildTab(String label, bool isActive, {String? badge}) {
+  Widget _buildTab(
+    BuildContext context, {
+    required String label,
+    required LauncherTab tab,
+    String? badge,
+  }) {
     final accentColor = ThemeProvider.instance.accentColor;
     final textPrimary = Theme.of(context).textTheme.bodyLarge!.color!;
     final textSecondary = Theme.of(context).textTheme.bodyMedium!.color!;
+    final isActive = selectedTab == tab;
 
     return Expanded(
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: () => setState(() => _selectedTab = label),
+          onTap: () => onTabSelected(tab),
           borderRadius: BorderRadius.circular(8),
           child: Container(
             padding: const EdgeInsets.symmetric(vertical: 8),

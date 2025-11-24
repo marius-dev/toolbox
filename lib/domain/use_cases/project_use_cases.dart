@@ -1,6 +1,8 @@
 import 'dart:io';
+import '../../core/services/tool_discovery_service.dart';
 import '../../presentation/widgets/project_item.dart';
 import '../models/project.dart';
+import '../models/tool.dart';
 import '../repositories/project_repository.dart';
 
 class ProjectUseCases {
@@ -62,37 +64,61 @@ class ProjectUseCases {
 
   Future<void> openWith(String path, OpenWithApp app) async {
     try {
-      String command;
-      List<String> args = [];
+      final toolId = _mapToToolId(app);
+      final discovery = ToolDiscoveryService.instance;
+      final tool = await discovery.discoverTool(toolId);
 
-      switch (app) {
-        case OpenWithApp.vscode:
-          command = 'code';
-          args = [path];
-          break;
-        case OpenWithApp.intellij:
-          command = 'idea';
-          args = [path];
-          break;
-        case OpenWithApp.preview:
-          if (Platform.isMacOS) {
-            command = 'open';
-            args = ['-a', 'Preview', path];
-          } else if (Platform.isWindows) {
-            command = 'cmd';
-            args = ['/c', 'start', ''];
-            args.add(path);
-          } else {
-            command = 'xdg-open';
-            args = [path];
-          }
-          break;
+      if (tool.isInstalled) {
+        await discovery.launchTool(tool, targetPath: path);
+        return;
       }
 
-      await Process.run(command, args);
+      await _fallbackOpen(path, app);
     } catch (e) {
       print('Error opening with $app: $e');
     }
+  }
+
+  ToolId _mapToToolId(OpenWithApp app) {
+    switch (app) {
+      case OpenWithApp.vscode:
+        return ToolId.vscode;
+      case OpenWithApp.intellij:
+        return ToolId.intellij;
+      case OpenWithApp.preview:
+        return ToolId.preview;
+    }
+  }
+
+  Future<void> _fallbackOpen(String path, OpenWithApp app) async {
+    String command;
+    List<String> args = [];
+
+    switch (app) {
+      case OpenWithApp.vscode:
+        command = 'code';
+        args = [path];
+        break;
+      case OpenWithApp.intellij:
+        command = 'idea';
+        args = [path];
+        break;
+      case OpenWithApp.preview:
+        if (Platform.isMacOS) {
+          command = 'open';
+          args = ['-a', 'Preview', path];
+        } else if (Platform.isWindows) {
+          command = 'cmd';
+          args = ['/c', 'start', ''];
+          args.add(path);
+        } else {
+          command = 'xdg-open';
+          args = [path];
+        }
+        break;
+    }
+
+    await Process.run(command, args);
   }
 
   List<Project> sortProjects(List<Project> projects, SortOption sortOption) {

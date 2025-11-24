@@ -10,6 +10,8 @@ import '../widgets/tab_bar_widget.dart';
 import '../widgets/search_sort_bar.dart';
 import '../widgets/project_list.dart';
 import '../widgets/empty_state.dart';
+import '../providers/tools_provider.dart';
+import '../widgets/tools_section.dart';
 import '../../core/services/window_service.dart';
 import '../../core/theme/theme_provider.dart';
 
@@ -22,14 +24,18 @@ class LauncherScreen extends StatefulWidget {
 
 class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
   late final ProjectProvider _projectProvider;
+  late final ToolsProvider _toolsProvider;
   final TextEditingController _searchController = TextEditingController();
   bool _showSettings = false;
+  LauncherTab _selectedTab = LauncherTab.projects;
 
   @override
   void initState() {
     super.initState();
     _projectProvider = ProjectProvider.create();
+    _toolsProvider = ToolsProvider.create();
     _projectProvider.loadProjects();
+    _toolsProvider.loadTools();
     windowManager.addListener(this);
   }
 
@@ -38,6 +44,7 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
     windowManager.removeListener(this);
     _searchController.dispose();
     _projectProvider.dispose();
+    _toolsProvider.dispose();
     super.dispose();
   }
 
@@ -134,41 +141,20 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
           onSettingsPressed: _toggleSettings,
           onAddProject: () => _showAddProjectDialog(context),
         ),
-        const TabBarWidget(),
-        SearchSortBar(
-          controller: _searchController,
-          onSearchChanged: _projectProvider.setSearchQuery,
-          currentSort: _projectProvider.sortOption,
-          onSortChanged: _projectProvider.setSortOption,
+        TabBarWidget(
+          selectedTab: _selectedTab,
+          toolsBadge: _toolsProvider.installedCount,
+          onTabSelected: (tab) {
+              setState(() => _selectedTab = tab);
+            if (_selectedTab == LauncherTab.tools) {
+              _toolsProvider.loadTools();
+            }
+          },
         ),
-        Expanded(
-          child: AnimatedBuilder(
-            animation: _projectProvider,
-            builder: (context, _) {
-              if (_projectProvider.isLoading) {
-                return const Center(child: CircularProgressIndicator());
-              }
-
-              if (!_projectProvider.hasProjects) {
-                return EmptyState(
-                  onAddProject: () => _showAddProjectDialog(context),
-                );
-              }
-
-              return ProjectList(
-                projects: _projectProvider.projects,
-                onProjectTap: _projectProvider.openProject,
-                onStarToggle: _projectProvider.toggleStar,
-                onShowInFinder: (project) =>
-                    _projectProvider.showInFinder(project.path),
-                onOpenWith: (project, app) =>
-                    _projectProvider.openWith(project.path, app),
-                onDelete: (project) =>
-                    _projectProvider.deleteProject(project.id),
-              );
-            },
-          ),
-        ),
+        if (_selectedTab == LauncherTab.projects)
+          ..._buildProjectsArea(context)
+        else
+          _buildToolsArea(),
       ],
     );
   }
@@ -199,6 +185,62 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
         onSave: (name, path, type) {
           _projectProvider.updateProject(
             project.copyWith(name: name, path: path, type: type),
+          );
+        },
+      ),
+    );
+  }
+
+  List<Widget> _buildProjectsArea(BuildContext context) {
+    return [
+      SearchSortBar(
+        controller: _searchController,
+        onSearchChanged: _projectProvider.setSearchQuery,
+        currentSort: _projectProvider.sortOption,
+        onSortChanged: _projectProvider.setSortOption,
+      ),
+      Expanded(
+        child: AnimatedBuilder(
+          animation: _projectProvider,
+          builder: (context, _) {
+            if (_projectProvider.isLoading) {
+              return const Center(child: CircularProgressIndicator());
+            }
+
+            if (!_projectProvider.hasProjects) {
+              return EmptyState(
+                onAddProject: () => _showAddProjectDialog(context),
+              );
+            }
+
+            return ProjectList(
+              projects: _projectProvider.projects,
+              onProjectTap: _projectProvider.openProject,
+              onStarToggle: _projectProvider.toggleStar,
+              onShowInFinder: (project) =>
+                  _projectProvider.showInFinder(project.path),
+              onOpenWith: (project, app) =>
+                  _projectProvider.openWith(project.path, app),
+              onDelete: (project) =>
+                  _projectProvider.deleteProject(project.id),
+            );
+          },
+        ),
+      ),
+    ];
+  }
+
+  Widget _buildToolsArea() {
+    return Expanded(
+      child: AnimatedBuilder(
+        animation: _toolsProvider,
+        builder: (context, _) {
+          return ToolsSection(
+            installed: _toolsProvider.installed,
+            available: _toolsProvider.available,
+            isLoading: _toolsProvider.isLoading,
+            onRefresh: () => _toolsProvider.refresh(),
+            onLaunch: (tool) => _toolsProvider.launch(tool),
           );
         },
       ),
