@@ -4,7 +4,7 @@ import '../../core/theme/theme_provider.dart';
 import '../../core/utils/string_utils.dart';
 import '../../domain/models/tool.dart';
 
-class ToolsSection extends StatelessWidget {
+class ToolsSection extends StatefulWidget {
   final List<Tool> installed;
   final List<Tool> available;
   final bool isLoading;
@@ -20,6 +20,28 @@ class ToolsSection extends StatelessWidget {
     this.onLaunch,
   }) : super(key: key);
 
+  static const Set<ToolId> _jetBrainsIds = {
+    ToolId.intellij,
+    ToolId.webstorm,
+    ToolId.phpstorm,
+    ToolId.pycharm,
+    ToolId.clion,
+    ToolId.goland,
+    ToolId.datagrip,
+    ToolId.rider,
+    ToolId.rubymine,
+    ToolId.appcode,
+    ToolId.fleet,
+  };
+
+  @override
+  State<ToolsSection> createState() => _ToolsSectionState();
+}
+
+class _ToolsSectionState extends State<ToolsSection> {
+  bool _installedExpanded = true;
+  bool _availableExpanded = true;
+
   @override
   Widget build(BuildContext context) {
     final panelColor = Theme.of(context).brightness == Brightness.dark
@@ -30,12 +52,12 @@ class ToolsSection extends StatelessWidget {
         : Colors.black.withOpacity(0.06);
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+      padding: const EdgeInsets.fromLTRB(5, 5, 5, 5),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildToolbar(context),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
           Expanded(
             child: Container(
               decoration: BoxDecoration(
@@ -43,28 +65,37 @@ class ToolsSection extends StatelessWidget {
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(color: borderColor),
               ),
-              padding: const EdgeInsets.all(16),
-              child: isLoading
+              padding: const EdgeInsets.all(5),
+              child: widget.isLoading
                   ? const Center(child: CircularProgressIndicator())
                   : ListView(
+                      padding: const EdgeInsets.all(5),
                       children: [
                         _buildSection(
                           context,
                           title: 'Installed',
                           subtitle: 'Tools already available on this device',
-                          tools: installed,
+                          tools: widget.installed,
                           emptyLabel:
                               'Nothing detected yet. Try rescanning or installing a tool.',
+                          expanded: _installedExpanded,
+                          onToggle: () => setState(
+                            () => _installedExpanded = !_installedExpanded,
+                          ),
                         ),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 8),
                         _buildSection(
                           context,
                           title: 'Available tools',
                           subtitle:
                               'Autodiscovered locations for common editors and viewers',
-                          tools: available,
+                          tools: widget.available,
                           emptyLabel:
                               'Everything we know is already installed. Add more tools to see them here.',
+                          expanded: _availableExpanded,
+                          onToggle: () => setState(
+                            () => _availableExpanded = !_availableExpanded,
+                          ),
                         ),
                       ],
                     ),
@@ -88,23 +119,22 @@ class ToolsSection extends StatelessWidget {
               Text(
                 'Tool autodiscovery',
                 style: Theme.of(context).textTheme.bodyLarge!.copyWith(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                    ),
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
               const SizedBox(height: 4),
               Text(
-                'We look for VS Code, IntelliJ and Preview and surface the install paths.',
-                style: Theme.of(context)
-                    .textTheme
-                    .bodyMedium!
-                    .copyWith(color: mutedText.withOpacity(0.8)),
+                'We look for VS Code, the JetBrains IDEs (IntelliJ, WebStorm, PhpStorm, etc.) and Preview and surface the install paths.',
+                style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                  color: mutedText.withOpacity(0.8),
+                ),
               ),
             ],
           ),
         ),
         TextButton.icon(
-          onPressed: onRefresh,
+          onPressed: widget.onRefresh,
           style: TextButton.styleFrom(
             foregroundColor: accentColor,
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
@@ -122,6 +152,8 @@ class ToolsSection extends StatelessWidget {
     required String subtitle,
     required List<Tool> tools,
     required String emptyLabel,
+    required bool expanded,
+    required VoidCallback onToggle,
   }) {
     final textColor = Theme.of(context).textTheme.bodyLarge!.color!;
     final mutedText = Theme.of(context).textTheme.bodyMedium!.color!;
@@ -130,152 +162,210 @@ class ToolsSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            Text(
-              title,
-              style: Theme.of(context).textTheme.bodyLarge!.copyWith(
+        InkWell(
+          onTap: onToggle,
+          borderRadius: BorderRadius.circular(6),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 6),
+            child: Row(
+              children: [
+                Icon(
+                  expanded ? Icons.expand_less : Icons.expand_more,
+                  size: 18,
+                  color: mutedText,
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  title,
+                  style: Theme.of(context).textTheme.bodyLarge!.copyWith(
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
                   ),
-            ),
-            Container(
-              margin: const EdgeInsets.only(left: 8),
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-              decoration: BoxDecoration(
-                color: accentColor.withOpacity(0.12),
-                borderRadius: BorderRadius.circular(6),
-              ),
-              child: Text(
-                tools.length.toString(),
-                style: TextStyle(
-                  color: accentColor,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 11,
                 ),
-              ),
+                Container(
+                  margin: const EdgeInsets.only(left: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: accentColor.withOpacity(0.12),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    tools.length.toString(),
+                    style: TextStyle(
+                      color: accentColor,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 11,
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: 2),
         Text(
           subtitle,
-          style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                color: mutedText.withOpacity(0.8),
-              ),
+          style: Theme.of(
+            context,
+          ).textTheme.bodySmall!.copyWith(color: mutedText.withOpacity(0.8)),
         ),
-        const SizedBox(height: 12),
-        if (tools.isEmpty)
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-            decoration: BoxDecoration(
-              color: Colors.grey.withOpacity(0.08),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Text(
-              emptyLabel,
-              style: TextStyle(color: mutedText),
-            ),
-          )
-        else
-          ...tools.map((tool) => _buildToolTile(context, tool, textColor)),
+        if (expanded) ...[
+          const SizedBox(height: 8),
+          if (tools.isEmpty)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+              decoration: BoxDecoration(
+                color: Colors.grey.withOpacity(0.08),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Text(emptyLabel, style: TextStyle(color: mutedText)),
+            )
+          else
+            ...tools.map((tool) => _buildToolTile(tool, textColor)),
+        ],
       ],
     );
   }
 
-  Widget _buildToolTile(
-    BuildContext context,
-    Tool tool,
-    Color textColor,
-  ) {
+  Widget _buildToolTile(Tool tool, Color textColor) {
+    return _ToolTile(
+      tool: tool,
+      textColor: textColor,
+      onLaunch: widget.onLaunch,
+    );
+  }
+}
+
+class _ToolTile extends StatefulWidget {
+  final Tool tool;
+  final Color textColor;
+  final void Function(Tool tool)? onLaunch;
+
+  const _ToolTile({required this.tool, required this.textColor, this.onLaunch});
+
+  @override
+  State<_ToolTile> createState() => _ToolTileState();
+}
+
+class _ToolTileState extends State<_ToolTile> {
+  bool _isHovering = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final tool = widget.tool;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final borderColor = isDark
+    final baseColor = isDark
+        ? Colors.white.withOpacity(0.01)
+        : Colors.black.withOpacity(0.01);
+    final hoverColor = isDark
+        ? Colors.white.withOpacity(0.06)
+        : Colors.black.withOpacity(0.04);
+    final shadowColor = isDark
         ? Colors.white.withOpacity(0.08)
-        : Colors.black.withOpacity(0.06);
+        : Colors.black.withOpacity(0.08);
     final accentColor = ThemeProvider.instance.accentColor;
     final pathText = tool.path != null
         ? StringUtils.ellipsisStart(tool.path!, maxLength: 60)
         : 'Path not found';
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: isDark ? Colors.white.withOpacity(0.02) : Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: borderColor),
-      ),
-      child: Row(
-        children: [
-          _buildIcon(tool, isDark),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        tool.name,
-                        style: TextStyle(
-                          color: textColor,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 13,
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovering = true),
+      onExit: (_) => setState(() => _isHovering = false),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 140),
+        curve: Curves.easeOut,
+        margin: EdgeInsets.zero,
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(
+          color: _isHovering ? hoverColor : baseColor,
+          borderRadius: BorderRadius.zero,
+          boxShadow: _isHovering
+              ? [
+                  BoxShadow(
+                    color: shadowColor,
+                    blurRadius: 12,
+                    offset: const Offset(0, 6),
+                  ),
+                ]
+              : [],
+        ),
+        child: Row(
+          children: [
+            _buildIcon(tool),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          tool.name,
+                          style: TextStyle(
+                            color: widget.textColor,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 13,
+                          ),
                         ),
                       ),
-                    ),
-                    _buildStatusBadge(tool, accentColor),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  tool.description,
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
-                const SizedBox(height: 6),
-                Row(
-                  children: [
-                    Icon(
-                      Icons.folder_rounded,
-                      size: 14,
-                      color: Theme.of(context).iconTheme.color,
-                    ),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: Text(
-                        pathText,
-                        style: Theme.of(context).textTheme.bodySmall,
-                        overflow: TextOverflow.ellipsis,
+                      _buildStatusBadge(tool, accentColor),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    tool.description,
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.folder_rounded,
+                        size: 14,
+                        color: Theme.of(context).iconTheme.color,
                       ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          if (tool.isInstalled && onLaunch != null)
-            Padding(
-              padding: const EdgeInsets.only(left: 12),
-              child: OutlinedButton(
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: accentColor,
-                  side: BorderSide(color: accentColor.withOpacity(0.4)),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                ),
-                onPressed: () => onLaunch!(tool),
-                child: const Text('Open'),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          pathText,
+                          style: Theme.of(context).textTheme.bodySmall,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
-        ],
+            if (tool.isInstalled && widget.onLaunch != null)
+              Padding(
+                padding: const EdgeInsets.only(left: 12),
+                child: OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: accentColor,
+                    side: BorderSide(color: accentColor.withOpacity(0.4)),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                  ),
+                  onPressed: () => widget.onLaunch!(tool),
+                  child: const Text('Open'),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildIcon(Tool tool, bool isDark) {
-    final colors = _iconGradient(tool, isDark);
+  Widget _buildIcon(Tool tool) {
+    final colors = _iconGradient(tool);
     return Container(
       width: 42,
       height: 42,
@@ -283,43 +373,33 @@ class ToolsSection extends StatelessWidget {
         gradient: LinearGradient(colors: colors),
         borderRadius: BorderRadius.circular(10),
       ),
-      child: Icon(
-        _iconData(tool),
-        color: Colors.white,
-        size: 22,
-      ),
+      child: Icon(_iconData(tool), color: Colors.white, size: 22),
     );
   }
 
   IconData _iconData(Tool tool) {
-    switch (tool.id) {
-      case ToolId.vscode:
-        return Icons.code_rounded;
-      case ToolId.intellij:
-        return Icons.developer_mode_rounded;
-      case ToolId.preview:
-        return Icons.image_rounded;
+    if (ToolsSection._jetBrainsIds.contains(tool.id)) {
+      return Icons.developer_mode_rounded;
     }
+    if (tool.id == ToolId.vscode) {
+      return Icons.code_rounded;
+    }
+    if (tool.id == ToolId.preview) {
+      return Icons.image_rounded;
+    }
+    return Icons.extension_rounded;
   }
 
-  List<Color> _iconGradient(Tool tool, bool isDark) {
-    switch (tool.id) {
-      case ToolId.vscode:
-        return [
-          const Color(0xFF007ACC),
-          const Color(0xFF00B4FF),
-        ];
-      case ToolId.intellij:
-        return [
-          const Color(0xFF5C2D91),
-          const Color(0xFF9A4DFF),
-        ];
-      case ToolId.preview:
-        return [
-          const Color(0xFF1FA2FF),
-          const Color(0xFF12D8FA),
-        ];
+  List<Color> _iconGradient(Tool tool) {
+    if (ToolsSection._jetBrainsIds.contains(tool.id)) {
+      return [const Color(0xFF5C2D91), const Color(0xFF9A4DFF)];
     }
+
+    if (tool.id == ToolId.vscode) {
+      return [const Color(0xFF007ACC), const Color(0xFF00B4FF)];
+    }
+
+    return [const Color(0xFF1FA2FF), const Color(0xFF12D8FA)];
   }
 
   Widget _buildStatusBadge(Tool tool, Color accentColor) {

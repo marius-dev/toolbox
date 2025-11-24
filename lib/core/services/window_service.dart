@@ -1,18 +1,20 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:tray_manager/tray_manager.dart';
 import 'package:window_manager/window_manager.dart';
 
 class WindowService {
   static final WindowService _instance = WindowService._internal();
   static WindowService get instance => _instance;
 
+  static const Size _windowSize = Size(520, 700);
+  static const double _edgePadding = 12;
+
   WindowService._internal();
 
   Future<void> initialize() async {
     final windowOptions = WindowOptions(
-      size: const Size(400, 700),
+      size: _windowSize,
       backgroundColor: Colors.transparent,
       skipTaskbar: true,
       titleBarStyle: TitleBarStyle.hidden,
@@ -24,8 +26,8 @@ class WindowService {
       await windowManager.setBackgroundColor(Colors.transparent);
       await windowManager.setHasShadow(false);
       await windowManager.setMovable(false);
+      await _positionTopRight();
       await show();
-      await positionNearTray();
     });
   }
 
@@ -43,30 +45,22 @@ class WindowService {
     if (isVisible) {
       await hide();
     } else {
-      await positionNearTray();
+      await _positionTopRight();
       await show();
     }
   }
 
-  Future<void> positionNearTray() async {
-    try {
-      final trayBounds = await trayManager.getBounds();
-      if (trayBounds == null) {
-        await _setDefaultPosition();
-        return;
-      }
+  Future<void> _positionTopRight() async {
+    await windowManager.setAlignment(Alignment.topRight);
 
-      final windowSize = await windowManager.getSize();
-      final x = trayBounds.left + (trayBounds.width - windowSize.width) / 2;
-      final y = trayBounds.bottom + 8;
-      await windowManager.setPosition(Offset(x, y));
-    } catch (_) {
-      await _setDefaultPosition();
-    }
-  }
+    if (_edgePadding <= 0) return;
 
-  Future<void> _setDefaultPosition() async {
-    final bounds = await windowManager.getBounds();
-    await windowManager.setPosition(Offset(bounds.width - 520, 40));
+    final alignedPosition = await windowManager.getPosition();
+    await windowManager.setPosition(
+      Offset(
+        alignedPosition.dx - _edgePadding,
+        alignedPosition.dy + _edgePadding,
+      ),
+    );
   }
 }

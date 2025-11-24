@@ -1,6 +1,20 @@
 import 'package:flutter/foundation.dart';
 
-enum ToolId { vscode, intellij, preview }
+enum ToolId {
+  vscode,
+  intellij,
+  webstorm,
+  phpstorm,
+  pycharm,
+  clion,
+  goland,
+  datagrip,
+  rider,
+  rubymine,
+  appcode,
+  fleet,
+  preview,
+}
 
 @immutable
 class Tool {

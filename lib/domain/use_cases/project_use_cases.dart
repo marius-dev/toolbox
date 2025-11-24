@@ -85,23 +85,52 @@ class ProjectUseCases {
         return ToolId.vscode;
       case OpenWithApp.intellij:
         return ToolId.intellij;
+      case OpenWithApp.webstorm:
+        return ToolId.webstorm;
+      case OpenWithApp.phpstorm:
+        return ToolId.phpstorm;
+      case OpenWithApp.pycharm:
+        return ToolId.pycharm;
+      case OpenWithApp.clion:
+        return ToolId.clion;
+      case OpenWithApp.goland:
+        return ToolId.goland;
+      case OpenWithApp.datagrip:
+        return ToolId.datagrip;
+      case OpenWithApp.rider:
+        return ToolId.rider;
+      case OpenWithApp.rubymine:
+        return ToolId.rubymine;
+      case OpenWithApp.appcode:
+        return ToolId.appcode;
+      case OpenWithApp.fleet:
+        return ToolId.fleet;
       case OpenWithApp.preview:
         return ToolId.preview;
     }
   }
 
   Future<void> _fallbackOpen(String path, OpenWithApp app) async {
-    String command;
-    List<String> args = [];
+    String command = app.name;
+    List<String> args = [path];
 
     switch (app) {
       case OpenWithApp.vscode:
         command = 'code';
-        args = [path];
         break;
       case OpenWithApp.intellij:
         command = 'idea';
-        args = [path];
+        break;
+      case OpenWithApp.webstorm:
+      case OpenWithApp.phpstorm:
+      case OpenWithApp.pycharm:
+      case OpenWithApp.clion:
+      case OpenWithApp.goland:
+      case OpenWithApp.datagrip:
+      case OpenWithApp.rider:
+      case OpenWithApp.rubymine:
+      case OpenWithApp.appcode:
+      case OpenWithApp.fleet:
         break;
       case OpenWithApp.preview:
         if (Platform.isMacOS) {

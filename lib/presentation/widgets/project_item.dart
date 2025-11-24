@@ -3,7 +3,21 @@ import '../../domain/models/project.dart';
 import '../../core/theme/theme_provider.dart';
 import '../../core/utils/string_utils.dart';
 
-enum OpenWithApp { vscode, intellij, preview }
+enum OpenWithApp {
+  vscode,
+  intellij,
+  webstorm,
+  phpstorm,
+  pycharm,
+  clion,
+  goland,
+  datagrip,
+  rider,
+  rubymine,
+  appcode,
+  fleet,
+  preview,
+}
 
 class ProjectItem extends StatelessWidget {
   final Project project;
@@ -246,6 +260,106 @@ class ProjectItem extends StatelessWidget {
           ),
         ),
         PopupMenuItem<String>(
+          value: 'open_webstorm',
+          child: Row(
+            children: [
+              const Icon(Icons.web, size: 18),
+              const SizedBox(width: 8),
+              Text('WebStorm', style: TextStyle(color: textColor)),
+            ],
+          ),
+        ),
+        PopupMenuItem<String>(
+          value: 'open_phpstorm',
+          child: Row(
+            children: [
+              const Icon(Icons.php, size: 18),
+              const SizedBox(width: 8),
+              Text('PhpStorm', style: TextStyle(color: textColor)),
+            ],
+          ),
+        ),
+        PopupMenuItem<String>(
+          value: 'open_pycharm',
+          child: Row(
+            children: [
+              const Icon(Icons.data_object, size: 18),
+              const SizedBox(width: 8),
+              Text('PyCharm', style: TextStyle(color: textColor)),
+            ],
+          ),
+        ),
+        PopupMenuItem<String>(
+          value: 'open_clion',
+          child: Row(
+            children: [
+              const Icon(Icons.memory, size: 18),
+              const SizedBox(width: 8),
+              Text('CLion', style: TextStyle(color: textColor)),
+            ],
+          ),
+        ),
+        PopupMenuItem<String>(
+          value: 'open_goland',
+          child: Row(
+            children: [
+              const Icon(Icons.golf_course, size: 18),
+              const SizedBox(width: 8),
+              Text('GoLand', style: TextStyle(color: textColor)),
+            ],
+          ),
+        ),
+        PopupMenuItem<String>(
+          value: 'open_datagrip',
+          child: Row(
+            children: [
+              const Icon(Icons.storage, size: 18),
+              const SizedBox(width: 8),
+              Text('DataGrip', style: TextStyle(color: textColor)),
+            ],
+          ),
+        ),
+        PopupMenuItem<String>(
+          value: 'open_rider',
+          child: Row(
+            children: [
+              const Icon(Icons.toys, size: 18),
+              const SizedBox(width: 8),
+              Text('Rider', style: TextStyle(color: textColor)),
+            ],
+          ),
+        ),
+        PopupMenuItem<String>(
+          value: 'open_rubymine',
+          child: Row(
+            children: [
+              const Icon(Icons.diamond, size: 18),
+              const SizedBox(width: 8),
+              Text('RubyMine', style: TextStyle(color: textColor)),
+            ],
+          ),
+        ),
+        PopupMenuItem<String>(
+          value: 'open_appcode',
+          child: Row(
+            children: [
+              const Icon(Icons.phone_iphone, size: 18),
+              const SizedBox(width: 8),
+              Text('AppCode', style: TextStyle(color: textColor)),
+            ],
+          ),
+        ),
+        PopupMenuItem<String>(
+          value: 'open_fleet',
+          child: Row(
+            children: [
+              const Icon(Icons.sailing, size: 18),
+              const SizedBox(width: 8),
+              Text('Fleet', style: TextStyle(color: textColor)),
+            ],
+          ),
+        ),
+        PopupMenuItem<String>(
           value: 'open_preview',
           child: Row(
             children: [
@@ -269,6 +383,36 @@ class ProjectItem extends StatelessWidget {
             break;
           case 'open_intellij':
             onOpenWith(OpenWithApp.intellij);
+            break;
+          case 'open_webstorm':
+            onOpenWith(OpenWithApp.webstorm);
+            break;
+          case 'open_phpstorm':
+            onOpenWith(OpenWithApp.phpstorm);
+            break;
+          case 'open_pycharm':
+            onOpenWith(OpenWithApp.pycharm);
+            break;
+          case 'open_clion':
+            onOpenWith(OpenWithApp.clion);
+            break;
+          case 'open_goland':
+            onOpenWith(OpenWithApp.goland);
+            break;
+          case 'open_datagrip':
+            onOpenWith(OpenWithApp.datagrip);
+            break;
+          case 'open_rider':
+            onOpenWith(OpenWithApp.rider);
+            break;
+          case 'open_rubymine':
+            onOpenWith(OpenWithApp.rubymine);
+            break;
+          case 'open_appcode':
+            onOpenWith(OpenWithApp.appcode);
+            break;
+          case 'open_fleet':
+            onOpenWith(OpenWithApp.fleet);
             break;
           case 'open_preview':
             onOpenWith(OpenWithApp.preview);
