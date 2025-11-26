@@ -42,11 +42,14 @@ class _ProjectListState extends State<ProjectList> {
   final List<GlobalKey> _itemKeys = [];
   int _selectedIndex = 0;
   int? _highlightedIndex;
+  String? _selectedProjectId;
+  bool _isPointerHovering = false;
 
   @override
   void initState() {
     super.initState();
     _syncKeys();
+    _syncSelectionWithProjects();
     widget.focusNode.addListener(_handleFocusChange);
   }
 
@@ -58,11 +61,7 @@ class _ProjectListState extends State<ProjectList> {
       widget.focusNode.addListener(_handleFocusChange);
     }
     _syncKeys();
-    if (widget.projects.isEmpty) {
-      _selectedIndex = 0;
-    } else if (_selectedIndex >= widget.projects.length) {
-      _selectedIndex = widget.projects.length - 1;
-    }
+    _syncSelectionWithProjects();
     if (_highlightedIndex != null &&
         _highlightedIndex! >= widget.projects.length) {
       _highlightedIndex = widget.projects.isNotEmpty
@@ -95,17 +94,44 @@ class _ProjectListState extends State<ProjectList> {
     }
   }
 
+  void _syncSelectionWithProjects() {
+    if (widget.projects.isEmpty) {
+      _selectedIndex = 0;
+      _selectedProjectId = null;
+      return;
+    }
+
+    if (_selectedProjectId != null) {
+      final existingIndex = widget.projects.indexWhere(
+        (project) => project.id == _selectedProjectId,
+      );
+      if (existingIndex != -1) {
+        _selectedIndex = existingIndex;
+        return;
+      }
+    }
+
+    final fallbackIndex = math.min(
+      widget.projects.length - 1,
+      math.max(0, _selectedIndex),
+    );
+    _selectedIndex = fallbackIndex;
+    _selectedProjectId = widget.projects[fallbackIndex].id;
+  }
+
   void _setHoverHighlight(int index) {
-    if (_highlightedIndex == index) return;
+    if (_highlightedIndex == index && _isPointerHovering) return;
     setState(() {
       _highlightedIndex = index;
+      _isPointerHovering = true;
     });
   }
 
   void _clearHoverHighlight() {
-    if (_highlightedIndex == null) return;
+    if (!_isPointerHovering) return;
     setState(() {
-      _highlightedIndex = null;
+      _isPointerHovering = false;
+      _highlightedIndex = widget.focusNode.hasFocus ? _selectedIndex : null;
     });
   }
 
@@ -118,12 +144,15 @@ class _ProjectListState extends State<ProjectList> {
       );
       setState(() {
         _selectedIndex = nextIndex;
+        _selectedProjectId = widget.projects[nextIndex].id;
         _highlightedIndex = nextIndex;
+        _isPointerHovering = false;
       });
       _scrollToSelected();
     } else {
       setState(() {
         _highlightedIndex = null;
+        _isPointerHovering = false;
       });
     }
   }
@@ -139,6 +168,7 @@ class _ProjectListState extends State<ProjectList> {
           widget.projects.length - 1,
           _selectedIndex + 1,
         );
+        _selectedProjectId = widget.projects[_selectedIndex].id;
         _highlightedIndex = _selectedIndex;
       });
       _scrollToSelected();
@@ -156,6 +186,7 @@ class _ProjectListState extends State<ProjectList> {
       }
       setState(() {
         _selectedIndex = math.max(0, _selectedIndex - 1);
+        _selectedProjectId = widget.projects[_selectedIndex].id;
         _highlightedIndex = _selectedIndex;
       });
       _scrollToSelected();
@@ -200,7 +231,9 @@ class _ProjectListState extends State<ProjectList> {
         itemCount: widget.projects.length,
         itemBuilder: (context, index) {
           final project = widget.projects[index];
-          final isSelected = index == _currentHighlightedIndex;
+          final isHovering = _isPointerHovering && _highlightedIndex == index;
+          final isFocused =
+              widget.focusNode.hasFocus && index == _selectedIndex;
           return MouseRegion(
             cursor: project.pathExists
                 ? SystemMouseCursors.click
@@ -213,7 +246,8 @@ class _ProjectListState extends State<ProjectList> {
                 project: project,
                 installedTools: widget.installedTools,
                 defaultToolId: widget.defaultToolId,
-                isSelected: isSelected,
+                isFocused: isFocused,
+                isHovering: isHovering,
                 onTap: () => widget.onProjectTap(project),
                 onStarToggle: () => widget.onStarToggle(project),
                 onShowInFinder: () => widget.onShowInFinder(project),

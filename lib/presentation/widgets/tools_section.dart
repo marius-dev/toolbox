@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/theme/theme_provider.dart';
 import '../../core/utils/string_utils.dart';
 import '../../domain/models/tool.dart';
+import 'listing_item_container.dart';
 import 'tool_icon.dart';
 
 class ToolsSection extends StatefulWidget {
@@ -29,7 +30,7 @@ class ToolsSection extends StatefulWidget {
 
 class _ToolsSectionState extends State<ToolsSection> {
   bool _installedExpanded = true;
-  bool _availableExpanded = true;
+  bool _availableExpanded = false;
   ToolId? _currentDefaultId;
 
   @override
@@ -48,19 +49,18 @@ class _ToolsSectionState extends State<ToolsSection> {
 
   @override
   Widget build(BuildContext context) {
-    final panelColor = Theme.of(context).brightness == Brightness.dark
-        ? Colors.black.withOpacity(0.2)
-        : Colors.white.withOpacity(0.9);
-    final borderColor = Theme.of(context).brightness == Brightness.dark
-        ? Colors.white.withOpacity(0.06)
-        : Colors.black.withOpacity(0.06);
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+    final panelColor = colorScheme.surface;
+    final borderColor =
+        colorScheme.onSurface.withOpacity(isDark ? 0.08 : 0.06);
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(5, 5, 5, 5),
+      padding: const EdgeInsets.fromLTRB(12, 8, 12, 10),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(height: 8),
           Expanded(
             child: widget.isLoading
                 ? Container(
@@ -69,7 +69,7 @@ class _ToolsSectionState extends State<ToolsSection> {
                       borderRadius: BorderRadius.circular(14),
                       border: Border.all(color: borderColor),
                     ),
-                    padding: const EdgeInsets.all(12),
+                    padding: const EdgeInsets.all(10),
                     child: const Center(child: CircularProgressIndicator()),
                   )
                 : ListView(
@@ -127,10 +127,10 @@ class _ToolsSectionState extends State<ToolsSection> {
     return Container(
       decoration: BoxDecoration(
         color: panelColor,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(color: borderColor),
       ),
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(10),
       child: _buildSection(
         context,
         title: title,
@@ -155,6 +155,10 @@ class _ToolsSectionState extends State<ToolsSection> {
     final textColor = Theme.of(context).textTheme.bodyLarge!.color!;
     final mutedText = Theme.of(context).textTheme.bodyMedium!.color!;
     final accentColor = ThemeProvider.instance.accentColor;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final dividerColor = isDark
+        ? Colors.white.withOpacity(0.05)
+        : Colors.black.withOpacity(0.04);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -216,13 +220,31 @@ class _ToolsSectionState extends State<ToolsSection> {
               width: double.infinity,
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
               decoration: BoxDecoration(
-                color: Colors.grey.withOpacity(0.08),
+                color: isDark
+                    ? Colors.white.withOpacity(0.03)
+                    : Colors.black.withOpacity(0.02),
                 borderRadius: BorderRadius.circular(6),
               ),
               child: Text(emptyLabel, style: TextStyle(color: mutedText)),
             )
           else
-            ...tools.map((tool) => _buildToolTile(tool, textColor)),
+            ...tools.asMap().entries.map(
+              (entry) {
+                final index = entry.key;
+                final tool = entry.value;
+                return Column(
+                  children: [
+                    if (index > 0)
+                      Divider(
+                        height: 1,
+                        thickness: 0.7,
+                        color: dividerColor,
+                      ),
+                    _buildToolTile(tool, textColor),
+                  ],
+                );
+              },
+            ),
         ],
       ],
     );
@@ -263,23 +285,20 @@ class _ToolTile extends StatefulWidget {
   State<_ToolTile> createState() => _ToolTileState();
 }
 
+enum _ToolTileAction {
+  open,
+  setDefault,
+}
+
 class _ToolTileState extends State<_ToolTile> {
   bool _isHovering = false;
 
   @override
   Widget build(BuildContext context) {
     final tool = widget.tool;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final baseColor = isDark
-        ? Colors.white.withOpacity(0.01)
-        : Colors.black.withOpacity(0.01);
-    final hoverColor = isDark
-        ? Colors.white.withOpacity(0.06)
-        : Colors.black.withOpacity(0.04);
-    final shadowColor = isDark
-        ? Colors.white.withOpacity(0.08)
-        : Colors.black.withOpacity(0.08);
+    final theme = Theme.of(context);
     final accentColor = ThemeProvider.instance.accentColor;
+    final mutedText = theme.textTheme.bodyMedium!.color!;
     final pathText = tool.path != null
         ? StringUtils.ellipsisStart(tool.path!, maxLength: 60)
         : 'Path not found';
@@ -289,24 +308,11 @@ class _ToolTileState extends State<_ToolTile> {
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovering = true),
       onExit: (_) => setState(() => _isHovering = false),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 140),
-        curve: Curves.easeOut,
-        margin: EdgeInsets.zero,
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        decoration: BoxDecoration(
-          color: _isHovering ? hoverColor : baseColor,
-          borderRadius: BorderRadius.zero,
-          boxShadow: _isHovering
-              ? [
-                  BoxShadow(
-                    color: shadowColor,
-                    blurRadius: 12,
-                    offset: const Offset(0, 6),
-                  ),
-                ]
-              : [],
-        ),
+      child: ListingItemContainer(
+        margin: const EdgeInsets.symmetric(vertical: 4),
+        isActive: false,
+        isHovering: _isHovering,
+        isDisabled: !tool.isInstalled,
         child: Row(
           children: [
             ToolIcon(tool: tool),
@@ -327,6 +333,26 @@ class _ToolTileState extends State<_ToolTile> {
                           ),
                         ),
                       ),
+                      if (!tool.isInstalled)
+                        Container(
+                          margin: const EdgeInsets.only(left: 8),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.red.withOpacity(0.16),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: const Text(
+                            'Not installed',
+                            style: TextStyle(
+                              color: Colors.red,
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
                       if (widget.isDefault)
                         Container(
                           margin: const EdgeInsets.only(left: 8),
@@ -363,7 +389,9 @@ class _ToolTileState extends State<_ToolTile> {
                   const SizedBox(height: 4),
                   Text(
                     tool.description,
-                    style: Theme.of(context).textTheme.bodySmall,
+                    style: theme.textTheme.bodySmall!.copyWith(
+                      color: mutedText.withOpacity(0.9),
+                    ),
                   ),
                   const SizedBox(height: 6),
                   Row(
@@ -371,13 +399,16 @@ class _ToolTileState extends State<_ToolTile> {
                       Icon(
                         Icons.folder_rounded,
                         size: 14,
-                        color: Theme.of(context).iconTheme.color,
+                        color: theme.iconTheme.color,
                       ),
                       const SizedBox(width: 6),
                       Expanded(
                         child: Text(
                           pathText,
-                          style: Theme.of(context).textTheme.bodySmall,
+                          style: theme.textTheme.bodySmall!.copyWith(
+                            color: mutedText.withOpacity(0.8),
+                            fontSize: 11,
+                          ),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
@@ -386,51 +417,103 @@ class _ToolTileState extends State<_ToolTile> {
                 ],
               ),
             ),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (canToggleDefault)
-                  Padding(
-                    padding: const EdgeInsets.only(left: 8),
-                    child: widget.isDefault
-                        ? Tooltip(message: 'Currently default')
-                        : FilledButton.tonalIcon(
-                            onPressed: () =>
-                                widget.onDefaultChanged?.call(tool.id),
-                            style: FilledButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                                vertical: 4,
-                              ),
-                              textStyle: const TextStyle(fontSize: 12),
-                              minimumSize: const Size(0, 30),
-                            ),
-                            icon: const Icon(Icons.check_rounded, size: 18),
-                            label: const Text('Set default'),
-                          ),
-                  ),
-                if (tool.isInstalled && widget.onLaunch != null)
-                  Padding(
-                    padding: const EdgeInsets.only(left: 8),
-                    child: IconButton(
-                      onPressed: () => widget.onLaunch!(tool),
-                      padding: const EdgeInsets.symmetric(horizontal: 6),
-                      constraints: const BoxConstraints(
-                        minWidth: 36,
-                        minHeight: 36,
-                      ),
-                      icon: Icon(
-                        Icons.arrow_forward_ios,
-                        color: accentColor,
-                        size: 18,
-                      ),
-                      tooltip: 'Open ${tool.name}',
-                    ),
-                  ),
-              ],
+            _buildActionsMenu(
+              context,
+              tool: tool,
+              canToggleDefault: canToggleDefault,
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildActionsMenu(
+    BuildContext context, {
+    required Tool tool,
+    required bool canToggleDefault,
+  }) {
+    final hasOpenAction = tool.isInstalled && widget.onLaunch != null;
+    final hasDefaultAction = canToggleDefault && !widget.isDefault;
+
+    if (!hasOpenAction && !hasDefaultAction) {
+      return const SizedBox.shrink();
+    }
+
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+    final bgColor = isDark
+        ? Colors.black.withOpacity(0.7)
+        : colorScheme.surface;
+    final borderColor = colorScheme.onSurface.withOpacity(
+      isDark ? 0.08 : 0.06,
+    );
+    final textColor = theme.textTheme.bodyMedium!.color!;
+
+    return Padding(
+      padding: const EdgeInsets.only(left: 4),
+      child: PopupMenuButton<_ToolTileAction>(
+        icon: Icon(
+          Icons.more_horiz,
+          color: theme.iconTheme.color,
+          size: 18,
+        ),
+        color: bgColor,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(color: borderColor),
+        ),
+        onSelected: (action) {
+          switch (action) {
+            case _ToolTileAction.open:
+              if (widget.onLaunch != null) {
+                widget.onLaunch!(tool);
+              }
+              break;
+            case _ToolTileAction.setDefault:
+              widget.onDefaultChanged?.call(tool.id);
+              break;
+          }
+        },
+        itemBuilder: (context) => [
+          if (hasOpenAction)
+            PopupMenuItem<_ToolTileAction>(
+              value: _ToolTileAction.open,
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.open_in_new_rounded,
+                    size: 18,
+                    color: textColor,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Open',
+                    style: TextStyle(color: textColor),
+                  ),
+                ],
+              ),
+            ),
+          if (hasDefaultAction)
+            PopupMenuItem<_ToolTileAction>(
+              value: _ToolTileAction.setDefault,
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.check_rounded,
+                    size: 18,
+                    color: textColor,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Set as default',
+                    style: TextStyle(color: textColor),
+                  ),
+                ],
+              ),
+            ),
+        ],
       ),
     );
   }

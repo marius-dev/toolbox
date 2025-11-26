@@ -132,43 +132,66 @@ class _ProjectDialogState extends State<ProjectDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bgColor = isDark ? const Color(0xFF2A1F3D) : Colors.white;
-    final borderColor = isDark
-        ? Colors.white.withOpacity(0.1)
-        : Colors.black.withOpacity(0.06);
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final accentColor = ThemeProvider.instance.accentColor;
-
+    final borderColor = theme.colorScheme.onSurface.withOpacity(
+      isDark ? 0.12 : 0.08,
+    );
+    final background = Color.alphaBlend(
+      isDark ? Colors.white.withOpacity(0.02) : Colors.black.withOpacity(0.02),
+      theme.colorScheme.surface,
+    );
     final isEditing = widget.project != null;
 
     return AlertDialog(
-      backgroundColor: bgColor,
+      backgroundColor: background,
+      elevation: 0,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(26),
         side: BorderSide(color: borderColor),
       ),
-      title: Text(
-        widget.project == null ? 'Add Project' : 'Edit Project',
-        style: Theme.of(
-          context,
-        ).textTheme.titleMedium!.copyWith(fontWeight: FontWeight.w600),
+      titlePadding: const EdgeInsets.fromLTRB(28, 24, 28, 0),
+      contentPadding: const EdgeInsets.fromLTRB(28, 16, 28, 8),
+      actionsPadding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+      title: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            isEditing ? 'Edit Project' : 'Add Project',
+            style: theme.textTheme.titleLarge,
+          ),
+          const SizedBox(height: 4),
+          Text(
+            isEditing
+                ? 'Adjust the metadata for this workspace'
+                : 'Follow the quick steps to configure your new workspace',
+            style: theme.textTheme.bodySmall!.copyWith(
+              color: theme.textTheme.bodySmall!.color!.withOpacity(0.8),
+            ),
+          ),
+        ],
       ),
-      content: isEditing
-          ? Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _buildTextField(
-                  controller: _nameController,
-                  label: 'Project Name',
-                  icon: Icons.edit,
-                ),
-                const SizedBox(height: 16),
-                _buildPathField(),
-                const SizedBox(height: 16),
-                _buildTypeDropdown(),
-              ],
-            )
-          : _buildWizardContent(context),
+      content: ConstrainedBox(
+        constraints: const BoxConstraints(minWidth: 420),
+        child: isEditing
+            ? Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _buildTextField(
+                    controller: _nameController,
+                    label: 'Project Name',
+                    icon: Icons.edit,
+                  ),
+                  const SizedBox(height: 16),
+                  _buildPathField(),
+                  const SizedBox(height: 16),
+                  _buildTypeDropdown(),
+                ],
+              )
+            : _buildWizardContent(context),
+      ),
       actions: isEditing
           ? _buildEditActions(accentColor)
           : _buildWizardActions(accentColor),
@@ -202,130 +225,278 @@ class _ProjectDialogState extends State<ProjectDialog> {
 
   Widget _buildWizardContent(BuildContext context) {
     return SizedBox(
-      width: 420,
+      width: 460,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (_currentStep == 0) _buildFolderStep(context),
-          if (_currentStep == 1) _buildNameStep(context),
-          if (_currentStep == 2) _buildIdeStep(context),
+          _buildWizardProgress(context),
+          const SizedBox(height: 18),
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 200),
+            child: _currentStep == 0
+                ? _buildFolderStep(context)
+                : _currentStep == 1
+                ? _buildNameStep(context)
+                : _buildIdeStep(context),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildFolderStep(BuildContext context) {
-    final mutedText = Theme.of(context).textTheme.bodySmall!.color!;
+  Widget _buildWizardProgress(BuildContext context) {
+    final accentColor = ThemeProvider.instance.accentColor;
+    final muted = Theme.of(context).textTheme.bodySmall!.color!;
+    final steps = ['Location', 'Details', 'Tool'];
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildPathField(),
-        const SizedBox(height: 8),
-        Text(
-          'Choose the folder that contains your project.',
-          style: Theme.of(
-            context,
-          ).textTheme.bodySmall!.copyWith(color: mutedText.withOpacity(0.8)),
-        ),
-      ],
+    return Row(
+      children: List.generate(steps.length, (index) {
+        final isActive = index == _currentStep;
+        final isCompleted = index < _currentStep;
+        final bgColor = isActive
+            ? accentColor.withOpacity(0.2)
+            : isCompleted
+            ? accentColor.withOpacity(0.12)
+            : Theme.of(context).brightness == Brightness.dark
+            ? Colors.white.withOpacity(0.04)
+            : Colors.black.withOpacity(0.04);
+        final borderColor = isActive
+            ? accentColor.withOpacity(0.8)
+            : isCompleted
+            ? accentColor.withOpacity(0.4)
+            : muted.withOpacity(0.2);
+
+        return Expanded(
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            margin: EdgeInsets.only(right: index < steps.length - 1 ? 8 : 0),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            decoration: BoxDecoration(
+              color: bgColor,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: borderColor),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '0${index + 1}',
+                  style: TextStyle(
+                    color: borderColor,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  steps[index],
+                  style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                    color: isActive
+                        ? accentColor
+                        : isCompleted
+                        ? muted
+                        : muted.withOpacity(0.8),
+                    fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      }),
+    );
+  }
+
+  Widget _buildFolderStep(BuildContext context) {
+    return _buildStepCard(
+      context,
+      title: 'Project folder',
+      description: 'Choose the folder that contains your project files.',
+      child: _buildPathField(),
     );
   }
 
   Widget _buildNameStep(BuildContext context) {
-    final mutedText = Theme.of(context).textTheme.bodySmall!.color!;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildTextField(
-          controller: _nameController,
-          label: 'Project Name',
-          icon: Icons.edit,
-        ),
-        const SizedBox(height: 8),
-        Text(
+    return _buildStepCard(
+      context,
+      title: 'Project name',
+      description:
           'We prefilled this from the folder name, but you can change it.',
-          style: Theme.of(
-            context,
-          ).textTheme.bodySmall!.copyWith(color: mutedText.withOpacity(0.8)),
-        ),
-      ],
+      child: _buildTextField(
+        controller: _nameController,
+        label: 'Project Name',
+        icon: Icons.edit,
+      ),
     );
   }
 
   Widget _buildIdeStep(BuildContext context) {
     final mutedText = Theme.of(context).textTheme.bodySmall!.color!;
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+    final accentColor = ThemeProvider.instance.accentColor;
+    final basePanelColor = colorScheme.surface;
+    final baseBorderColor = colorScheme.onSurface.withOpacity(
+      isDark ? 0.08 : 0.06,
+    );
+    final highlightedColor = isDark
+        ? Color.lerp(basePanelColor, Colors.white, 0.07)!
+        : Color.lerp(basePanelColor, Colors.black, 0.07)!;
 
-    if (_isLoadingTools) {
-      return SizedBox(
-        height: 120,
-        child: Center(
-          child: CircularProgressIndicator(
-            color: ThemeProvider.instance.accentColor,
+    final content = () {
+      if (_isLoadingTools) {
+        return SizedBox(
+          height: 120,
+          child: Center(
+            child: CircularProgressIndicator(
+              color: ThemeProvider.instance.accentColor,
+            ),
           ),
+        );
+      }
+
+      if (_installedTools.isEmpty) {
+        return Text(
+          'No installed IDEs were detected. You can change the default tool later from the Tools tab.',
+          style: theme.textTheme.bodySmall!.copyWith(
+            color: mutedText.withOpacity(0.8),
+          ),
+        );
+      }
+
+      return SizedBox(
+        height: 220,
+        child: ListView.builder(
+          itemCount: _installedTools.length,
+          itemBuilder: (context, index) {
+            final tool = _installedTools[index];
+            final isSelected = tool.id == _selectedToolId;
+            final panelColor = isSelected ? highlightedColor : basePanelColor;
+            final borderColor = isSelected
+                ? accentColor.withOpacity(0.7)
+                : baseBorderColor;
+
+            return Container(
+              margin: const EdgeInsets.only(bottom: 8),
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(12),
+                  onTap: () {
+                    setState(() {
+                      _selectedToolId = tool.id;
+                    });
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: panelColor,
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: borderColor, width: 1),
+                    ),
+                    child: Row(
+                      children: [
+                        ToolIcon(tool: tool, size: 30, borderRadius: 8),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                tool.name,
+                                style: theme.textTheme.bodyMedium!.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                tool.description,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: theme.textTheme.bodySmall!.copyWith(
+                                  color: mutedText,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Radio<ToolId>(
+                          value: tool.id,
+                          groupValue: _selectedToolId,
+                          activeColor: accentColor,
+                          onChanged: (value) {
+                            setState(() {
+                              _selectedToolId = value;
+                            });
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            );
+          },
         ),
       );
-    }
+    }();
 
-    if (_installedTools.isEmpty) {
-      return Column(
+    return _buildStepCard(
+      context,
+      title: 'Preferred IDE',
+      description:
+          'Pick the IDE you want to launch when opening this workspace.',
+      child: content,
+    );
+  }
+
+  Widget _buildStepCard(
+    BuildContext context, {
+    required String title,
+    required String description,
+    required Widget child,
+  }) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final borderColor = theme.colorScheme.onSurface.withOpacity(
+      isDark ? 0.12 : 0.08,
+    );
+    final background = Color.alphaBlend(
+      isDark ? Colors.white.withOpacity(0.02) : Colors.black.withOpacity(0.02),
+      theme.colorScheme.surface,
+    );
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: background,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: borderColor),
+      ),
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Preferred IDE',
-            style: Theme.of(
-              context,
-            ).textTheme.bodyMedium!.copyWith(fontWeight: FontWeight.w600),
+            title,
+            style: theme.textTheme.titleMedium!.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 4),
           Text(
-            'No installed IDEs were detected. You can change the default tool later from the Tools tab.',
-            style: Theme.of(
-              context,
-            ).textTheme.bodySmall!.copyWith(color: mutedText.withOpacity(0.8)),
+            description,
+            style: theme.textTheme.bodySmall!.copyWith(
+              color: theme.textTheme.bodySmall!.color!.withOpacity(0.75),
+            ),
           ),
+          const SizedBox(height: 16),
+          child,
         ],
-      );
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Preferred IDE',
-          style: Theme.of(
-            context,
-          ).textTheme.bodyMedium!.copyWith(fontWeight: FontWeight.w600),
-        ),
-        const SizedBox(height: 8),
-        SizedBox(
-          height: 220,
-          child: ListView.builder(
-            itemCount: _installedTools.length,
-            itemBuilder: (context, index) {
-              final tool = _installedTools[index];
-              return RadioListTile<ToolId>(
-                value: tool.id,
-                groupValue: _selectedToolId,
-                onChanged: (value) {
-                  setState(() {
-                    _selectedToolId = value;
-                  });
-                },
-                title: Text(tool.name),
-                subtitle: Text(
-                  tool.description,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                secondary: ToolIcon(tool: tool, size: 28, borderRadius: 6),
-              );
-            },
-          ),
-        ),
-      ],
+      ),
     );
   }
 
@@ -414,12 +585,12 @@ class _ProjectDialogState extends State<ProjectDialog> {
   Widget _buildTypeDropdown() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final panelColor = isDark
-        ? Colors.black.withOpacity(0.2)
+        ? Colors.white.withOpacity(0.05)
         : Colors.white.withOpacity(0.95);
     final borderColor = isDark
-        ? Colors.white.withOpacity(0.1)
-        : Colors.black.withOpacity(0.06);
-    final dropdownBg = isDark ? const Color(0xFF2A1F3D) : Colors.white;
+        ? Colors.white.withOpacity(0.12)
+        : Colors.black.withOpacity(0.08);
+    final dropdownBg = Theme.of(context).colorScheme.surface;
 
     return DropdownButtonFormField<ProjectType>(
       initialValue: _selectedType,
@@ -456,11 +627,11 @@ class _ProjectDialogState extends State<ProjectDialog> {
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final panelColor = isDark
-        ? Colors.black.withOpacity(0.2)
-        : Colors.white.withOpacity(0.95);
+        ? Colors.white.withOpacity(0.05)
+        : Colors.white.withOpacity(0.96);
     final borderColor = isDark
-        ? Colors.white.withOpacity(0.1)
-        : Colors.black.withOpacity(0.06);
+        ? Colors.white.withOpacity(0.12)
+        : Colors.black.withOpacity(0.08);
     final accentColor = ThemeProvider.instance.accentColor;
 
     return TextField(

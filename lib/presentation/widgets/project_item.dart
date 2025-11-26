@@ -3,6 +3,7 @@ import '../../domain/models/project.dart';
 import '../../domain/models/tool.dart';
 import '../../core/theme/theme_provider.dart';
 import '../../core/utils/string_utils.dart';
+import 'listing_item_container.dart';
 import 'tool_icon.dart';
 
 enum OpenWithApp {
@@ -30,7 +31,8 @@ class ProjectItem extends StatelessWidget {
   final VoidCallback onShowInFinder;
   final void Function(OpenWithApp app) onOpenWith;
   final VoidCallback onDelete;
-  final bool isSelected;
+  final bool isFocused;
+  final bool isHovering;
 
   const ProjectItem({
     super.key,
@@ -42,63 +44,49 @@ class ProjectItem extends StatelessWidget {
     required this.onShowInFinder,
     required this.onOpenWith,
     required this.onDelete,
-    this.isSelected = false,
+    this.isFocused = false,
+    this.isHovering = false,
   });
   @override
   Widget build(BuildContext context) {
     final isDisabled = !project.pathExists;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final accentColor = ThemeProvider.instance.accentColor;
-    final basePanelColor = isDark
-        ? Colors.black.withOpacity(0.2)
-        : Colors.white.withOpacity(0.9);
-    final baseBorderColor = isDark
-        ? Colors.white.withOpacity(0.08)
-        : Colors.black.withOpacity(0.06);
-    final highlightedColor = isDark
-        ? Color.lerp(basePanelColor, Colors.white, 0.07)!
-        : Color.lerp(basePanelColor, Colors.black, 0.07)!;
-    final interactionActive = !isDisabled && isSelected;
-    final panelColor = interactionActive ? highlightedColor : basePanelColor;
-    final borderColor = interactionActive
-        ? accentColor.withOpacity(0.7)
-        : baseBorderColor;
-    final shadowColor = interactionActive
-        ? (isDark
-              ? Colors.white.withOpacity(0.15)
-              : Colors.black.withOpacity(0.15))
-        : Colors.transparent;
+    final interactionActive = !isDisabled && isFocused;
+    final isHighlighted = !isDisabled && (isFocused || isHovering);
+    final borderRadius = BorderRadius.circular(14);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       child: Material(
         color: Colors.transparent,
+        borderRadius: borderRadius,
+        clipBehavior: Clip.antiAlias,
         child: InkWell(
           onTap: isDisabled ? null : onTap,
-          borderRadius: BorderRadius.circular(12),
-          child: Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: panelColor.withOpacity(isDisabled ? 0.7 : 1),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: borderColor, width: 1),
-              boxShadow: interactionActive
-                  ? [
-                      BoxShadow(
-                        color: shadowColor,
-                        blurRadius: 12,
-                        offset: const Offset(0, 4),
-                      ),
-                    ]
-                  : null,
-            ),
+          borderRadius: borderRadius,
+          child: ListingItemContainer(
+            isActive: interactionActive,
+            isDisabled: isDisabled,
+            isHovering: isHovering && !interactionActive,
+            borderRadius: borderRadius,
             child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _buildAvatar(context, isDisabled),
-                const SizedBox(width: 12),
-                Expanded(child: _buildInfo(context, isDisabled)),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildInfoHeader(context, isDisabled),
+                      const SizedBox(height: 6),
+                      _buildMetaRow(context, isDisabled),
+                      const SizedBox(height: 6),
+                      _buildPathRow(context, isDisabled),
+                    ],
+                  ),
+                ),
                 const SizedBox(width: 8),
-                _buildStarButton(context),
+                _buildStarButton(context, isHighlighted),
                 _buildActions(context, isDisabled),
               ],
             ),
@@ -113,15 +101,27 @@ class ProjectItem extends StatelessWidget {
     final textColor = Theme.of(context).textTheme.bodyLarge!.color!;
 
     return Container(
-      width: 38,
-      height: 38,
+      width: 44,
+      height: 44,
       decoration: BoxDecoration(
         gradient: isDisabled
             ? LinearGradient(
                 colors: [Colors.grey.shade800, Colors.grey.shade700],
               )
-            : LinearGradient(colors: [_lighten(accentColor, 0.1), accentColor]),
-        borderRadius: BorderRadius.circular(8),
+            : LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [_lighten(accentColor, 0.2), accentColor],
+              ),
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          if (!isDisabled)
+            BoxShadow(
+              color: accentColor.withOpacity(0.3),
+              blurRadius: 16,
+              offset: const Offset(0, 6),
+            ),
+        ],
       ),
       child: Center(
         child: Text(
@@ -129,50 +129,80 @@ class ProjectItem extends StatelessWidget {
           style: TextStyle(
             color: textColor,
             fontWeight: FontWeight.bold,
-            fontSize: 14,
+            fontSize: 15,
           ),
         ),
       ),
     );
   }
 
-  Widget _buildInfo(BuildContext context, bool isDisabled) {
+  Widget _buildInfoHeader(BuildContext context, bool isDisabled) {
     final textPrimary = Theme.of(context).textTheme.bodyLarge!.color!;
     final mutedText = Theme.of(context).brightness == Brightness.dark
-        ? Colors.white.withOpacity(0.4)
+        ? Colors.white.withOpacity(0.45)
         : Colors.black45;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Row(
-          children: [
-            Expanded(
-              child: Text(
-                project.name,
-                style: TextStyle(
-                  color: isDisabled ? mutedText : textPrimary,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 13,
-                ),
-              ),
+        Expanded(
+          child: Text(
+            project.name,
+            style: TextStyle(
+              color: isDisabled ? mutedText : textPrimary,
+              fontWeight: FontWeight.w700,
+              fontSize: 14,
             ),
-            if (isDisabled) _buildNotFoundBadge(),
-          ],
+          ),
         ),
-        const SizedBox(height: 4),
-        Row(
-          children: [
-            _buildPathAppIcon(mutedText),
-            const SizedBox(width: 4),
-            Expanded(
-              child: Text(
-                StringUtils.ellipsisStart(project.path, maxLength: 45),
-                style: TextStyle(color: mutedText, fontSize: 11),
-                overflow: TextOverflow.ellipsis,
-              ),
+        if (isDisabled) _buildNotFoundBadge(),
+      ],
+    );
+  }
+
+  Widget _buildMetaRow(BuildContext context, bool isDisabled) {
+    final accentColor = ThemeProvider.instance.accentColor;
+    final mutedText = Theme.of(context).textTheme.bodyMedium!.color!;
+    final tool = _resolvePreferredTool();
+
+    return Wrap(
+      spacing: 6,
+      runSpacing: 4,
+      children: [
+        // _buildTag(
+        //   label: project.type.displayName,
+        //   color: accentColor.withOpacity(isDisabled ? 0.15 : 0.2),
+        //   textColor: Colors.white,
+        // ),
+        // if (tool != null)
+        //   _buildTag(
+        //     label: tool.name,
+        //     color: Theme.of(context).brightness == Brightness.dark
+        //         ? Colors.white.withOpacity(0.08)
+        //         : Colors.black.withOpacity(0.04),
+        //     textColor: isDisabled ? mutedText.withOpacity(0.7) : mutedText,
+        //     leading: ToolIcon(tool: tool, size: 16, borderRadius: 4),
+        //   ),
+      ],
+    );
+  }
+
+  Widget _buildPathRow(BuildContext context, bool isDisabled) {
+    final mutedText = Theme.of(context).textTheme.bodyMedium!.color!;
+
+    return Row(
+      children: [
+        _buildPathAppIcon(mutedText),
+        const SizedBox(width: 6),
+        Expanded(
+          child: Text(
+            StringUtils.ellipsisStart(project.path, maxLength: 55),
+            style: TextStyle(
+              color: isDisabled ? mutedText.withOpacity(0.6) : mutedText,
+              fontSize: 12,
             ),
-          ],
+            overflow: TextOverflow.ellipsis,
+          ),
         ),
       ],
     );
@@ -228,8 +258,8 @@ class ProjectItem extends StatelessWidget {
     );
   }
 
-  Widget _buildStarButton(BuildContext context) {
-    if (!isSelected) {
+  Widget _buildStarButton(BuildContext context, bool isHighlighted) {
+    if (!isHighlighted) {
       return const SizedBox.shrink();
     }
 
@@ -256,10 +286,11 @@ class ProjectItem extends StatelessWidget {
 
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final bgColor = colorScheme.surface;
-    final borderColor = colorScheme.onSurface.withOpacity(
-      theme.brightness == Brightness.dark ? 0.08 : 0.06,
-    );
+    final isDark = theme.brightness == Brightness.dark;
+    final bgColor = isDark
+        ? Colors.black.withOpacity(0.7)
+        : colorScheme.surface;
+    final borderColor = colorScheme.onSurface.withOpacity(isDark ? 0.08 : 0.06);
     final textColor = theme.textTheme.bodyLarge!.color!;
     final openWithItems = _buildOpenWithItems(textColor);
 
@@ -340,6 +371,35 @@ class ProjectItem extends StatelessWidget {
           );
         })
         .toList(growable: false);
+  }
+
+  Widget _buildTag({
+    required String label,
+    required Color color,
+    required Color textColor,
+    Widget? leading,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (leading != null) ...[leading, const SizedBox(width: 4)],
+          Text(
+            label,
+            style: TextStyle(
+              color: textColor,
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   void _handleMenuSelection(String value) {

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../core/theme/theme_provider.dart';
+
 class GlassButton extends StatelessWidget {
   final IconData icon;
   final VoidCallback onPressed;
@@ -17,12 +19,19 @@ class GlassButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final panelColor = isDark
-        ? Colors.black.withOpacity(0.2)
-        : Colors.white.withOpacity(0.9);
+    final accent = ThemeProvider.instance.accentColor;
+    final baseColor = isDark
+        ? Colors.white.withOpacity(0.05)
+        : Colors.black.withOpacity(0.02);
+    final highlight = isDark
+        ? accent.withOpacity(0.18)
+        : accent.withOpacity(0.08);
     final borderColor = isDark
-        ? Colors.white.withOpacity(0.08)
-        : Colors.black.withOpacity(0.06);
+        ? Colors.white.withOpacity(0.1)
+        : Colors.black.withOpacity(0.08);
+    final iconColor = isDark
+        ? Colors.white.withOpacity(0.9)
+        : Colors.black.withOpacity(0.65);
 
     final button = Material(
       color: Colors.transparent,
@@ -33,11 +42,23 @@ class GlassButton extends StatelessWidget {
           width: size,
           height: size,
           decoration: BoxDecoration(
-            color: panelColor,
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(10),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [baseColor, Color.alphaBlend(highlight, baseColor)],
+            ),
             border: Border.all(color: borderColor, width: 1),
+            boxShadow: [
+              if (isDark)
+                BoxShadow(
+                  color: accent.withOpacity(0.2),
+                  blurRadius: 12,
+                  offset: const Offset(0, 6),
+                ),
+            ],
           ),
-          child: Icon(icon, color: Theme.of(context).iconTheme.color, size: 16),
+          child: Icon(icon, color: iconColor, size: 16),
         ),
       ),
     );

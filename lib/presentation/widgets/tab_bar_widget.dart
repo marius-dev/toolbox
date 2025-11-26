@@ -22,29 +22,69 @@ class TabBarWidget extends StatelessWidget {
       builder: (context, _) {
         final isDark = ThemeProvider.instance.isDarkMode;
         final panelColor = isDark
-            ? Colors.black.withOpacity(0.2)
+            ? Colors.white.withOpacity(0.04)
             : Colors.white.withOpacity(0.9);
         final surfaceOutline = isDark
-            ? Colors.white.withOpacity(0.05)
-            : Colors.black.withOpacity(0.04);
+            ? Colors.white.withOpacity(0.08)
+            : Colors.black.withOpacity(0.06);
+        final accentColor = ThemeProvider.instance.accentColor;
 
         return Container(
-          margin: const EdgeInsets.symmetric(horizontal: 20),
-          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+          margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+          padding: const EdgeInsets.all(4),
           decoration: BoxDecoration(
             color: panelColor,
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(16),
             border: Border.all(color: surfaceOutline, width: 1),
           ),
-          child: Row(
+          child: Stack(
             children: [
-              _buildTab(
-                context,
-                label: 'Tools',
-                tab: LauncherTab.tools,
-                badge: toolsBadge > 0 ? toolsBadge.toString() : null,
+              AnimatedAlign(
+                alignment: selectedTab == LauncherTab.tools
+                    ? Alignment.centerLeft
+                    : Alignment.centerRight,
+                duration: const Duration(milliseconds: 220),
+                curve: Curves.easeOutCubic,
+                child: FractionallySizedBox(
+                  widthFactor: 0.5,
+                  child: Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 2),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          accentColor.withOpacity(0.25),
+                          accentColor.withOpacity(0.5),
+                        ],
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: accentColor.withOpacity(0.25),
+                          blurRadius: 18,
+                          offset: const Offset(0, 6),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               ),
-              _buildTab(context, label: 'Projects', tab: LauncherTab.projects),
+              Row(
+                children: [
+                  _buildTab(
+                    context,
+                    label: 'Tools',
+                    tab: LauncherTab.tools,
+                    badge: toolsBadge > 0 ? toolsBadge.toString() : null,
+                  ),
+                  _buildTab(
+                    context,
+                    label: 'Projects',
+                    tab: LauncherTab.projects,
+                  ),
+                ],
+              ),
             ],
           ),
         );
@@ -68,15 +108,9 @@ class TabBarWidget extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           onTap: () => onTabSelected(tab),
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(12),
           child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            decoration: BoxDecoration(
-              color: isActive
-                  ? accentColor.withOpacity(0.13)
-                  : Colors.transparent,
-              borderRadius: BorderRadius.circular(8),
-            ),
+            padding: const EdgeInsets.symmetric(vertical: 10),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -84,8 +118,8 @@ class TabBarWidget extends StatelessWidget {
                   label,
                   style: TextStyle(
                     color: isActive ? textPrimary : textSecondary,
-                    fontSize: 12,
-                    fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
+                    fontSize: 13,
+                    fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
                   ),
                 ),
                 if (badge != null)
@@ -96,7 +130,9 @@ class TabBarWidget extends StatelessWidget {
                       vertical: 2,
                     ),
                     decoration: BoxDecoration(
-                      color: accentColor.withOpacity(0.3),
+                      color: isActive
+                          ? Colors.white.withOpacity(0.25)
+                          : accentColor.withOpacity(0.2),
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: Text(

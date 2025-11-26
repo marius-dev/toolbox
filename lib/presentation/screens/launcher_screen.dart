@@ -95,21 +95,49 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
     return AnimatedBuilder(
       animation: ThemeProvider.instance,
       builder: (context, _) {
+        final isDark = ThemeProvider.instance.isDarkMode;
+        final accentColor = ThemeProvider.instance.accentColor;
         return Container(
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(26),
+            gradient: LinearGradient(
+              colors: isDark
+                  ? [
+                      const Color(0xFF05070F),
+                      Color.alphaBlend(
+                        accentColor.withOpacity(0.12),
+                        const Color(0xFF05070F),
+                      ),
+                      const Color(0xFF090F1F),
+                    ]
+                  : [
+                      Colors.white,
+                      Colors.white,
+                      Colors.white.withOpacity(0.95),
+                    ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.5),
+                color: isDark
+                    ? Colors.black.withOpacity(0.65)
+                    : Colors.black.withOpacity(0.1),
                 blurRadius: 60,
-                offset: const Offset(0, 20),
+                offset: const Offset(0, 30),
               ),
+              if (isDark)
+                BoxShadow(
+                  color: accentColor.withOpacity(0.25),
+                  blurRadius: 90,
+                  offset: const Offset(0, 10),
+                ),
             ],
           ),
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(26),
             child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 80, sigmaY: 80),
+              filter: ImageFilter.blur(sigmaX: 40, sigmaY: 40),
               child: _buildContent(),
             ),
           ),
@@ -124,9 +152,12 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
 
     final backgroundGradient = isDark
         ? [
-            Color.lerp(accentColor, Colors.black, 0.7)!,
-            const Color(0xFF0E1118),
-            const Color(0xFF0B0D14),
+            const Color(0xFF070C18),
+            Color.alphaBlend(
+              accentColor.withOpacity(0.18),
+              const Color(0xFF070C18),
+            ),
+            const Color(0xFF0F1428),
           ]
         : [
             _lighten(accentColor, 0.4),
@@ -146,14 +177,30 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
           colors: backgroundGradient,
         ),
         border: Border.all(color: borderColor, width: 1),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(26),
       ),
-      child: _showSettings
-          ? SettingsScreen(
-              onBack: _toggleSettings,
-              onRescan: _toolsProvider.refresh,
-            )
-          : _buildMainView(),
+      child: Stack(
+        children: [
+          Positioned(
+            top: -120,
+            right: -20,
+            child: _buildGlow(accentColor, 240),
+          ),
+          Positioned(
+            bottom: -140,
+            left: -30,
+            child: _buildGlow(accentColor.withOpacity(0.8), 320),
+          ),
+          Positioned.fill(
+            child: _showSettings
+                ? SettingsScreen(
+                    onBack: _toggleSettings,
+                    onRescan: _toolsProvider.refresh,
+                  )
+                : _buildMainView(),
+          ),
+        ],
+      ),
     );
   }
 
@@ -191,6 +238,21 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
     return hsl
         .withLightness((hsl.lightness + amount).clamp(0.0, 1.0))
         .toColor();
+  }
+
+  Widget _buildGlow(Color color, double size) {
+    return IgnorePointer(
+      child: Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          gradient: RadialGradient(
+            colors: [color.withOpacity(0.22), Colors.transparent],
+          ),
+        ),
+      ),
+    );
   }
 
   void _showAddProjectDialog(BuildContext context) {

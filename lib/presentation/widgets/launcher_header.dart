@@ -19,9 +19,10 @@ class LauncherHeader extends StatelessWidget {
       builder: (context, _) {
         final accentColor = ThemeProvider.instance.accentColor;
         final textColor = Theme.of(context).textTheme.bodyLarge!.color!;
+        final muted = Theme.of(context).textTheme.bodyMedium!.color!;
 
         return Container(
-          padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
+          padding: const EdgeInsets.fromLTRB(24, 22, 24, 14),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -29,13 +30,26 @@ class LauncherHeader extends StatelessWidget {
                 children: [
                   _buildLogo(accentColor),
                   const SizedBox(width: 12),
-                  Text(
-                    'Marius\'s toolbox',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: textColor,
-                    ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Projects toolbox',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                          color: textColor,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Launch apps, scripts & tools from one place',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: muted.withOpacity(0.9),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -72,15 +86,24 @@ class LauncherHeader extends StatelessWidget {
 
   Widget _buildLogo(Color accentColor) {
     return Container(
-      width: 32,
-      height: 32,
+      width: 40,
+      height: 40,
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [_lighten(accentColor, 0.12), accentColor],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [_lighten(accentColor, 0.25), accentColor],
         ),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: accentColor.withOpacity(0.45),
+            blurRadius: 20,
+            offset: const Offset(0, 6),
+          ),
+        ],
       ),
-      child: const Icon(Icons.widgets_rounded, color: Colors.white, size: 18),
+      child: const Icon(Icons.bolt_rounded, color: Colors.white, size: 20),
     );
   }
 

@@ -121,7 +121,9 @@ class SearchSortBar extends StatelessWidget {
     final borderColor = isDark
         ? Colors.white.withOpacity(0.08)
         : Colors.black.withOpacity(0.06);
-    final bgColor = panelColor;
+    final bgColor = isDark
+        ? Colors.black.withOpacity(0.7)
+        : panelColor;
 
     return Container(
       decoration: BoxDecoration(
