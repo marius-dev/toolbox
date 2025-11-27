@@ -181,7 +181,7 @@ class _ProjectDialogState extends State<ProjectDialog> {
                 children: [
                   _buildTextField(
                     controller: _nameController,
-                    label: 'Project Name',
+                    label: 'Name',
                     icon: Icons.edit,
                   ),
                   const SizedBox(height: 16),
@@ -230,8 +230,8 @@ class _ProjectDialogState extends State<ProjectDialog> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildWizardProgress(context),
-          const SizedBox(height: 18),
+          // _buildWizardProgress(context),
+          // const SizedBox(height: 18),
           AnimatedSwitcher(
             duration: const Duration(milliseconds: 200),
             child: _currentStep == 0
@@ -245,89 +245,15 @@ class _ProjectDialogState extends State<ProjectDialog> {
     );
   }
 
-  Widget _buildWizardProgress(BuildContext context) {
-    final accentColor = ThemeProvider.instance.accentColor;
-    final muted = Theme.of(context).textTheme.bodySmall!.color!;
-    final steps = ['Location', 'Details', 'Tool'];
-
-    return Row(
-      children: List.generate(steps.length, (index) {
-        final isActive = index == _currentStep;
-        final isCompleted = index < _currentStep;
-        final bgColor = isActive
-            ? accentColor.withOpacity(0.2)
-            : isCompleted
-            ? accentColor.withOpacity(0.12)
-            : Theme.of(context).brightness == Brightness.dark
-            ? Colors.white.withOpacity(0.04)
-            : Colors.black.withOpacity(0.04);
-        final borderColor = isActive
-            ? accentColor.withOpacity(0.8)
-            : isCompleted
-            ? accentColor.withOpacity(0.4)
-            : muted.withOpacity(0.2);
-
-        return Expanded(
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            margin: EdgeInsets.only(right: index < steps.length - 1 ? 8 : 0),
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-            decoration: BoxDecoration(
-              color: bgColor,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: borderColor),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '0${index + 1}',
-                  style: TextStyle(
-                    color: borderColor,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  steps[index],
-                  style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                    color: isActive
-                        ? accentColor
-                        : isCompleted
-                        ? muted
-                        : muted.withOpacity(0.8),
-                    fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      }),
-    );
-  }
-
   Widget _buildFolderStep(BuildContext context) {
-    return _buildStepCard(
-      context,
-      title: 'Project folder',
-      description: 'Choose the folder that contains your project files.',
-      child: _buildPathField(),
-    );
+    return _buildPathField();
   }
 
   Widget _buildNameStep(BuildContext context) {
-    return _buildStepCard(
-      context,
-      title: 'Project name',
-      description:
-          'We prefilled this from the folder name, but you can change it.',
-      child: _buildTextField(
-        controller: _nameController,
-        label: 'Project Name',
-        icon: Icons.edit,
-      ),
+    return _buildTextField(
+      controller: _nameController,
+      label: 'Name',
+      icon: Icons.edit,
     );
   }
 
@@ -444,13 +370,7 @@ class _ProjectDialogState extends State<ProjectDialog> {
       );
     }();
 
-    return _buildStepCard(
-      context,
-      title: 'Preferred IDE',
-      description:
-          'Pick the IDE you want to launch when opening this workspace.',
-      child: content,
-    );
+    return content;
   }
 
   Widget _buildStepCard(
@@ -568,7 +488,7 @@ class _ProjectDialogState extends State<ProjectDialog> {
   Widget _buildPathField() {
     return _buildTextField(
       controller: _pathController,
-      label: 'Project Path',
+      label: 'Path',
       icon: Icons.folder_open,
       suffix: IconButton(
         icon: Icon(
@@ -597,7 +517,7 @@ class _ProjectDialogState extends State<ProjectDialog> {
       dropdownColor: dropdownBg,
       style: Theme.of(context).textTheme.bodyLarge,
       decoration: InputDecoration(
-        labelText: 'Project Type',
+        labelText: 'Type',
         labelStyle: Theme.of(context).textTheme.bodyMedium,
         prefixIcon: Icon(
           Icons.category,

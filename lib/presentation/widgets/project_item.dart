@@ -50,7 +50,7 @@ class ProjectItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDisabled = !project.pathExists;
-    final interactionActive = !isDisabled && isFocused;
+    final interactionActive = !isDisabled && (isFocused || isHovering);
     final isHighlighted = !isDisabled && (isFocused || isHovering);
     final borderRadius = BorderRadius.circular(14);
 

@@ -62,11 +62,9 @@ class _ProjectListState extends State<ProjectList> {
     }
     _syncKeys();
     _syncSelectionWithProjects();
-    if (_highlightedIndex != null &&
-        _highlightedIndex! >= widget.projects.length) {
-      _highlightedIndex = widget.projects.isNotEmpty
-          ? widget.projects.length - 1
-          : null;
+    final ordered = _orderedProjects();
+    if (_highlightedIndex != null && _highlightedIndex! >= ordered.length) {
+      _highlightedIndex = ordered.isNotEmpty ? ordered.length - 1 : null;
     }
     if (widget.focusNode.hasFocus && widget.projects.isNotEmpty) {
       WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToSelected());
@@ -81,13 +79,14 @@ class _ProjectListState extends State<ProjectList> {
   }
 
   void _syncKeys() {
-    if (_itemKeys.length == widget.projects.length) return;
-    if (_itemKeys.length > widget.projects.length) {
-      _itemKeys.removeRange(widget.projects.length, _itemKeys.length);
+    final ordered = _orderedProjects();
+    if (_itemKeys.length == ordered.length) return;
+    if (_itemKeys.length > ordered.length) {
+      _itemKeys.removeRange(ordered.length, _itemKeys.length);
     } else {
       _itemKeys.addAll(
         List.generate(
-          widget.projects.length - _itemKeys.length,
+          ordered.length - _itemKeys.length,
           (_) => GlobalKey(),
         ),
       );
@@ -95,14 +94,15 @@ class _ProjectListState extends State<ProjectList> {
   }
 
   void _syncSelectionWithProjects() {
-    if (widget.projects.isEmpty) {
+    final ordered = _orderedProjects();
+    if (ordered.isEmpty) {
       _selectedIndex = 0;
       _selectedProjectId = null;
       return;
     }
 
     if (_selectedProjectId != null) {
-      final existingIndex = widget.projects.indexWhere(
+      final existingIndex = ordered.indexWhere(
         (project) => project.id == _selectedProjectId,
       );
       if (existingIndex != -1) {
@@ -112,18 +112,23 @@ class _ProjectListState extends State<ProjectList> {
     }
 
     final fallbackIndex = math.min(
-      widget.projects.length - 1,
+      ordered.length - 1,
       math.max(0, _selectedIndex),
     );
     _selectedIndex = fallbackIndex;
-    _selectedProjectId = widget.projects[fallbackIndex].id;
+    _selectedProjectId = ordered[fallbackIndex].id;
   }
 
   void _setHoverHighlight(int index) {
+    final ordered = _orderedProjects();
+    if (index < 0 || index >= ordered.length) return;
+
     if (_highlightedIndex == index && _isPointerHovering) return;
     setState(() {
       _highlightedIndex = index;
       _isPointerHovering = true;
+      _selectedIndex = index;
+      _selectedProjectId = ordered[index].id;
     });
   }
 
@@ -137,14 +142,15 @@ class _ProjectListState extends State<ProjectList> {
 
   void _handleFocusChange() {
     if (!mounted) return;
-    if (widget.focusNode.hasFocus && widget.projects.isNotEmpty) {
+    final ordered = _orderedProjects();
+    if (widget.focusNode.hasFocus && ordered.isNotEmpty) {
       final nextIndex = math.min(
-        widget.projects.length - 1,
+        ordered.length - 1,
         math.max(0, _selectedIndex),
       );
       setState(() {
         _selectedIndex = nextIndex;
-        _selectedProjectId = widget.projects[nextIndex].id;
+        _selectedProjectId = ordered[nextIndex].id;
         _highlightedIndex = nextIndex;
         _isPointerHovering = false;
       });
@@ -158,17 +164,19 @@ class _ProjectListState extends State<ProjectList> {
   }
 
   KeyEventResult _handleKeyEvent(FocusNode node, KeyEvent event) {
-    if (event is! KeyDownEvent || widget.projects.isEmpty) {
+    if (event is! KeyDownEvent) {
       return KeyEventResult.ignored;
     }
+    final ordered = _orderedProjects();
+    if (ordered.isEmpty) return KeyEventResult.ignored;
 
     if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
       setState(() {
         _selectedIndex = math.min(
-          widget.projects.length - 1,
+          ordered.length - 1,
           _selectedIndex + 1,
         );
-        _selectedProjectId = widget.projects[_selectedIndex].id;
+        _selectedProjectId = ordered[_selectedIndex].id;
         _highlightedIndex = _selectedIndex;
       });
       _scrollToSelected();
@@ -186,7 +194,7 @@ class _ProjectListState extends State<ProjectList> {
       }
       setState(() {
         _selectedIndex = math.max(0, _selectedIndex - 1);
-        _selectedProjectId = widget.projects[_selectedIndex].id;
+        _selectedProjectId = ordered[_selectedIndex].id;
         _highlightedIndex = _selectedIndex;
       });
       _scrollToSelected();
@@ -195,7 +203,7 @@ class _ProjectListState extends State<ProjectList> {
 
     if (event.logicalKey == LogicalKeyboardKey.enter ||
         event.logicalKey == LogicalKeyboardKey.numpadEnter) {
-      widget.onProjectTap(widget.projects[_selectedIndex]);
+      widget.onProjectTap(ordered[_selectedIndex]);
       return KeyEventResult.handled;
     }
 
@@ -216,48 +224,136 @@ class _ProjectListState extends State<ProjectList> {
   int? get _currentHighlightedIndex {
     if (_highlightedIndex != null) return _highlightedIndex;
     if (!widget.focusNode.hasFocus) return null;
-    if (widget.projects.isEmpty) return null;
+    final ordered = _orderedProjects();
+    if (ordered.isEmpty) return null;
     return _selectedIndex;
   }
 
   @override
   Widget build(BuildContext context) {
+    final sections = _projectSections();
+    final favorites = sections.favorites;
+    final others = sections.others;
+
     return Focus(
       focusNode: widget.focusNode,
       onKeyEvent: _handleKeyEvent,
-      child: ListView.builder(
-        controller: _scrollController,
+      child: Padding(
         padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-        itemCount: widget.projects.length,
-        itemBuilder: (context, index) {
-          final project = widget.projects[index];
-          final isHovering = _isPointerHovering && _highlightedIndex == index;
-          final isFocused =
-              widget.focusNode.hasFocus && index == _selectedIndex;
-          return MouseRegion(
-            cursor: project.pathExists
-                ? SystemMouseCursors.click
-                : SystemMouseCursors.basic,
-            onEnter: (_) => _setHoverHighlight(index),
-            onExit: (_) => _clearHoverHighlight(),
-            child: Container(
-              key: _itemKeys[index],
-              child: ProjectItem(
-                project: project,
-                installedTools: widget.installedTools,
-                defaultToolId: widget.defaultToolId,
-                isFocused: isFocused,
-                isHovering: isHovering,
-                onTap: () => widget.onProjectTap(project),
-                onStarToggle: () => widget.onStarToggle(project),
-                onShowInFinder: () => widget.onShowInFinder(project),
-                onOpenWith: (app) => widget.onOpenWith(project, app),
-                onDelete: () => widget.onDelete(project),
+        child: CustomScrollView(
+          controller: _scrollController,
+          slivers: [
+            if (favorites.isNotEmpty) ...[
+              SliverToBoxAdapter(
+                child: _buildSectionHeader(context, 'Favorites'),
               ),
-            ),
-          );
-        },
+              SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) => _buildProjectEntry(
+                    favorites[index],
+                    index,
+                  ),
+                  childCount: favorites.length,
+                ),
+              ),
+              if (others.isNotEmpty)
+                const SliverToBoxAdapter(child: SizedBox(height: 12)),
+            ],
+            if (others.isNotEmpty) ...[
+              if (favorites.isNotEmpty)
+                SliverToBoxAdapter(
+                  child: _buildSectionHeader(context, 'Projects'),
+                ),
+              SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) => _buildProjectEntry(
+                    others[index],
+                    favorites.length + index,
+                  ),
+                  childCount: others.length,
+                ),
+              ),
+            ],
+          ],
+        ),
       ),
     );
   }
+
+  Widget _buildSectionHeader(BuildContext context, String label) {
+    final theme = Theme.of(context);
+    final baseColor =
+        theme.textTheme.bodySmall?.color ?? theme.colorScheme.onSurface;
+    final headerStyle = (theme.textTheme.labelLarge ?? theme.textTheme.bodyMedium)
+        ?.copyWith(
+          color: baseColor.withOpacity(0.75),
+          fontWeight: FontWeight.w600,
+          letterSpacing: 0.4,
+        );
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6, top: 4),
+      child: Text(
+        label,
+        style: headerStyle,
+      ),
+    );
+  }
+
+  Widget _buildProjectEntry(
+    Project project,
+    int globalIndex,
+  ) {
+    final isHovering = _isPointerHovering && _highlightedIndex == globalIndex;
+    final isFocused = widget.focusNode.hasFocus && globalIndex == _selectedIndex;
+
+    return MouseRegion(
+      cursor: project.pathExists
+          ? SystemMouseCursors.click
+          : SystemMouseCursors.basic,
+      onEnter: (_) => _setHoverHighlight(globalIndex),
+      onExit: (_) => _clearHoverHighlight(),
+      child: Container(
+        key: _itemKeys[globalIndex],
+        child: ProjectItem(
+          project: project,
+          installedTools: widget.installedTools,
+          defaultToolId: widget.defaultToolId,
+          isFocused: isFocused,
+          isHovering: isHovering,
+          onTap: () => widget.onProjectTap(project),
+          onStarToggle: () => widget.onStarToggle(project),
+          onShowInFinder: () => widget.onShowInFinder(project),
+          onOpenWith: (app) => widget.onOpenWith(project, app),
+          onDelete: () => widget.onDelete(project),
+        ),
+      ),
+    );
+  }
+
+  List<Project> _orderedProjects() => _projectSections().ordered;
+
+  _ProjectSections _projectSections() {
+    final favorites = <Project>[];
+    final others = <Project>[];
+    for (final project in widget.projects) {
+      if (project.isStarred) {
+        favorites.add(project);
+      } else {
+        others.add(project);
+      }
+    }
+    return _ProjectSections(favorites: favorites, others: others);
+  }
+}
+
+class _ProjectSections {
+  final List<Project> favorites;
+  final List<Project> others;
+  final List<Project> ordered;
+
+  _ProjectSections({
+    required this.favorites,
+    required this.others,
+  }) : ordered = [...favorites, ...others];
 }
