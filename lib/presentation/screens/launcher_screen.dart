@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:project_launcher/domain/models/project.dart';
+import 'package:project_launcher/presentation/screens/add_project_screen.dart';
 import 'package:project_launcher/presentation/screens/settings_screen.dart';
 import 'package:project_launcher/presentation/widgets/project_dialog.dart';
 import 'package:window_manager/window_manager.dart';
@@ -14,6 +16,7 @@ import '../providers/tools_provider.dart';
 import '../widgets/tools_section.dart';
 import '../../core/services/window_service.dart';
 import '../../core/theme/theme_provider.dart';
+import '../../core/utils/compact_layout.dart';
 
 class LauncherScreen extends StatefulWidget {
   const LauncherScreen({super.key});
@@ -39,12 +42,13 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
     _projectProvider.loadProjects();
     _toolsProvider.loadTools();
     windowManager.addListener(this);
-    WidgetsBinding.instance.addPostFrameCallback((_) => _focusSearchField());
+    RawKeyboard.instance.addListener(_handleRawKeyEvent);
   }
 
   @override
   void dispose() {
     windowManager.removeListener(this);
+    RawKeyboard.instance.removeListener(_handleRawKeyEvent);
     _searchController.dispose();
     _searchFocusNode.dispose();
     _projectListFocusNode.dispose();
@@ -62,9 +66,7 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
   }
 
   @override
-  void onWindowFocus() {
-    WidgetsBinding.instance.addPostFrameCallback((_) => _focusSearchField());
-  }
+  void onWindowFocus() {}
 
   void _toggleSettings() {
     setState(() => _showSettings = !_showSettings);
@@ -73,10 +75,13 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
     }
   }
 
-  void _focusSearchField() {
+  void _focusSearchField({String? initialInput}) {
     if (!mounted || _selectedTab != LauncherTab.projects || _showSettings)
       return;
     _dismissPopupMenus();
+    if (initialInput != null && initialInput.isNotEmpty) {
+      _insertInitialSearchInput(initialInput);
+    }
     FocusScope.of(context).requestFocus(_searchFocusNode);
   }
 
@@ -88,6 +93,44 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
   void _dismissPopupMenus() {
     final navigator = Navigator.of(context);
     navigator.popUntil((route) => route is! PopupRoute);
+  }
+
+  void _insertInitialSearchInput(String input) {
+    final text = _searchController.text;
+    final selection = _searchController.selection;
+    final hasSelection =
+        selection.isValid &&
+        selection.start >= 0 &&
+        selection.end <= text.length;
+    final start = hasSelection ? selection.start : text.length;
+    final end = hasSelection ? selection.end : text.length;
+    final newText = text.replaceRange(start, end, input);
+    final newSelection = TextSelection.collapsed(offset: start + input.length);
+
+    _searchController.value = TextEditingValue(
+      text: newText,
+      selection: newSelection,
+    );
+    _projectProvider.setSearchQuery(newText);
+  }
+
+  void _handleRawKeyEvent(RawKeyEvent event) {
+    if (event is! RawKeyDownEvent) return;
+    if (_showSettings || _selectedTab != LauncherTab.projects) return;
+    if (_searchFocusNode.hasFocus) return;
+    if (event.isControlPressed || event.isMetaPressed || event.isAltPressed) {
+      return;
+    }
+
+    final focusedWidget = FocusManager.instance.primaryFocus?.context?.widget;
+    if (focusedWidget is EditableText) return;
+
+    final character = event.character;
+    final isAlphanumeric =
+        character != null && RegExp(r'^[a-zA-Z0-9]$').hasMatch(character);
+    if (!isAlphanumeric) return;
+
+    _focusSearchField(initialInput: character);
   }
 
   @override
@@ -225,7 +268,7 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
       children: [
         LauncherHeader(
           onSettingsPressed: _toggleSettings,
-          onAddProject: () => _showAddProjectDialog(context),
+          onAddProject: _openAddProjectScreen,
         ),
         TabBarWidget(
           selectedTab: _selectedTab,
@@ -271,20 +314,47 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
     );
   }
 
-  void _showAddProjectDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => ProjectDialog(
-        defaultToolId: _toolsProvider.defaultToolId,
-        onSave: (name, path, type, preferredToolId) {
-          _projectProvider.addProject(
-            name: name,
-            path: path,
-            type: type,
-            preferredToolId: preferredToolId,
-          );
-        },
-      ),
+  Future<void> _openAddProjectScreen() async {
+    _dismissPopupMenus();
+    final created = await Navigator.of(context).push<bool>(
+      _buildAddProjectRoute(),
+    );
+    if (!mounted) return;
+    if (created == true) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _focusSearchField());
+    }
+  }
+
+  PageRouteBuilder<bool> _buildAddProjectRoute() {
+    return PageRouteBuilder<bool>(
+      transitionDuration: const Duration(milliseconds: 420),
+      reverseTransitionDuration: const Duration(milliseconds: 320),
+      pageBuilder: (context, animation, secondaryAnimation) {
+        final child = AddProjectScreen(
+          projectProvider: _projectProvider,
+          toolsProvider: _toolsProvider,
+        );
+        final media = MediaQuery.of(context);
+        if (media.disableAnimations || media.accessibleNavigation) {
+          return child;
+        }
+
+        final curved = CurvedAnimation(
+          parent: animation,
+          curve: Curves.easeOutCubic,
+        );
+
+        return FadeTransition(
+          opacity: curved,
+          child: SlideTransition(
+            position: Tween<Offset>(
+              begin: const Offset(0, 0.04),
+              end: Offset.zero,
+            ).animate(curved),
+            child: child,
+          ),
+        );
+      },
     );
   }
 
@@ -314,6 +384,7 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
         currentSort: _projectProvider.sortOption,
         onSortChanged: _projectProvider.setSortOption,
       ),
+      SizedBox(height: CompactLayout.value(context, 20)),
       Expanded(
         child: AnimatedBuilder(
           animation: Listenable.merge([_projectProvider, _toolsProvider]),
@@ -324,7 +395,7 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
 
             if (!_projectProvider.hasProjects) {
               return EmptyState(
-                onAddProject: () => _showAddProjectDialog(context),
+                onAddProject: _openAddProjectScreen,
               );
             }
 
