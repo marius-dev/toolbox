@@ -173,6 +173,10 @@ class _ProjectAvatar extends StatelessWidget {
     final accentColor = ThemeProvider.instance.accentColor;
     final textColor = Theme.of(context).textTheme.bodyLarge!.color!;
     final avatarSize = CompactLayout.value(context, 38);
+    final gradientColors = _projectAvatarGradientColors(
+      project.name,
+      accentColor,
+    );
 
     return Container(
       width: avatarSize,
@@ -185,13 +189,13 @@ class _ProjectAvatar extends StatelessWidget {
             : LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [_lighten(accentColor, 0.2), accentColor],
+                colors: gradientColors,
               ),
         borderRadius: BorderRadius.circular(CompactLayout.value(context, 10)),
         boxShadow: [
           if (!isDisabled)
             BoxShadow(
-              color: accentColor.withOpacity(0.3),
+              color: gradientColors.last.withOpacity(0.35),
               blurRadius: 16,
               offset: const Offset(0, 6),
             ),
@@ -210,12 +214,30 @@ class _ProjectAvatar extends StatelessWidget {
     );
   }
 
-  Color _lighten(Color color, double amount) {
-    final hsl = HSLColor.fromColor(color);
-    return hsl
-        .withLightness((hsl.lightness + amount).clamp(0.0, 1.0))
-        .toColor();
-  }
+}
+
+List<Color> _projectAvatarGradientColors(String name, Color accentColor) {
+  final randomColor = _projectAvatarRandomColor(name);
+  final mixedColor = Color.lerp(randomColor, accentColor, 0.35)!;
+  return [
+    _adjustLightness(randomColor, 0.12),
+    _adjustLightness(mixedColor, -0.08),
+  ];
+}
+
+Color _projectAvatarRandomColor(String name) {
+  final hash = name.hashCode & 0x7fffffff;
+  final hue = (hash % 360).toDouble();
+  final saturation = (0.55 + ((hash >> 8) % 40) / 100).clamp(0.5, 0.95);
+  final lightness = (0.38 + ((hash >> 14) % 35) / 100).clamp(0.3, 0.75);
+  return HSLColor.fromAHSL(1, hue, saturation, lightness).toColor();
+}
+
+Color _adjustLightness(Color color, double delta) {
+  final hsl = HSLColor.fromColor(color);
+  return hsl
+      .withLightness((hsl.lightness + delta).clamp(0.0, 1.0))
+      .toColor();
 }
 
 class _ProjectInfo extends StatelessWidget {
@@ -652,6 +674,10 @@ class _CustomMenuOverlay extends StatelessWidget {
   }
 }
 
+const double _kProjectMenuActionTileBaseHeight = 42.0;
+const double _kProjectMenuIconBaseSize = 18.0;
+const double _kProjectMenuTextBaseSize = 13.0;
+
 // ==================== Menu Builder ====================
 
 class _ProjectMenuBuilder {
@@ -669,7 +695,7 @@ class _ProjectMenuBuilder {
   final void Function(ToolId toolId) onOpenWith;
   final VoidCallback onDelete;
 
-  static const double _baseActionTileHeight = 38.0;
+  static const double _baseActionTileHeight = _kProjectMenuActionTileBaseHeight;
   static const double _baseMenuWidth = 260.0;
   static const double _headerHeight = 30.0;
   static const int _bottomActionCount = 3;
@@ -1003,7 +1029,10 @@ class _MenuActionTileState extends State<_MenuActionTile> {
               ? widget.onPressed
               : null,
           child: Container(
-            height: CompactLayout.value(context, 38),
+            height: CompactLayout.value(
+              context,
+              _kProjectMenuActionTileBaseHeight,
+            ),
             padding: EdgeInsets.symmetric(
               horizontal: CompactLayout.value(context, 12),
             ),
@@ -1019,7 +1048,10 @@ class _MenuActionTileState extends State<_MenuActionTile> {
                 ] else ...[
                   Icon(
                     widget.action.icon,
-                    size: CompactLayout.value(context, 16),
+                    size: CompactLayout.value(
+                      context,
+                      _kProjectMenuIconBaseSize,
+                    ),
                     color: textColor,
                   ),
                 ],
@@ -1030,7 +1062,10 @@ class _MenuActionTileState extends State<_MenuActionTile> {
                     style: TextStyle(
                       color: textColor,
                       fontWeight: FontWeight.w600,
-                      fontSize: CompactLayout.value(context, 12),
+                      fontSize: CompactLayout.value(
+                        context,
+                        _kProjectMenuTextBaseSize,
+                      ),
                     ),
                   ),
                 ),

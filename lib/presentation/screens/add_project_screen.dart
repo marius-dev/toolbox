@@ -281,12 +281,7 @@ class _AddProjectScreenState extends State<AddProjectScreen>
                           context,
                           horizontal: 18,
                         ),
-                        child: _buildForm(
-                          context,
-                          duration,
-                          curve,
-                          palette,
-                        ),
+                        child: _buildForm(context, duration, curve, palette),
                       ),
                     ),
                   ),
@@ -349,11 +344,7 @@ class _AddProjectScreenState extends State<AddProjectScreen>
     );
   }
 
-  Widget _buildBottomBar(
-    BuildContext context,
-    Duration duration,
-    Curve curve,
-  ) {
+  Widget _buildBottomBar(BuildContext context, Duration duration, Curve curve) {
     final accentColor = ThemeProvider.instance.accentColor;
 
     return GlassPanel(
@@ -464,27 +455,7 @@ class _AddProjectScreenState extends State<AddProjectScreen>
                       width: columnWidth,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _buildPathField(context, palette),
-                          SizedBox(height: CompactLayout.value(context, 12)),
-                          Align(
-                            alignment: Alignment.centerLeft,
-                            child: Wrap(
-                              spacing: 12,
-                              runSpacing: 6,
-                              children: [
-                                InputChip(
-                                  avatar: const Icon(
-                                    Icons.folder_open_rounded,
-                                    size: 18,
-                                  ),
-                                  label: const Text('Browse'),
-                                  onPressed: _pickFolder,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
+                        children: [_buildPathField(context, palette)],
                       ),
                     ),
                     SizedBox(

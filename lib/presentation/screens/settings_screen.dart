@@ -28,8 +28,6 @@ class SettingsScreen extends StatelessWidget {
             children: [
               const HotkeyPicker(),
               SizedBox(height: CompactLayout.value(context, 10)),
-              _buildToolsRescanTile(context),
-              SizedBox(height: CompactLayout.value(context, 10)),
               _buildThemeToggle(context),
               SizedBox(height: CompactLayout.value(context, 10)),
               _buildGlassStyleTile(context),
@@ -65,27 +63,6 @@ class SettingsScreen extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildToolsRescanTile(BuildContext context) {
-    final accentColor = ThemeProvider.instance.accentColor;
-
-    return SettingsTile(
-      title: 'Rescan tools',
-      subtitle: 'Redetect editors and viewers installed on this device',
-      icon: Icons.refresh,
-      trailing: TextButton(
-        onPressed: onRescan,
-        style: TextButton.styleFrom(
-          foregroundColor: accentColor,
-          padding: EdgeInsets.symmetric(
-            horizontal: CompactLayout.value(context, 12),
-            vertical: CompactLayout.value(context, 6),
-          ),
-        ),
-        child: const Text('Rescan'),
       ),
     );
   }
@@ -206,48 +183,35 @@ class SettingsScreen extends StatelessWidget {
         final themeProvider = ThemeProvider.instance;
         final isDarkTheme = Theme.of(context).brightness == Brightness.dark;
 
-        final borderColor = isDarkTheme
-            ? Colors.white.withOpacity(0.12)
-            : Colors.black.withOpacity(0.08);
-
         return SettingsTile(
           title: 'App size',
           subtitle: 'Scale the UI',
           icon: Icons.zoom_out_map,
-          trailing: Container(
-            padding: EdgeInsets.symmetric(
-              horizontal: CompactLayout.value(context, 12),
-              vertical: CompactLayout.value(context, 6),
-            ),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(
-                CompactLayout.value(context, 10),
-              ),
-              border: Border.all(color: borderColor),
-            ),
-            child: DropdownButtonHideUnderline(
-              child: DropdownButton<double>(
-                value: themeProvider.scaleFactor,
-                iconEnabledColor: themeProvider.accentColor,
-                dropdownColor: isDarkTheme ? Colors.grey[850] : Colors.white,
-                items: ThemeProvider.scaleOptions.map((scale) {
-                  final label = '${(scale * 100).round()}%';
-                  return DropdownMenuItem<double>(
-                    value: scale,
-                    child: Text(
-                      label,
-                      style: TextStyle(
-                        fontSize: CompactLayout.value(context, 12),
-                      ),
+          trailing: DropdownButtonHideUnderline(
+            child: DropdownButton<double>(
+              value: themeProvider.scaleFactor,
+              iconEnabledColor: themeProvider.accentColor,
+              dropdownColor: isDarkTheme ? Colors.grey[850] : Colors.white,
+              isDense: true,
+              alignment: Alignment.centerRight,
+              underline: const SizedBox.shrink(),
+              items: ThemeProvider.scaleOptions.map((scale) {
+                final label = '${(scale * 100).round()}%';
+                return DropdownMenuItem<double>(
+                  value: scale,
+                  child: Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: CompactLayout.value(context, 12),
                     ),
-                  );
-                }).toList(),
-                onChanged: (value) {
-                  if (value != null) {
-                    themeProvider.setScaleFactor(value);
-                  }
-                },
-              ),
+                  ),
+                );
+              }).toList(),
+              onChanged: (value) {
+                if (value != null) {
+                  themeProvider.setScaleFactor(value);
+                }
+              },
             ),
           ),
         );

@@ -12,5 +12,10 @@ class AppColors {
     Color(0xFF06B6D4), // Cyan
     Color(0xFF3B82F6), // Blue
     Color(0xFF14B8A6), // Teal
+    Color(0xFFEC4899), // Pink
+    Color(0xFFDB2777), // Fuchsia
+    Color(0xFF2563EB), // Royal Blue
+    Color(0xFF0F766E), // Deep Teal
+    Color(0xFF1F2937), // Charcoal
   ];
 }

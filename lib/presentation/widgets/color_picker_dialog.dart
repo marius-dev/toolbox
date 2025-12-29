@@ -60,39 +60,32 @@ class _ColorPickerDialogState extends State<ColorPickerDialog> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Select accent color',
-                  style: TextStyle(
-                    color: textPrimary,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 16,
-                  ),
-                ),
-                IconButton(
-                  icon: Icon(Icons.close, color: textSecondary),
-                  splashRadius: 18,
-                  onPressed: widget.onCancel,
-                ),
-              ],
+            Text(
+              'Select accent color',
+              style: TextStyle(
+                color: textPrimary,
+                fontWeight: FontWeight.w700,
+                fontSize: 16,
+              ),
             ),
             const SizedBox(height: 8),
-            Container(
-              decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF161B24) : Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: borderColor),
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
-              child: BlockPicker(
-                pickerColor: _selectedColor,
-                availableColors: AppColors.accentPresets,
-                onColorChanged: (color) {
-                  setState(() => _selectedColor = color);
-                  widget.onColorChanged(color);
-                },
+            Align(
+              alignment: Alignment.center,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF161B24) : Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+                child: BlockPicker(
+                  pickerColor: _selectedColor,
+                  availableColors: AppColors.accentPresets,
+                  onColorChanged: (color) {
+                    setState(() => _selectedColor = color);
+                    widget.onColorChanged(color);
+                  },
+                ),
               ),
             ),
             const SizedBox(height: 12),
