@@ -3,7 +3,6 @@ import '../../domain/models/project.dart';
 import '../../domain/models/tool.dart';
 import '../../domain/use_cases/project_use_cases.dart';
 import '../../domain/repositories/project_repository.dart';
-import '../widgets/project_item.dart';
 
 class ProjectProvider extends ChangeNotifier {
   final ProjectUseCases _useCases;
@@ -104,13 +103,13 @@ class ProjectProvider extends ChangeNotifier {
 
   Future<void> openWith(
     Project project,
-    OpenWithApp app, {
+    ToolId toolId, {
     ToolId? defaultToolId,
     List<Tool> installedTools = const [],
   }) async {
     await _useCases.openWith(
       project,
-      app,
+      toolId,
       defaultToolId: defaultToolId,
       installedTools: installedTools,
     );

@@ -16,7 +16,7 @@ class ProjectList extends StatefulWidget {
   final ValueChanged<Project> onStarToggle;
   final ValueChanged<Project> onShowInFinder;
   final ValueChanged<Project> onOpenInTerminal;
-  final void Function(Project project, OpenWithApp app) onOpenWith;
+  final void Function(Project project, ToolId toolId) onOpenWith;
   final ValueChanged<Project> onDelete;
   final FocusNode focusNode;
   final VoidCallback onFocusSearch;
@@ -246,7 +246,7 @@ class _ProjectListState extends State<ProjectList> {
             radius: const Radius.circular(6),
             thickness: 5,
             child: Padding(
-              padding: CompactLayout.symmetric(context, horizontal: 8),
+              padding: CompactLayout.symmetric(context, horizontal: 20),
               child: CustomScrollView(
                 controller: _scrollController,
                 slivers: [
@@ -338,7 +338,7 @@ class _ProjectListState extends State<ProjectList> {
           onStarToggle: () => widget.onStarToggle(project),
           onShowInFinder: () => widget.onShowInFinder(project),
           onOpenInTerminal: () => widget.onOpenInTerminal(project),
-          onOpenWith: (app) => widget.onOpenWith(project, app),
+          onOpenWith: (toolId) => widget.onOpenWith(project, toolId),
           onDelete: () => widget.onDelete(project),
         ),
       ),

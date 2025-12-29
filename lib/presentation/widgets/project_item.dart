@@ -9,21 +9,6 @@ import '../../core/utils/compact_layout.dart';
 import 'listing_item_container.dart';
 import 'tool_icon.dart';
 
-enum OpenWithApp {
-  vscode,
-  intellij,
-  webstorm,
-  phpstorm,
-  pycharm,
-  clion,
-  goland,
-  datagrip,
-  rider,
-  rubymine,
-  appcode,
-  fleet,
-}
-
 class ProjectItem extends StatelessWidget {
   final Project project;
   final List<Tool> installedTools;
@@ -31,7 +16,7 @@ class ProjectItem extends StatelessWidget {
   final VoidCallback onTap;
   final VoidCallback onStarToggle;
   final VoidCallback onShowInFinder;
-  final void Function(OpenWithApp app) onOpenWith;
+  final void Function(ToolId toolId) onOpenWith;
   final VoidCallback onDelete;
   final bool isFocused;
   final bool isHovering;
@@ -51,6 +36,7 @@ class ProjectItem extends StatelessWidget {
     this.isFocused = false,
     this.isHovering = false,
   });
+
   @override
   Widget build(BuildContext context) {
     final isDisabled = !project.pathExists;
@@ -59,10 +45,7 @@ class ProjectItem extends StatelessWidget {
     final borderRadius = BorderRadius.circular(14);
 
     return Container(
-      margin: CompactLayout.only(
-        context,
-        bottom: 6,
-      ),
+      margin: CompactLayout.only(context, bottom: 10),
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onSecondaryTapDown: isDisabled
@@ -87,23 +70,29 @@ class ProjectItem extends StatelessWidget {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  _buildAvatar(context, isDisabled),
+                  _ProjectAvatar(project: project, isDisabled: isDisabled),
                   SizedBox(width: CompactLayout.value(context, 10)),
                   Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildInfoHeader(context, isDisabled),
-                        SizedBox(height: CompactLayout.value(context, 4)),
-                        _buildMetaRow(context, isDisabled),
-                        SizedBox(height: CompactLayout.value(context, 4)),
-                        _buildPathRow(context, isDisabled),
-                      ],
+                    child: _ProjectInfo(
+                      project: project,
+                      isDisabled: isDisabled,
+                      preferredTool: _resolvePreferredTool(),
                     ),
                   ),
                   SizedBox(width: CompactLayout.value(context, 6)),
-                  _buildStarButton(context, isHighlighted),
-                  _buildActions(context, isDisabled),
+                  if (isHighlighted)
+                    _StarButton(
+                      isStarred: project.isStarred,
+                      onPressed: onStarToggle,
+                    ),
+                  _ProjectActions(
+                    isDisabled: isDisabled,
+                    installedTools: installedTools,
+                    onShowInFinder: onShowInFinder,
+                    onOpenInTerminal: onOpenInTerminal,
+                    onOpenWith: onOpenWith,
+                    onDelete: onDelete,
+                  ),
                 ],
               ),
             ),
@@ -113,10 +102,68 @@ class ProjectItem extends StatelessWidget {
     );
   }
 
-  Widget _buildAvatar(BuildContext context, bool isDisabled) {
+  Tool? _resolvePreferredTool() {
+    Tool? tool;
+
+    if (project.lastUsedToolId != null) {
+      try {
+        tool = installedTools.firstWhere((t) => t.id == project.lastUsedToolId);
+      } catch (_) {}
+    }
+
+    if (tool == null && defaultToolId != null) {
+      try {
+        tool = installedTools.firstWhere((t) => t.id == defaultToolId);
+      } catch (_) {}
+    }
+
+    tool ??= installedTools.isNotEmpty ? installedTools.first : null;
+
+    return tool;
+  }
+
+  Future<void> _showContextMenu(
+    BuildContext context,
+    TapDownDetails details,
+  ) async {
+    final menuBuilder = _ProjectMenuBuilder(
+      installedTools: installedTools,
+      onShowInFinder: onShowInFinder,
+      onOpenInTerminal: onOpenInTerminal,
+      onOpenWith: onOpenWith,
+      onDelete: onDelete,
+    );
+
+    final action = await showMenu<_MenuAction>(
+      context: context,
+      position: RelativeRect.fromLTRB(
+        details.globalPosition.dx,
+        details.globalPosition.dy,
+        details.globalPosition.dx,
+        details.globalPosition.dy,
+      ),
+      items: menuBuilder.buildMenuEntries(context),
+      shape: menuBuilder.menuShape(context),
+      color: menuBuilder.menuColor(Theme.of(context)),
+      elevation: 12,
+    );
+
+    action?.onSelected();
+  }
+}
+
+// ==================== Sub-components ====================
+
+class _ProjectAvatar extends StatelessWidget {
+  final Project project;
+  final bool isDisabled;
+
+  const _ProjectAvatar({required this.project, required this.isDisabled});
+
+  @override
+  Widget build(BuildContext context) {
     final accentColor = ThemeProvider.instance.accentColor;
     final textColor = Theme.of(context).textTheme.bodyLarge!.color!;
-
     final avatarSize = CompactLayout.value(context, 38);
 
     return Container(
@@ -155,7 +202,40 @@ class ProjectItem extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoHeader(BuildContext context, bool isDisabled) {
+  Color _lighten(Color color, double amount) {
+    final hsl = HSLColor.fromColor(color);
+    return hsl
+        .withLightness((hsl.lightness + amount).clamp(0.0, 1.0))
+        .toColor();
+  }
+}
+
+class _ProjectInfo extends StatelessWidget {
+  final Project project;
+  final bool isDisabled;
+  final Tool? preferredTool;
+
+  const _ProjectInfo({
+    required this.project,
+    required this.isDisabled,
+    required this.preferredTool,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildInfoHeader(context),
+        SizedBox(height: CompactLayout.value(context, 4)),
+        _buildMetaRow(context),
+        SizedBox(height: CompactLayout.value(context, 4)),
+        _buildPathRow(context),
+      ],
+    );
+  }
+
+  Widget _buildInfoHeader(BuildContext context) {
     final textPrimary = Theme.of(context).textTheme.bodyLarge!.color!;
     final mutedText = Theme.of(context).brightness == Brightness.dark
         ? Colors.white.withOpacity(0.45)
@@ -169,44 +249,23 @@ class ProjectItem extends StatelessWidget {
             project.name,
             style: TextStyle(
               color: isDisabled ? mutedText : textPrimary,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w500,
               fontSize: CompactLayout.value(context, 13),
             ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ),
-        if (isDisabled) _buildNotFoundBadge(context),
+        if (isDisabled) _NotFoundBadge(),
       ],
     );
   }
 
-  Widget _buildMetaRow(BuildContext context, bool isDisabled) {
-    final accentColor = ThemeProvider.instance.accentColor;
-    final mutedText = Theme.of(context).textTheme.bodyMedium!.color!;
-    final tool = _resolvePreferredTool();
-
-    return Wrap(
-      spacing: 6,
-      runSpacing: 4,
-      children: [
-        // _buildTag(
-        //   label: project.type.displayName,
-        //   color: accentColor.withOpacity(isDisabled ? 0.15 : 0.2),
-        //   textColor: Colors.white,
-        // ),
-        // if (tool != null)
-        //   _buildTag(
-        //     label: tool.name,
-        //     color: Theme.of(context).brightness == Brightness.dark
-        //         ? Colors.white.withOpacity(0.08)
-        //         : Colors.black.withOpacity(0.04),
-        //     textColor: isDisabled ? mutedText.withOpacity(0.7) : mutedText,
-        //     leading: ToolIcon(tool: tool, size: 16, borderRadius: 4),
-        //   ),
-      ],
-    );
+  Widget _buildMetaRow(BuildContext context) {
+    return const SizedBox.shrink();
   }
 
-  Widget _buildPathRow(BuildContext context, bool isDisabled) {
+  Widget _buildPathRow(BuildContext context) {
     final mutedText = Theme.of(context).textTheme.bodyMedium!.color!;
     final displayPath = StringUtils.replaceHomeWithTilde(project.path);
 
@@ -222,13 +281,28 @@ class ProjectItem extends StatelessWidget {
               fontSize: CompactLayout.value(context, 11),
             ),
             overflow: TextOverflow.ellipsis,
+            maxLines: 1,
           ),
         ),
       ],
     );
   }
 
-  Widget _buildNotFoundBadge(BuildContext context) {
+  Widget _buildPathAppIcon(Color mutedText) {
+    if (preferredTool == null) {
+      return Icon(Icons.insert_drive_file_outlined, size: 12, color: mutedText);
+    }
+
+    return Tooltip(
+      message: 'Last opened with ${preferredTool!.name}',
+      child: ToolIcon(tool: preferredTool!, size: 16, borderRadius: 4),
+    );
+  }
+}
+
+class _NotFoundBadge extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
     return Container(
       padding: EdgeInsets.symmetric(
         horizontal: CompactLayout.value(context, 6),
@@ -248,62 +322,55 @@ class ProjectItem extends StatelessWidget {
       ),
     );
   }
+}
 
-  Tool? _resolvePreferredTool() {
-    Tool? tool;
+class _StarButton extends StatelessWidget {
+  final bool isStarred;
+  final VoidCallback onPressed;
 
-    if (project.lastUsedToolId != null) {
-      try {
-        tool = installedTools.firstWhere((t) => t.id == project.lastUsedToolId);
-      } catch (_) {}
-    }
+  const _StarButton({required this.isStarred, required this.onPressed});
 
-    if (tool == null && defaultToolId != null) {
-      try {
-        tool = installedTools.firstWhere((t) => t.id == defaultToolId);
-      } catch (_) {}
-    }
-
-    tool ??= installedTools.isNotEmpty ? installedTools.first : null;
-
-    return tool;
-  }
-
-  Widget _buildPathAppIcon(Color mutedText) {
-    final tool = _resolvePreferredTool();
-    if (tool == null) {
-      return Icon(Icons.insert_drive_file_outlined, size: 12, color: mutedText);
-    }
-
-    return Tooltip(
-      message: 'Last opened with ${tool.name}',
-      child: ToolIcon(tool: tool, size: 16, borderRadius: 4),
-    );
-  }
-
-  Widget _buildStarButton(BuildContext context, bool isHighlighted) {
-    if (!isHighlighted) {
-      return const SizedBox.shrink();
-    }
-
+  @override
+  Widget build(BuildContext context) {
     return IconButton(
       icon: Icon(
-        project.isStarred ? Icons.star : Icons.star_border,
-        color: project.isStarred
-            ? Colors.amber
-            : Theme.of(context).iconTheme.color,
+        isStarred ? Icons.star : Icons.star_border,
+        color: isStarred ? Colors.amber : Theme.of(context).iconTheme.color,
         size: CompactLayout.value(context, 16),
       ),
-      onPressed: onStarToggle,
+      onPressed: onPressed,
+      padding: EdgeInsets.all(CompactLayout.value(context, 8)),
+      constraints: const BoxConstraints(),
     );
   }
+}
 
-  Widget _buildActions(BuildContext context, bool isDisabled) {
+class _ProjectActions extends StatelessWidget {
+  final bool isDisabled;
+  final List<Tool> installedTools;
+  final VoidCallback onShowInFinder;
+  final VoidCallback onOpenInTerminal;
+  final void Function(ToolId toolId) onOpenWith;
+  final VoidCallback onDelete;
+
+  const _ProjectActions({
+    required this.isDisabled,
+    required this.installedTools,
+    required this.onShowInFinder,
+    required this.onOpenInTerminal,
+    required this.onOpenWith,
+    required this.onDelete,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     if (isDisabled) {
       return IconButton(
         icon: const Icon(Icons.close, color: Colors.red, size: 18),
         onPressed: onDelete,
         tooltip: 'Remove',
+        padding: EdgeInsets.all(CompactLayout.value(context, 8)),
+        constraints: const BoxConstraints(),
       );
     }
 
@@ -315,59 +382,24 @@ class ProjectItem extends StatelessWidget {
       onDelete: onDelete,
     );
   }
-
-  Future<void> _showContextMenu(
-    BuildContext context,
-    TapDownDetails details,
-  ) async {
-    final menuBuilder = _ProjectMenuBuilder(
-      installedTools: installedTools,
-      onShowInFinder: onShowInFinder,
-      onOpenInTerminal: onOpenInTerminal,
-      onOpenWith: onOpenWith,
-      onDelete: onDelete,
-    );
-
-    final action = await showMenu<_MenuAction>(
-      context: context,
-      position: RelativeRect.fromLTRB(
-        details.globalPosition.dx,
-        details.globalPosition.dy,
-        details.globalPosition.dx,
-        details.globalPosition.dy,
-      ),
-      items: menuBuilder.buildMenuEntries(context),
-      shape: menuBuilder.menuShape(context),
-      color: menuBuilder.menuColor(Theme.of(context)),
-      elevation: 12,
-    );
-
-    action?.onSelected();
-  }
-
-  Color _lighten(Color color, double amount) {
-    final hsl = HSLColor.fromColor(color);
-    return hsl
-        .withLightness((hsl.lightness + amount).clamp(0.0, 1.0))
-        .toColor();
-  }
 }
+
+// ==================== Actions Menu ====================
 
 class _ProjectActionsMenu extends StatefulWidget {
   final List<Tool> installedTools;
   final VoidCallback onShowInFinder;
   final VoidCallback onOpenInTerminal;
-  final void Function(OpenWithApp app) onOpenWith;
+  final void Function(ToolId toolId) onOpenWith;
   final VoidCallback onDelete;
 
   const _ProjectActionsMenu({
-    Key? key,
     required this.installedTools,
     required this.onShowInFinder,
     required this.onOpenInTerminal,
     required this.onOpenWith,
     required this.onDelete,
-  }) : super(key: key);
+  });
 
   @override
   State<_ProjectActionsMenu> createState() => _ProjectActionsMenuState();
@@ -376,18 +408,13 @@ class _ProjectActionsMenu extends StatefulWidget {
 class _ProjectActionsMenuState extends State<_ProjectActionsMenu> {
   bool _isHovered = false;
   bool _isMenuOpen = false;
+  final GlobalKey _menuButtonKey = GlobalKey();
+  OverlayEntry? _overlayEntry;
 
   @override
   Widget build(BuildContext context) {
     final iconColor = Theme.of(context).iconTheme.color;
     final accentColor = ThemeProvider.instance.accentColor;
-    final menuBuilder = _ProjectMenuBuilder(
-      installedTools: widget.installedTools,
-      onShowInFinder: widget.onShowInFinder,
-      onOpenInTerminal: widget.onOpenInTerminal,
-      onOpenWith: widget.onOpenWith,
-      onDelete: widget.onDelete,
-    );
 
     return Semantics(
       label: 'Project options menu',
@@ -396,42 +423,165 @@ class _ProjectActionsMenuState extends State<_ProjectActionsMenu> {
         cursor: SystemMouseCursors.click,
         onEnter: (_) => setState(() => _isHovered = true),
         onExit: (_) => setState(() => _isHovered = false),
-        child: PopupMenuButton<_MenuAction>(
-          tooltip: 'Project options',
-          onOpened: () => setState(() => _isMenuOpen = true),
-          onCanceled: () => setState(() => _isMenuOpen = false),
-          onSelected: (action) {
-            setState(() => _isMenuOpen = false);
-            action.onSelected();
-          },
-          elevation: 12,
-          offset: Offset(
-            -CompactLayout.value(context, 6),
-            CompactLayout.value(context, 10),
-          ),
-          shape: menuBuilder.menuShape(context),
-          color: menuBuilder.menuColor(Theme.of(context)),
-          itemBuilder: (context) => menuBuilder.buildMenuEntries(context),
-          child: Container(
-            padding: EdgeInsets.all(CompactLayout.value(context, 4)),
-            decoration: BoxDecoration(
-              color: (_isHovered || _isMenuOpen)
-                  ? accentColor.withOpacity(0.12)
-                  : Colors.transparent,
-              borderRadius:
-                  BorderRadius.circular(CompactLayout.value(context, 10)),
-            ),
-            child: Icon(
-              Icons.more_horiz,
-              size: CompactLayout.value(context, 16),
-              color: (_isHovered || _isMenuOpen) ? accentColor : iconColor,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: _openMenu,
+          child: Tooltip(
+            message: 'Project options',
+            child: Container(
+              key: _menuButtonKey,
+              padding: EdgeInsets.all(CompactLayout.value(context, 8)),
+              decoration: BoxDecoration(
+                color: (_isHovered || _isMenuOpen)
+                    ? accentColor.withOpacity(0.12)
+                    : Colors.transparent,
+                borderRadius: BorderRadius.circular(
+                  CompactLayout.value(context, 10),
+                ),
+              ),
+              child: Icon(
+                Icons.more_horiz,
+                size: CompactLayout.value(context, 16),
+                color: (_isHovered || _isMenuOpen) ? accentColor : iconColor,
+              ),
             ),
           ),
         ),
       ),
     );
   }
+
+  void _openMenu() {
+    _removeMenu();
+
+    final buttonContext = _menuButtonKey.currentContext;
+    if (buttonContext == null) return;
+
+    final overlayBox =
+        Navigator.of(context).overlay?.context.findRenderObject() as RenderBox?;
+    if (overlayBox == null) return;
+
+    final renderBox = buttonContext.findRenderObject();
+    if (renderBox == null || renderBox is! RenderBox) return;
+
+    final buttonRect = renderBox.localToGlobal(Offset.zero) & renderBox.size;
+
+    final menuBuilder = _ProjectMenuBuilder(
+      installedTools: widget.installedTools,
+      onShowInFinder: widget.onShowInFinder,
+      onOpenInTerminal: widget.onOpenInTerminal,
+      onOpenWith: widget.onOpenWith,
+      onDelete: widget.onDelete,
+    );
+
+    final toolActions = menuBuilder.resolveToolActions(context);
+    final menuWidth = menuBuilder.menuWidth(context);
+    final menuHeight = menuBuilder.estimateMenuHeight(
+      context,
+      toolActions.length,
+    );
+
+    final menuRect = _MenuPositioner.calculateMenuRect(
+      context: context,
+      buttonRect: buttonRect,
+      overlaySize: overlayBox.size,
+      menuWidth: menuWidth,
+      menuHeight: menuHeight,
+    );
+
+    _overlayEntry = OverlayEntry(
+      builder: (context) => _CustomMenuOverlay(
+        menuRect: menuRect,
+        menuWidth: menuWidth,
+        menuHeight: menuHeight,
+        menuBuilder: menuBuilder,
+        onDismiss: _removeMenu,
+        onAction: _handleMenuAction,
+        toolActions: toolActions,
+      ),
+    );
+
+    Overlay.of(context).insert(_overlayEntry!);
+    setState(() => _isMenuOpen = true);
+  }
+
+  void _removeMenu() {
+    if (_overlayEntry == null) return;
+    _overlayEntry!.remove();
+    _overlayEntry = null;
+    if (mounted) setState(() => _isMenuOpen = false);
+  }
+
+  void _handleMenuAction(_MenuAction action) {
+    _removeMenu();
+    action.onSelected();
+  }
+
+  @override
+  void dispose() {
+    _removeMenu();
+    super.dispose();
+  }
 }
+
+class _CustomMenuOverlay extends StatelessWidget {
+  final Rect menuRect;
+  final double menuWidth;
+  final double menuHeight;
+  final _ProjectMenuBuilder menuBuilder;
+  final VoidCallback onDismiss;
+  final void Function(_MenuAction) onAction;
+  final List<_MenuAction> toolActions;
+
+  const _CustomMenuOverlay({
+    required this.menuRect,
+    required this.menuWidth,
+    required this.menuHeight,
+    required this.menuBuilder,
+    required this.onDismiss,
+    required this.onAction,
+    required this.toolActions,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned.fill(
+      child: Listener(
+        behavior: HitTestBehavior.translucent,
+        onPointerDown: (event) {
+          if (!menuRect.contains(event.position)) {
+            onDismiss();
+          }
+        },
+        child: Stack(
+          children: [
+            Positioned.fromRect(
+              rect: menuRect,
+              child: SizedBox(
+                width: menuWidth,
+                height: menuHeight,
+                child: Material(
+                  elevation: 12,
+                  color: menuBuilder.menuColor(Theme.of(context)),
+                  shape: menuBuilder.menuShape(context),
+                  clipBehavior: Clip.antiAlias,
+                  child: menuBuilder.buildMenuContent(
+                    context,
+                    menuWidth: menuWidth,
+                    toolActions: toolActions,
+                    onAction: onAction,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ==================== Menu Builder ====================
 
 class _ProjectMenuBuilder {
   const _ProjectMenuBuilder({
@@ -445,36 +595,126 @@ class _ProjectMenuBuilder {
   final List<Tool> installedTools;
   final VoidCallback onShowInFinder;
   final VoidCallback onOpenInTerminal;
-  final void Function(OpenWithApp app) onOpenWith;
+  final void Function(ToolId toolId) onOpenWith;
   final VoidCallback onDelete;
 
-  static const double _baseActionTileExtent = 52.0;
+  static const double _baseActionTileHeight = 38.0;
   static const double _baseMenuWidth = 260.0;
+  static const double _headerHeight = 30.0;
+  static const double _dividerHeight = 9.0;
+
+  List<_MenuAction> resolveToolActions(BuildContext context) =>
+      _buildToolActions(context);
+
+  double menuWidth(BuildContext context) =>
+      CompactLayout.value(context, _baseMenuWidth);
+
+  double estimateMenuHeight(BuildContext context, int toolCount) {
+    const bottomActionCount = 3;
+    final headerHeight = CompactLayout.value(context, _headerHeight);
+    final dividerHeight = CompactLayout.value(context, _dividerHeight);
+    final actionHeight = CompactLayout.value(context, _baseActionTileHeight);
+    final openWithHeight = _openWithSectionHeight(context, toolCount);
+
+    return headerHeight +
+        openWithHeight +
+        dividerHeight +
+        (bottomActionCount * actionHeight) +
+        dividerHeight;
+  }
+
+  Widget buildMenuContent(
+    BuildContext context, {
+    required double menuWidth,
+    required List<_MenuAction> toolActions,
+    required void Function(_MenuAction) onAction,
+  }) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _MenuSectionHeader(label: 'Open with'),
+        _OpenWithSection(
+          toolActions: toolActions,
+          menuWidth: menuWidth,
+          sectionHeight: _openWithSectionHeight(context, toolActions.length),
+          onAction: onAction,
+        ),
+        _MenuDivider(),
+        _MenuActionTile(
+          action: _MenuAction(
+            label: 'Reveal in Finder',
+            icon: Icons.folder_open,
+            onSelected: onShowInFinder,
+            semanticsLabel: 'Reveal project in Finder',
+          ),
+          onPressed: () => onAction(
+            _MenuAction(
+              label: 'Reveal in Finder',
+              icon: Icons.folder_open,
+              onSelected: onShowInFinder,
+            ),
+          ),
+        ),
+        _MenuActionTile(
+          action: _MenuAction(
+            label: 'Open in Terminal',
+            icon: Icons.terminal,
+            onSelected: onOpenInTerminal,
+            semanticsLabel: 'Open project in terminal',
+          ),
+          onPressed: () => onAction(
+            _MenuAction(
+              label: 'Open in Terminal',
+              icon: Icons.terminal,
+              onSelected: onOpenInTerminal,
+            ),
+          ),
+        ),
+        _MenuDivider(),
+        _MenuActionTile(
+          action: _MenuAction(
+            label: 'Hide project',
+            icon: Icons.delete_outline,
+            onSelected: onDelete,
+            isDestructive: true,
+          ),
+          onPressed: () => onAction(
+            _MenuAction(
+              label: 'Hide project',
+              icon: Icons.delete_outline,
+              onSelected: onDelete,
+              isDestructive: true,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
 
   List<PopupMenuEntry<_MenuAction>> buildMenuEntries(BuildContext context) {
-    final toolActions = _toolActions(context);
+    final toolActions = _buildToolActions(context);
 
     return <PopupMenuEntry<_MenuAction>>[
-      ..._buildOpenWithSection(context, toolActions),
-      PopupMenuDivider(height: CompactLayout.value(context, 6)),
-      _buildActionItem(
+      _buildHeader(context, 'Open with'),
+      ..._buildOpenWithPopupSection(context, toolActions),
+      PopupMenuDivider(height: CompactLayout.value(context, 9)),
+      _buildPopupActionItem(
         _MenuAction(
           label: 'Reveal in Finder',
           icon: Icons.folder_open,
           onSelected: onShowInFinder,
-          semanticsLabel: 'Reveal project in Finder',
         ),
       ),
-      _buildActionItem(
+      _buildPopupActionItem(
         _MenuAction(
           label: 'Open in Terminal',
           icon: Icons.terminal,
           onSelected: onOpenInTerminal,
-          semanticsLabel: 'Open project in terminal',
         ),
       ),
-      PopupMenuDivider(height: CompactLayout.value(context, 6)),
-      _buildActionItem(
+      PopupMenuDivider(height: CompactLayout.value(context, 9)),
+      _buildPopupActionItem(
         _MenuAction(
           label: 'Hide project',
           icon: Icons.delete_outline,
@@ -485,138 +725,95 @@ class _ProjectMenuBuilder {
     ];
   }
 
-  PopupMenuEntry<_MenuAction> _buildHeader(BuildContext context, String label) {
-    final theme = Theme.of(context);
-    final baseHeaderStyle =
-        theme.textTheme.labelSmall ?? theme.textTheme.bodySmall;
-    final headerStyle = baseHeaderStyle?.copyWith(
-      color:
-          (theme.textTheme.bodySmall?.color ??
-                  theme.textTheme.bodyMedium?.color ??
-                  Colors.white)
-              .withOpacity(0.7),
-      letterSpacing: 0.8,
-      fontWeight: FontWeight.w700,
-    );
-
-    return PopupMenuItem<_MenuAction>(
-      enabled: false,
-      height: CompactLayout.value(context, 30),
-      padding: EdgeInsets.fromLTRB(
-        CompactLayout.value(context, 12),
-        CompactLayout.value(context, 6),
-        CompactLayout.value(context, 12),
-        CompactLayout.value(context, 4),
-      ),
-      child: Text(label.toUpperCase(), style: headerStyle),
-    );
-  }
-
-  PopupMenuItem<_MenuAction> _buildActionItem(
-    _MenuAction action, {
-    bool isMuted = false,
-  }) {
-    return PopupMenuItem<_MenuAction>(
-      value: action,
-      enabled: action.enabled,
-      padding: EdgeInsets.zero,
-      child: _MenuActionTile(action: action, isMuted: isMuted),
-    );
-  }
-
-  List<PopupMenuEntry<_MenuAction>> _buildOpenWithSection(
-    BuildContext context,
-    List<_MenuAction> toolActions,
-  ) {
-    if (toolActions.isEmpty) {
-      return [
-        _buildHeader(context, 'Open with'),
-        _buildActionItem(
-          const _MenuAction(
-            label: 'No supported tools installed',
-            icon: Icons.block,
-            onSelected: _noop,
-            enabled: false,
-          ),
-          isMuted: true,
-        ),
-      ];
-    }
-
-    final sectionHeight =
-        _openWithSectionHeight(context, toolActions.length);
-
-    return [
-      _buildHeader(context, 'Open with'),
-      PopupMenuItem<_MenuAction>(
-        enabled: false,
-        padding: EdgeInsets.zero,
-        height: sectionHeight,
-        child: ConstrainedBox(
-          constraints: BoxConstraints.tightFor(
-            width: _menuWidth(context),
-            height: sectionHeight,
-          ),
-          child: Scrollbar(
-            radius: Radius.circular(CompactLayout.value(context, 5)),
-            thickness: 4,
-            child: ListView.builder(
-              padding: EdgeInsets.zero,
-              shrinkWrap: true,
-              physics: const ClampingScrollPhysics(),
-              itemCount: toolActions.length,
-              itemBuilder: (context, index) {
-                final action = toolActions[index];
-                return _MenuActionTile(
-                  action: action,
-                  onPressed: () => Navigator.of(context).pop(action),
-                );
-              },
-            ),
-          ),
-        ),
-      ),
-    ];
-  }
-
-  List<_MenuAction> _toolActions(BuildContext context) {
+  List<_MenuAction> _buildToolActions(BuildContext context) {
     return installedTools
-        .map((tool) {
-          final appTarget = _mapToOpenWithApp(tool.id);
-          if (appTarget == null) return null;
-
-          return _MenuAction(
-            label: '${tool.name}',
+        .map(
+          (tool) => _MenuAction(
+            label: tool.name,
             icon: Icons.launch,
             leading: ToolIcon(
               tool: tool,
               size: CompactLayout.value(context, 18),
               borderRadius: CompactLayout.value(context, 4),
             ),
-            onSelected: () => onOpenWith(appTarget),
+            onSelected: () => onOpenWith(tool.id),
             semanticsLabel: 'Open project with ${tool.name}',
-          );
-        })
-        .whereType<_MenuAction>()
-        .toList(growable: false);
+          ),
+        )
+        .toList();
   }
 
-  double _actionTileExtent(BuildContext context) =>
-      CompactLayout.value(context, _baseActionTileExtent);
-
-  double _menuWidth(BuildContext context) =>
-      CompactLayout.value(context, _baseMenuWidth);
-
   double _openWithSectionHeight(BuildContext context, int toolCount) {
-    final actionExtent = _actionTileExtent(context);
-    if (toolCount <= 0) return actionExtent;
+    final actionHeight = CompactLayout.value(context, _baseActionTileHeight);
+    if (toolCount <= 0) return actionHeight;
 
-    final baseHeight = toolCount * actionExtent;
+    final baseHeight = toolCount * actionHeight;
     final maxHeight = math.max(
-      actionExtent * 5,
+      actionHeight * 5,
       MediaQuery.of(context).size.height * 0.45,
     );
     return math.min(baseHeight, maxHeight);
+  }
+
+  PopupMenuEntry<_MenuAction> _buildHeader(BuildContext context, String label) {
+    return PopupMenuItem<_MenuAction>(
+      enabled: false,
+      height: CompactLayout.value(context, _headerHeight),
+      padding: EdgeInsets.fromLTRB(
+        CompactLayout.value(context, 12),
+        CompactLayout.value(context, 6),
+        CompactLayout.value(context, 12),
+        CompactLayout.value(context, 4),
+      ),
+      child: _MenuSectionHeader(label: label),
+    );
+  }
+
+  PopupMenuItem<_MenuAction> _buildPopupActionItem(_MenuAction action) {
+    return PopupMenuItem<_MenuAction>(
+      value: action,
+      enabled: action.enabled,
+      padding: EdgeInsets.zero,
+      child: _MenuActionTile(action: action),
+    );
+  }
+
+  List<PopupMenuEntry<_MenuAction>> _buildOpenWithPopupSection(
+    BuildContext context,
+    List<_MenuAction> toolActions,
+  ) {
+    if (toolActions.isEmpty) {
+      return [
+        _buildPopupActionItem(
+          const _MenuAction(
+            label: 'No supported tools installed',
+            icon: Icons.block,
+            onSelected: _noop,
+            enabled: false,
+          ),
+        ),
+      ];
+    }
+
+    final sectionHeight = _openWithSectionHeight(context, toolActions.length);
+
+    return [
+      PopupMenuItem<_MenuAction>(
+        enabled: false,
+        padding: EdgeInsets.zero,
+        height: sectionHeight,
+        child: SizedBox(
+          width: menuWidth(context),
+          height: sectionHeight,
+          child: _OpenWithSection(
+            toolActions: toolActions,
+            menuWidth: menuWidth(context),
+            sectionHeight: sectionHeight,
+            onAction: (action) => Navigator.of(context).pop(action),
+          ),
+        ),
+      ),
+    ];
   }
 
   Color menuColor(ThemeData theme) {
@@ -632,37 +829,107 @@ class _ProjectMenuBuilder {
       side: BorderSide(color: Theme.of(context).dividerColor.withOpacity(0.3)),
     );
   }
+}
 
-  OpenWithApp? _mapToOpenWithApp(ToolId id) {
-    switch (id) {
-      case ToolId.vscode:
-        return OpenWithApp.vscode;
-      case ToolId.intellij:
-        return OpenWithApp.intellij;
-      case ToolId.webstorm:
-        return OpenWithApp.webstorm;
-      case ToolId.phpstorm:
-        return OpenWithApp.phpstorm;
-      case ToolId.pycharm:
-        return OpenWithApp.pycharm;
-      case ToolId.clion:
-        return OpenWithApp.clion;
-      case ToolId.goland:
-        return OpenWithApp.goland;
-      case ToolId.datagrip:
-        return OpenWithApp.datagrip;
-      case ToolId.rider:
-        return OpenWithApp.rider;
-      case ToolId.rubymine:
-        return OpenWithApp.rubymine;
-      case ToolId.appcode:
-        return OpenWithApp.appcode;
-      case ToolId.fleet:
-        return OpenWithApp.fleet;
-    }
-    return null;
+// ==================== Menu Components ====================
+
+class _MenuSectionHeader extends StatelessWidget {
+  final String label;
+
+  const _MenuSectionHeader({required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final baseStyle = theme.textTheme.labelSmall ?? theme.textTheme.bodySmall;
+    final headerStyle = baseStyle?.copyWith(
+      color:
+          (theme.textTheme.bodySmall?.color ??
+                  theme.textTheme.bodyMedium?.color ??
+                  Colors.white)
+              .withOpacity(0.7),
+      letterSpacing: 0.8,
+      fontWeight: FontWeight.w700,
+    );
+
+    return SizedBox(
+      height: CompactLayout.value(context, 30),
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(
+          CompactLayout.value(context, 12),
+          CompactLayout.value(context, 6),
+          CompactLayout.value(context, 12),
+          CompactLayout.value(context, 4),
+        ),
+        child: Align(
+          alignment: Alignment.centerLeft,
+          child: Text(label.toUpperCase(), style: headerStyle),
+        ),
+      ),
+    );
   }
 }
+
+class _MenuDivider extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 1,
+      margin: EdgeInsets.symmetric(vertical: CompactLayout.value(context, 4)),
+      color: Theme.of(context).dividerColor.withOpacity(0.35),
+    );
+  }
+}
+
+class _OpenWithSection extends StatelessWidget {
+  final List<_MenuAction> toolActions;
+  final double menuWidth;
+  final double sectionHeight;
+  final void Function(_MenuAction) onAction;
+
+  const _OpenWithSection({
+    required this.toolActions,
+    required this.menuWidth,
+    required this.sectionHeight,
+    required this.onAction,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (toolActions.isEmpty) {
+      return _MenuActionTile(
+        action: const _MenuAction(
+          label: 'No supported tools installed',
+          icon: Icons.block,
+          onSelected: _noop,
+          enabled: false,
+        ),
+        isMuted: true,
+      );
+    }
+
+    return SizedBox(
+      width: menuWidth,
+      height: sectionHeight,
+      child: Scrollbar(
+        radius: Radius.circular(CompactLayout.value(context, 5)),
+        thickness: 4,
+        child: ListView.builder(
+          padding: EdgeInsets.zero,
+          shrinkWrap: true,
+          physics: const ClampingScrollPhysics(),
+          itemCount: toolActions.length,
+          itemBuilder: (context, index) => _MenuActionTile(
+            action: toolActions[index],
+            onPressed: () => onAction(toolActions[index]),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ==================== Menu Action ====================
 
 class _MenuAction {
   final String label;
@@ -731,55 +998,82 @@ class _MenuActionTileState extends State<_MenuActionTile> {
           onTap: (widget.onPressed != null && widget.action.enabled)
               ? widget.onPressed
               : null,
-          borderRadius: BorderRadius.circular(10),
-          splashColor: Colors.transparent,
-          highlightColor: Colors.transparent,
-          hoverColor: Colors.transparent,
-            child: Container(
-              margin: EdgeInsets.symmetric(
-                horizontal: CompactLayout.value(context, 8),
-                vertical: CompactLayout.value(context, 4),
-              ),
-              padding: EdgeInsets.symmetric(
-                horizontal: CompactLayout.value(context, 10),
-                vertical: CompactLayout.value(context, 8),
-              ),
-              decoration: BoxDecoration(
-                color: widget.action.enabled && _hovered
-                    ? accent.withOpacity(0.08)
-                    : Colors.transparent,
-                borderRadius: BorderRadius.circular(
-                  CompactLayout.value(context, 10),
-                ),
-              ),
-              child: Row(
-                children: [
-                  if (widget.action.leading != null) ...[
-                    widget.action.leading!,
-                  ] else ...[
-                    Icon(
-                      widget.action.icon,
-                      size: CompactLayout.value(context, 16),
-                      color: textColor,
-                    ),
-                  ],
-                  SizedBox(width: CompactLayout.value(context, 10)),
-                  Expanded(
-                    child: Text(
-                      widget.action.label,
-                      style: TextStyle(
-                        color: textColor,
-                        fontWeight: FontWeight.w600,
-                        fontSize: CompactLayout.value(context, 12),
-                      ),
-                    ),
+          child: Container(
+            height: CompactLayout.value(context, 38),
+            padding: EdgeInsets.symmetric(
+              horizontal: CompactLayout.value(context, 12),
+            ),
+            decoration: BoxDecoration(
+              color: widget.action.enabled && _hovered
+                  ? accent.withOpacity(0.08)
+                  : Colors.transparent,
+            ),
+            child: Row(
+              children: [
+                if (widget.action.leading != null) ...[
+                  widget.action.leading!,
+                ] else ...[
+                  Icon(
+                    widget.action.icon,
+                    size: CompactLayout.value(context, 16),
+                    color: textColor,
                   ),
                 ],
-              ),
+                SizedBox(width: CompactLayout.value(context, 10)),
+                Expanded(
+                  child: Text(
+                    widget.action.label,
+                    style: TextStyle(
+                      color: textColor,
+                      fontWeight: FontWeight.w600,
+                      fontSize: CompactLayout.value(context, 12),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
+        ),
       ),
     );
+  }
+}
+
+// ==================== Menu Positioning ====================
+
+class _MenuPositioner {
+  static Rect calculateMenuRect({
+    required BuildContext context,
+    required Rect buttonRect,
+    required Size overlaySize,
+    required double menuWidth,
+    required double menuHeight,
+  }) {
+    final horizontalPadding = CompactLayout.value(context, 8);
+    final horizontalOffset = -CompactLayout.value(context, 6);
+    final verticalOffset = CompactLayout.value(context, 10);
+
+    final desiredLeft = buttonRect.left + horizontalOffset;
+    final left = math.min(
+      overlaySize.width - menuWidth - horizontalPadding,
+      math.max(horizontalPadding, desiredLeft),
+    );
+
+    final spaceBelow = overlaySize.height - buttonRect.bottom;
+    final shouldShowAbove =
+        menuHeight + verticalOffset > spaceBelow && buttonRect.top > menuHeight;
+
+    final top = shouldShowAbove
+        ? math.max(
+            horizontalPadding,
+            buttonRect.top - menuHeight - verticalOffset,
+          )
+        : math.min(
+            overlaySize.height - menuHeight - horizontalPadding,
+            buttonRect.bottom + verticalOffset,
+          );
+
+    return Rect.fromLTWH(left, top, menuWidth, menuHeight);
   }
 }
 

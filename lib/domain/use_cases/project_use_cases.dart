@@ -1,6 +1,5 @@
 import 'dart:io';
 import '../../core/services/tool_discovery_service.dart';
-import '../../presentation/widgets/project_item.dart';
 import '../models/project.dart';
 import '../models/tool.dart';
 import '../repositories/project_repository.dart';
@@ -96,18 +95,15 @@ class ProjectUseCases {
         await Process.run('open', ['-a', 'Terminal', path]);
       } else if (Platform.isWindows) {
         final sanitized = path.replaceAll('"', r'\"');
-        await Process.run(
+        await Process.run('cmd', [
+          '/c',
+          'start',
           'cmd',
-          [
-            '/c',
-            'start',
-            'cmd',
-            '/k',
-            'cd',
-            '/d',
-            '"$sanitized"',
-          ],
-        );
+          '/k',
+          'cd',
+          '/d',
+          '"$sanitized"',
+        ]);
       } else if (Platform.isLinux) {
         final terminal = await _findLinuxTerminal();
         if (terminal != null) {
@@ -126,12 +122,11 @@ class ProjectUseCases {
 
   Future<void> openWith(
     Project project,
-    OpenWithApp app, {
+    ToolId toolId, {
     ToolId? defaultToolId,
     List<Tool> installedTools = const [],
   }) async {
     try {
-      final toolId = _mapToToolId(app);
       final discovery = ToolDiscoveryService.instance;
       Tool? tool;
       try {
@@ -150,43 +145,14 @@ class ProjectUseCases {
         return;
       }
 
-      await _fallbackOpen(project.path, app);
+      await _fallbackOpen(project.path, toolId);
       final updated = project.copyWith(
         lastOpened: DateTime.now(),
         lastUsedToolId: toolId,
       );
       await _repository.updateProject(updated);
     } catch (e) {
-      print('Error opening with $app: $e');
-    }
-  }
-
-  ToolId _mapToToolId(OpenWithApp app) {
-    switch (app) {
-      case OpenWithApp.vscode:
-        return ToolId.vscode;
-      case OpenWithApp.intellij:
-        return ToolId.intellij;
-      case OpenWithApp.webstorm:
-        return ToolId.webstorm;
-      case OpenWithApp.phpstorm:
-        return ToolId.phpstorm;
-      case OpenWithApp.pycharm:
-        return ToolId.pycharm;
-      case OpenWithApp.clion:
-        return ToolId.clion;
-      case OpenWithApp.goland:
-        return ToolId.goland;
-      case OpenWithApp.datagrip:
-        return ToolId.datagrip;
-      case OpenWithApp.rider:
-        return ToolId.rider;
-      case OpenWithApp.rubymine:
-        return ToolId.rubymine;
-      case OpenWithApp.appcode:
-        return ToolId.appcode;
-      case OpenWithApp.fleet:
-        return ToolId.fleet;
+      print('Error opening with $toolId: $e');
     }
   }
 
@@ -231,27 +197,16 @@ class ProjectUseCases {
     return null;
   }
 
-  Future<void> _fallbackOpen(String path, OpenWithApp? app) async {
-    String command = app?.name ?? 'open';
+  Future<void> _fallbackOpen(String path, ToolId? toolId) async {
+    String command = toolId?.name ?? 'open';
     List<String> args = [path];
 
-    switch (app) {
-      case OpenWithApp.vscode:
+    switch (toolId) {
+      case ToolId.vscode:
         command = 'code';
         break;
-      case OpenWithApp.intellij:
+      case ToolId.intellij:
         command = 'idea';
-        break;
-      case OpenWithApp.webstorm:
-      case OpenWithApp.phpstorm:
-      case OpenWithApp.pycharm:
-      case OpenWithApp.clion:
-      case OpenWithApp.goland:
-      case OpenWithApp.datagrip:
-      case OpenWithApp.rider:
-      case OpenWithApp.rubymine:
-      case OpenWithApp.appcode:
-      case OpenWithApp.fleet:
         break;
       case null:
         if (Platform.isMacOS) {
@@ -265,6 +220,8 @@ class ProjectUseCases {
           command = 'xdg-open';
           args = [path];
         }
+        break;
+      default:
         break;
     }
 

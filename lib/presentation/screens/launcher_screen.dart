@@ -74,7 +74,8 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
   }
 
   void _focusSearchField() {
-    if (!mounted || _selectedTab != LauncherTab.projects || _showSettings) return;
+    if (!mounted || _selectedTab != LauncherTab.projects || _showSettings)
+      return;
     _dismissPopupMenus();
     FocusScope.of(context).requestFocus(_searchFocusNode);
   }
@@ -342,9 +343,9 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
                   _projectProvider.showInFinder(project.path),
               onOpenInTerminal: (project) =>
                   _projectProvider.openInTerminal(project),
-              onOpenWith: (project, app) => _projectProvider.openWith(
+              onOpenWith: (project, toolId) => _projectProvider.openWith(
                 project,
-                app,
+                toolId,
                 defaultToolId: _toolsProvider.defaultToolId,
                 installedTools: _toolsProvider.installed,
               ),
