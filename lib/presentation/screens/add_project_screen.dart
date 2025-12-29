@@ -1,4 +1,7 @@
+import 'dart:ui';
+
 import 'package:file_picker/file_picker.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
@@ -54,10 +57,12 @@ class _AddProjectScreenState extends State<AddProjectScreen>
     _pathController.addListener(_handlePathInput);
     _syncTools(triggerDiscovery: true);
     widget.toolsProvider.addListener(_handleToolsChanged);
+    ThemeProvider.instance.addListener(_handleThemeChanged);
   }
 
   @override
   void dispose() {
+    ThemeProvider.instance.removeListener(_handleThemeChanged);
     widget.toolsProvider.removeListener(_handleToolsChanged);
     _introController.dispose();
     _nameController.dispose();
@@ -69,6 +74,11 @@ class _AddProjectScreenState extends State<AddProjectScreen>
 
   void _handleToolsChanged() {
     _syncTools();
+  }
+
+  void _handleThemeChanged() {
+    if (!mounted) return;
+    setState(() {});
   }
 
   void _handlePathInput() {
@@ -197,43 +207,57 @@ class _AddProjectScreenState extends State<AddProjectScreen>
 
     return Scaffold(
       backgroundColor: Colors.transparent,
-      body: Stack(
-        children: [
-          _buildBackdrop(palette),
-          SafeArea(
-            child: FadeTransition(
-              opacity: CurvedAnimation(parent: _introController, curve: curve),
-              child: _buildContent(context, duration, curve, palette),
+      body: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(26),
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: palette.backgroundGradient,
+          ),
+          border: Border.all(color: palette.borderColor),
+          boxShadow: palette.shadow,
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(26),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(
+              sigmaX: palette.blurSigma,
+              sigmaY: palette.blurSigma,
+            ),
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                _buildBackdrop(palette),
+                SafeArea(
+                  child: FadeTransition(
+                    opacity: CurvedAnimation(
+                      parent: _introController,
+                      curve: curve,
+                    ),
+                    child: _buildContent(context, duration, curve, palette),
+                  ),
+                ),
+              ],
             ),
           ),
-        ],
+        ),
       ),
     );
   }
 
   Widget _buildBackdrop(GlassStylePalette palette) {
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: palette.backgroundGradient,
+    return Stack(
+      fit: StackFit.expand,
+      clipBehavior: Clip.none,
+      children: [
+        Positioned(top: -120, left: -40, child: _glow(palette.glowColor, 260)),
+        Positioned(
+          bottom: -180,
+          right: -60,
+          child: _glow(palette.glowColor.withOpacity(0.7), 340),
         ),
-      ),
-      child: Stack(
-        children: [
-          Positioned(
-            top: -120,
-            left: -40,
-            child: _glow(palette.glowColor, 260),
-          ),
-          Positioned(
-            bottom: -180,
-            right: -60,
-            child: _glow(palette.glowColor.withOpacity(0.7), 340),
-          ),
-        ],
-      ),
+      ],
     );
   }
 
@@ -275,30 +299,23 @@ class _AddProjectScreenState extends State<AddProjectScreen>
                     controller: _scrollController,
                     child: SingleChildScrollView(
                       controller: _scrollController,
-                      padding: CompactLayout.only(context, bottom: 18),
+                      padding: CompactLayout.only(context, bottom: 12),
                       child: Padding(
                         padding: CompactLayout.symmetric(
                           context,
                           horizontal: 18,
                         ),
-                        child: _buildForm(context, duration, curve, palette),
+                        child: _buildForm(context, palette),
                       ),
                     ),
                   ),
                 ),
-                SizedBox(height: CompactLayout.value(context, 8)),
               ],
             ),
           ),
         ),
         Padding(
-          padding: CompactLayout.only(
-            context,
-            left: 0,
-            right: 0,
-            top: 20,
-            bottom: 20,
-          ),
+          padding: CompactLayout.only(context, top: 0, bottom: 0),
           child: _buildBottomBar(context, duration, curve),
         ),
       ],
@@ -351,41 +368,16 @@ class _AddProjectScreenState extends State<AddProjectScreen>
       duration: duration,
       curve: curve,
       padding: EdgeInsets.symmetric(
-        horizontal: CompactLayout.value(context, 14),
-        vertical: CompactLayout.value(context, 10),
+        horizontal: CompactLayout.value(context, 18),
+        vertical: CompactLayout.value(context, 14),
       ),
-      borderRadius: BorderRadius.circular(CompactLayout.value(context, 16)),
-      child: Align(
-        alignment: Alignment.centerRight,
-        child: Padding(
-          padding: EdgeInsets.only(right: CompactLayout.value(context, 4)),
-          child: ElevatedButton.icon(
-            onPressed: _canSave ? _save : null,
-            icon: _isSaving
-                ? SizedBox(
-                    width: CompactLayout.value(context, 14),
-                    height: CompactLayout.value(context, 14),
-                    child: const CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Icon(Icons.check_circle_outline_rounded, size: 18),
-            label: const Text('Save & close'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: accentColor,
-              foregroundColor: Colors.white,
-              disabledBackgroundColor: accentColor.withOpacity(0.35),
-              disabledForegroundColor: Colors.white70,
-              padding: EdgeInsets.symmetric(
-                horizontal: CompactLayout.value(context, 16),
-                vertical: CompactLayout.value(context, 14),
-              ),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(
-                  CompactLayout.value(context, 12),
-                ),
-              ),
-            ),
-          ),
-        ),
+      borderRadius: BorderRadius.vertical(
+        top: Radius.circular(CompactLayout.value(context, 20)),
+      ),
+      margin: EdgeInsets.zero,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [_buildSaveActionButton(context, accentColor)],
       ),
     );
   }
@@ -424,71 +416,55 @@ class _AddProjectScreenState extends State<AddProjectScreen>
     );
   }
 
-  Widget _buildForm(
-    BuildContext context,
-    Duration duration,
-    Curve curve,
-    GlassStylePalette palette,
-  ) {
+  Widget _buildForm(BuildContext context, GlassStylePalette palette) {
     return FocusTraversalGroup(
-      child: _buildCard(
-        context: context,
-        duration: duration,
-        curve: curve,
-        title: 'New',
-        description: 'Fill up project details',
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            LayoutBuilder(
-              builder: (context, constraints) {
-                final spacing = CompactLayout.value(context, 18);
-                final isWide = constraints.maxWidth >= 640;
-                final columnWidth = isWide
-                    ? (constraints.maxWidth - spacing) / 2
-                    : double.infinity;
-                return Wrap(
-                  spacing: spacing,
-                  runSpacing: spacing,
-                  children: [
-                    SizedBox(
-                      width: columnWidth,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [_buildPathField(context, palette)],
-                      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _buildSectionHeader(
+            context,
+            'Project details',
+            subtitle: 'Select the folder and assign a working name.',
+          ),
+          SizedBox(height: CompactLayout.value(context, 16)),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final spacing = CompactLayout.value(context, 18);
+              final isWide = constraints.maxWidth >= 640;
+              final columnWidth = isWide
+                  ? (constraints.maxWidth - spacing) / 2
+                  : double.infinity;
+              return Wrap(
+                spacing: spacing,
+                runSpacing: spacing,
+                children: [
+                  SizedBox(
+                    width: columnWidth,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [_buildPathField(context, palette)],
                     ),
-                    SizedBox(
-                      width: columnWidth,
-                      child: _buildTextField(
-                        context: context,
-                        controller: _nameController,
-                        label: 'Project name',
-                        icon: Icons.edit_note_rounded,
-                        palette: palette,
-                        onChanged: (_) => setState(() {}),
-                      ),
+                  ),
+                  SizedBox(
+                    width: columnWidth,
+                    child: _buildTextField(
+                      context: context,
+                      controller: _nameController,
+                      label: 'Project name',
+                      icon: Icons.edit_note_rounded,
+                      palette: palette,
+                      onChanged: (_) => setState(() {}),
                     ),
-                  ],
-                );
-              },
-            ),
-            SizedBox(height: CompactLayout.value(context, 32)),
-            Text(
-              'Preferred tool',
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium!.copyWith(fontWeight: FontWeight.w700),
-            ),
-            SizedBox(height: CompactLayout.value(context, 8)),
-            Text(
-              'Pick your IDE for this workspace. We keep it keyboard and screen-reader friendly.',
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
-            SizedBox(height: CompactLayout.value(context, 20)),
-            _buildToolsList(context),
-          ],
-        ),
+                  ),
+                ],
+              );
+            },
+          ),
+          SizedBox(height: CompactLayout.value(context, 32)),
+          _buildSectionHeader(context, 'Preferred tool'),
+          SizedBox(height: CompactLayout.value(context, 20)),
+          _buildToolsList(context),
+        ],
       ),
     );
   }
@@ -613,33 +589,87 @@ class _AddProjectScreenState extends State<AddProjectScreen>
     );
   }
 
-  Widget _buildCard({
-    required BuildContext context,
-    required Duration duration,
-    required Curve curve,
-    required String title,
-    required String description,
-    required Widget child,
+  Widget _buildSectionHeader(
+    BuildContext context,
+    String title, {
+    String? subtitle,
   }) {
-    return GlassPanel(
-      duration: duration,
-      curve: curve,
-      padding: EdgeInsets.all(CompactLayout.value(context, 14)),
-      borderRadius: BorderRadius.circular(CompactLayout.value(context, 16)),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: Theme.of(
-              context,
-            ).textTheme.titleMedium!.copyWith(fontWeight: FontWeight.w700),
-          ),
+    final theme = Theme.of(context).textTheme;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: theme.titleMedium!.copyWith(fontWeight: FontWeight.w700),
+        ),
+        if (subtitle != null) ...[
           SizedBox(height: CompactLayout.value(context, 4)),
-          Text(description, style: Theme.of(context).textTheme.bodySmall),
-          SizedBox(height: CompactLayout.value(context, 12)),
-          child,
+          Text(subtitle, style: theme.bodySmall),
         ],
+      ],
+    );
+  }
+
+  Widget _buildSaveActionButton(BuildContext context, Color accentColor) {
+    final isEnabled = _canSave;
+    final isBusy = _isSaving;
+    final showActive = isEnabled || isBusy;
+    final gradientColors = showActive
+        ? [accentColor.withOpacity(0.95), accentColor.withOpacity(0.85)]
+        : [accentColor.withOpacity(0.45), accentColor.withOpacity(0.65)];
+    final borderColor = showActive
+        ? Colors.white.withOpacity(0.5)
+        : Colors.white.withOpacity(0.2);
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: isEnabled ? _save : null,
+        borderRadius: BorderRadius.circular(CompactLayout.value(context, 14)),
+        child: Ink(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: gradientColors,
+            ),
+            borderRadius: BorderRadius.circular(
+              CompactLayout.value(context, 14),
+            ),
+            border: Border.all(color: borderColor),
+            boxShadow: showActive
+                ? [
+                    BoxShadow(
+                      color: accentColor.withOpacity(0.35),
+                      blurRadius: 20,
+                      offset: const Offset(0, 10),
+                    ),
+                  ]
+                : [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.25),
+                      blurRadius: 12,
+                      offset: const Offset(0, 6),
+                    ),
+                  ],
+          ),
+          padding: EdgeInsets.symmetric(
+            horizontal: CompactLayout.value(context, 20),
+            vertical: CompactLayout.value(context, 14),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Save',
+                style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
