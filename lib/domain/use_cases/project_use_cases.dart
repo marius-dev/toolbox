@@ -205,6 +205,12 @@ class ProjectUseCases {
       case ToolId.vscode:
         command = 'code';
         break;
+      case ToolId.antigravity:
+        command = 'antigravity';
+        break;
+      case ToolId.cursor:
+        command = 'cursor';
+        break;
       case ToolId.intellij:
         command = 'idea';
         break;

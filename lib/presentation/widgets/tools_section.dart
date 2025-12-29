@@ -405,13 +405,6 @@ class _ToolTileState extends State<_ToolTile> {
                         ),
                     ],
                   ),
-                  SizedBox(height: CompactLayout.value(context, 4)),
-                  Text(
-                    tool.description,
-                    style: theme.textTheme.bodySmall!.copyWith(
-                      color: mutedText.withOpacity(0.9),
-                    ),
-                  ),
                   SizedBox(height: CompactLayout.value(context, 5)),
                   Row(
                     children: [

@@ -2,6 +2,8 @@ import 'package:flutter/foundation.dart';
 
 enum ToolId {
   vscode,
+  antigravity,
+  cursor,
   intellij,
   webstorm,
   phpstorm,
@@ -19,7 +21,6 @@ enum ToolId {
 class Tool {
   final ToolId id;
   final String name;
-  final String description;
   final String? path;
   final String? iconPath;
   final bool isInstalled;
@@ -27,7 +28,6 @@ class Tool {
   const Tool({
     required this.id,
     required this.name,
-    required this.description,
     this.path,
     this.iconPath,
     required this.isInstalled,
@@ -37,7 +37,6 @@ class Tool {
     return Tool(
       id: id,
       name: name,
-      description: description,
       path: path ?? this.path,
       iconPath: iconPath ?? this.iconPath,
       isInstalled: isInstalled ?? this.isInstalled,

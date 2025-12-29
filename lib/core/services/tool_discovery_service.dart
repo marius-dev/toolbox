@@ -1,3 +1,4 @@
+import 'dart:collection';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
@@ -7,7 +8,6 @@ import 'app_icon_resolver.dart';
 
 class _JetBrainsProduct {
   final String name;
-  final String description;
   final List<String> macAppNames;
   final List<String> windowsExecutableNames;
   final List<String> linuxLaunchers;
@@ -16,7 +16,6 @@ class _JetBrainsProduct {
 
   const _JetBrainsProduct({
     required this.name,
-    required this.description,
     required this.macAppNames,
     required this.windowsExecutableNames,
     required this.linuxLaunchers,
@@ -30,7 +29,6 @@ class _JetBrainsProduct {
 const Map<ToolId, _JetBrainsProduct> _jetBrainsProducts = {
   ToolId.intellij: _JetBrainsProduct(
     name: 'IntelliJ IDEA',
-    description: 'JetBrains IDE for polyglot projects',
     macAppNames: [
       'IntelliJ IDEA',
       'IntelliJ IDEA CE',
@@ -42,7 +40,6 @@ const Map<ToolId, _JetBrainsProduct> _jetBrainsProducts = {
   ),
   ToolId.webstorm: _JetBrainsProduct(
     name: 'WebStorm',
-    description: 'JavaScript and TypeScript IDE',
     macAppNames: ['WebStorm'],
     windowsExecutableNames: ['webstorm64.exe'],
     linuxLaunchers: ['webstorm.sh', 'webstorm'],
@@ -50,7 +47,6 @@ const Map<ToolId, _JetBrainsProduct> _jetBrainsProducts = {
   ),
   ToolId.phpstorm: _JetBrainsProduct(
     name: 'PhpStorm',
-    description: 'PHP and web development IDE',
     macAppNames: ['PhpStorm'],
     windowsExecutableNames: ['phpstorm64.exe'],
     linuxLaunchers: ['phpstorm.sh', 'phpstorm'],
@@ -59,7 +55,6 @@ const Map<ToolId, _JetBrainsProduct> _jetBrainsProducts = {
   ),
   ToolId.pycharm: _JetBrainsProduct(
     name: 'PyCharm',
-    description: 'Python IDE by JetBrains',
     macAppNames: ['PyCharm', 'PyCharm CE'],
     windowsExecutableNames: ['pycharm64.exe'],
     linuxLaunchers: ['pycharm.sh', 'pycharm', 'charm.sh', 'charm'],
@@ -68,7 +63,6 @@ const Map<ToolId, _JetBrainsProduct> _jetBrainsProducts = {
   ),
   ToolId.clion: _JetBrainsProduct(
     name: 'CLion',
-    description: 'C and C++ IDE',
     macAppNames: ['CLion'],
     windowsExecutableNames: ['clion64.exe'],
     linuxLaunchers: ['clion.sh', 'clion'],
@@ -76,7 +70,6 @@ const Map<ToolId, _JetBrainsProduct> _jetBrainsProducts = {
   ),
   ToolId.goland: _JetBrainsProduct(
     name: 'GoLand',
-    description: 'Go IDE by JetBrains',
     macAppNames: ['GoLand'],
     windowsExecutableNames: ['goland64.exe'],
     linuxLaunchers: ['goland.sh', 'goland'],
@@ -84,7 +77,6 @@ const Map<ToolId, _JetBrainsProduct> _jetBrainsProducts = {
   ),
   ToolId.datagrip: _JetBrainsProduct(
     name: 'DataGrip',
-    description: 'Database IDE',
     macAppNames: ['DataGrip'],
     windowsExecutableNames: ['datagrip64.exe'],
     linuxLaunchers: ['datagrip.sh', 'datagrip'],
@@ -92,7 +84,6 @@ const Map<ToolId, _JetBrainsProduct> _jetBrainsProducts = {
   ),
   ToolId.rider: _JetBrainsProduct(
     name: 'Rider',
-    description: '.NET IDE',
     macAppNames: ['Rider'],
     windowsExecutableNames: ['rider64.exe'],
     linuxLaunchers: ['rider.sh', 'rider'],
@@ -100,7 +91,6 @@ const Map<ToolId, _JetBrainsProduct> _jetBrainsProducts = {
   ),
   ToolId.rubymine: _JetBrainsProduct(
     name: 'RubyMine',
-    description: 'Ruby and Rails IDE',
     macAppNames: ['RubyMine'],
     windowsExecutableNames: ['rubymine64.exe'],
     linuxLaunchers: ['rubymine.sh', 'rubymine'],
@@ -108,7 +98,6 @@ const Map<ToolId, _JetBrainsProduct> _jetBrainsProducts = {
   ),
   ToolId.appcode: _JetBrainsProduct(
     name: 'AppCode',
-    description: 'JetBrains IDE for iOS/macOS development',
     macAppNames: ['AppCode'],
     windowsExecutableNames: ['appcode64.exe'],
     linuxLaunchers: ['appcode.sh', 'appcode'],
@@ -116,7 +105,6 @@ const Map<ToolId, _JetBrainsProduct> _jetBrainsProducts = {
   ),
   ToolId.fleet: _JetBrainsProduct(
     name: 'Fleet',
-    description: 'Lightweight JetBrains editor',
     macAppNames: ['Fleet'],
     windowsExecutableNames: ['fleet.exe'],
     linuxLaunchers: ['fleet.sh', 'fleet'],
@@ -188,7 +176,6 @@ class ToolDiscoveryService {
     return Tool(
       id: id,
       name: _displayName(id),
-      description: _description(id),
       path: detectedPath,
       isInstalled: detectedPath != null,
       iconPath: iconPath,
@@ -220,6 +207,39 @@ class ToolDiscoveryService {
     switch (id) {
       case ToolId.vscode:
         return _vsCodePaths();
+      case ToolId.antigravity:
+        return _vscodeForkPaths(
+          macAppNames: const ['Antigravity'],
+          windowsRelativeExePaths: const ['Antigravity Antigravity.exe'],
+          linuxAbsolutePaths: const [
+            '/opt/antigravity-idea/antigravity',
+            '/usr/local/bin/antigravity',
+          ],
+          linuxHomeRelativePaths: const [
+            '.local/share/antigravity-idea/antigravity',
+          ],
+          macSearchKeywords: const ['antigravity'],
+          windowsSearchKeywords: const ['antigravity'],
+        );
+      case ToolId.cursor:
+        return _vscodeForkPaths(
+          macAppNames: const ['Cursor', 'Cursor Beta'],
+          windowsRelativeExePaths: const [
+            'Cursor/Cursor.exe',
+            'Cursor Beta/Cursor Beta.exe',
+          ],
+          linuxAbsolutePaths: const [
+            '/opt/cursor/cursor',
+            '/usr/local/bin/cursor',
+            '/snap/bin/cursor',
+          ],
+          linuxHomeRelativePaths: const [
+            '.local/share/cursor/cursor',
+            '.local/share/Cursor/cursor',
+          ],
+          macSearchKeywords: const ['cursor'],
+          windowsSearchKeywords: const ['cursor'],
+        );
       default:
         return const [];
     }
@@ -405,6 +425,10 @@ class ToolDiscoveryService {
     switch (id) {
       case ToolId.vscode:
         return ['code'];
+      case ToolId.antigravity:
+        return ['antigravity', 'antigravity'];
+      case ToolId.cursor:
+        return ['cursor'];
       default:
         return const [];
     }
@@ -433,6 +457,142 @@ class ToolDiscoveryService {
     return const ['/usr/bin/code', '/usr/local/bin/code', '/snap/bin/code'];
   }
 
+  List<String> _vscodeForkPaths({
+    required List<String> macAppNames,
+    required List<String> windowsRelativeExePaths,
+    List<String> linuxAbsolutePaths = const [],
+    List<String> linuxHomeRelativePaths = const [],
+    List<String> macSearchKeywords = const [],
+    List<String> windowsSearchKeywords = const [],
+  }) {
+    final paths = LinkedHashSet<String>();
+    final home = Platform.environment['HOME'];
+
+    for (final appName in macAppNames) {
+      final normalized = appName.toLowerCase().endsWith('.app')
+          ? appName
+          : '$appName.app';
+      paths.add('/Applications/$normalized');
+      if (home != null) {
+        paths.add('$home/Applications/$normalized');
+      }
+    }
+
+    if (macSearchKeywords.isNotEmpty) {
+      paths.addAll(_searchMacApplicationsByKeyword(macSearchKeywords));
+    }
+
+    final programDirs = {
+      Platform.environment['ProgramFiles'],
+      Platform.environment['ProgramFiles(x86)'],
+    }.whereType<String>();
+    final localAppData = Platform.environment['LOCALAPPDATA'];
+    final userProfile = Platform.environment['USERPROFILE'];
+
+    final windowsBases = [
+      ...programDirs,
+      if (localAppData != null) '$localAppData/Programs',
+      if (userProfile != null) '$userProfile/AppData/Local/Programs',
+    ];
+
+    for (final base in windowsBases) {
+      for (final relative in windowsRelativeExePaths) {
+        paths.add('$base/$relative');
+      }
+    }
+
+    if (windowsSearchKeywords.isNotEmpty) {
+      paths.addAll(
+        _searchWindowsExecutablesByKeyword(windowsBases, windowsSearchKeywords),
+      );
+    }
+
+    paths.addAll(linuxAbsolutePaths);
+    if (home != null) {
+      for (final relative in linuxHomeRelativePaths) {
+        paths.add('$home/$relative');
+      }
+    }
+
+    return paths.toList();
+  }
+
+  List<String> _searchMacApplicationsByKeyword(List<String> keywords) {
+    if (keywords.isEmpty) return const [];
+    final results = LinkedHashSet<String>();
+    final home = Platform.environment['HOME'];
+    final roots = ['/Applications', if (home != null) '$home/Applications'];
+    final lowerKeywords = keywords
+        .map((keyword) => keyword.toLowerCase())
+        .toList();
+
+    for (final root in roots) {
+      if (root.isEmpty) continue;
+      final dir = Directory(root);
+      if (!dir.existsSync()) continue;
+      for (final entity in dir.listSync(followLinks: false)) {
+        if (entity is! Directory) continue;
+        final name = entity.uri.pathSegments.last.toLowerCase();
+        if (!name.endsWith('.app')) continue;
+        final normalized = name.substring(0, name.length - 4);
+        if (lowerKeywords.any((keyword) => normalized.contains(keyword))) {
+          results.add(entity.path);
+        }
+      }
+    }
+
+    return results.toList();
+  }
+
+  List<String> _searchWindowsExecutablesByKeyword(
+    Iterable<String> directories,
+    List<String> keywords,
+  ) {
+    if (keywords.isEmpty) return const [];
+    final results = LinkedHashSet<String>();
+    final lowerKeywords = keywords
+        .map((keyword) => keyword.toLowerCase())
+        .toList();
+
+    for (final base in directories) {
+      if (base.isEmpty) continue;
+      final dir = Directory(base);
+      if (!dir.existsSync()) continue;
+
+      for (final entity in dir.listSync(followLinks: false)) {
+        if (entity is File) {
+          final lowerPath = entity.path.toLowerCase();
+          if (lowerPath.endsWith('.exe') &&
+              lowerKeywords.any((keyword) => lowerPath.contains(keyword))) {
+            results.add(entity.path);
+          }
+          continue;
+        }
+        if (entity is! Directory) continue;
+        final name = entity.uri.pathSegments.last.toLowerCase();
+        if (!lowerKeywords.any((keyword) => name.contains(keyword))) continue;
+        results.addAll(_collectWindowsExecutables(entity));
+        final binDir = Directory('${entity.path}${Platform.pathSeparator}bin');
+        if (binDir.existsSync()) {
+          results.addAll(_collectWindowsExecutables(binDir));
+        }
+      }
+    }
+
+    return results.toList();
+  }
+
+  List<String> _collectWindowsExecutables(Directory directory) {
+    if (!directory.existsSync()) return const [];
+    final executables = LinkedHashSet<String>();
+    for (final entry in directory.listSync(followLinks: false)) {
+      if (entry is File && entry.path.toLowerCase().endsWith('.exe')) {
+        executables.add(entry.path);
+      }
+    }
+    return executables.toList();
+  }
+
   Future<String?> _which(String command) async {
     try {
       final result = await Process.run(
@@ -458,23 +618,14 @@ class ToolDiscoveryService {
     }
 
     switch (id) {
+      case ToolId.antigravity:
+        return 'Antigravity';
+      case ToolId.cursor:
+        return 'Cursor';
       case ToolId.vscode:
         return 'VS Code';
       default:
         return id.name;
-    }
-  }
-
-  String _description(ToolId id) {
-    if (_jetBrainsProducts.containsKey(id)) {
-      return _jetBrainsProducts[id]!.description;
-    }
-
-    switch (id) {
-      case ToolId.vscode:
-        return 'Lightweight editor tuned for code';
-      default:
-        return '';
     }
   }
 }

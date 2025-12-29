@@ -366,15 +366,6 @@ class _ProjectDialogState extends State<ProjectDialog> {
                                   fontSize: CompactLayout.value(context, 13),
                                 ),
                               ),
-                              SizedBox(height: CompactLayout.value(context, 4)),
-                              Text(
-                                tool.description,
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                                style: theme.textTheme.bodySmall!.copyWith(
-                                  color: mutedText,
-                                ),
-                              ),
                             ],
                           ),
                         ),

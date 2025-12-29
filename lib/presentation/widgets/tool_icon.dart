@@ -20,6 +20,11 @@ class ToolIcon extends StatelessWidget {
     ToolId.appcode,
     ToolId.fleet,
   };
+  static const Set<ToolId> _vsCodeLikeIds = {
+    ToolId.vscode,
+    ToolId.antigravity,
+    ToolId.cursor,
+  };
 
   final Tool tool;
   final double size;
@@ -114,7 +119,7 @@ class ToolIcon extends StatelessWidget {
     if (_jetBrainsIds.contains(tool.id)) {
       return Icons.developer_mode_rounded;
     }
-    if (tool.id == ToolId.vscode) {
+    if (_vsCodeLikeIds.contains(tool.id)) {
       return Icons.code_rounded;
     }
     return Icons.extension_rounded;
@@ -124,8 +129,7 @@ class ToolIcon extends StatelessWidget {
     if (_jetBrainsIds.contains(tool.id)) {
       return [const Color(0xFF5C2D91), const Color(0xFF9A4DFF)];
     }
-
-    if (tool.id == ToolId.vscode) {
+    if (_vsCodeLikeIds.contains(tool.id)) {
       return [const Color(0xFF007ACC), const Color(0xFF00B4FF)];
     }
 

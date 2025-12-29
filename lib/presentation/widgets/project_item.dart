@@ -9,7 +9,7 @@ import '../../core/utils/compact_layout.dart';
 import 'listing_item_container.dart';
 import 'tool_icon.dart';
 
-class ProjectItem extends StatelessWidget {
+class ProjectItem extends StatefulWidget {
   final Project project;
   final List<Tool> installedTools;
   final ToolId? defaultToolId;
@@ -38,30 +38,51 @@ class ProjectItem extends StatelessWidget {
   });
 
   @override
+  State<ProjectItem> createState() => _ProjectItemState();
+}
+
+class _ProjectItemState extends State<ProjectItem> {
+  late final _ProjectMenuController _menuController;
+
+  Project get project => widget.project;
+  List<Tool> get installedTools => widget.installedTools;
+  ToolId? get defaultToolId => widget.defaultToolId;
+
+  @override
+  void initState() {
+    super.initState();
+    _menuController = _ProjectMenuController();
+  }
+
+  @override
+  void dispose() {
+    _menuController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final isDisabled = !project.pathExists;
-    final interactionActive = !isDisabled && (isFocused || isHovering);
-    final isHighlighted = !isDisabled && (isFocused || isHovering);
+    final interactionActive = !isDisabled && (widget.isFocused || widget.isHovering);
+    final isHighlighted = !isDisabled && (widget.isFocused || widget.isHovering);
     final borderRadius = BorderRadius.circular(14);
 
     return Container(
       margin: CompactLayout.only(context, bottom: 10),
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
-        onSecondaryTapDown: isDisabled
-            ? null
-            : (details) => _showContextMenu(context, details),
+        onSecondaryTapDown: isDisabled ? null : _openContextMenu,
         child: Material(
           color: Colors.transparent,
           borderRadius: borderRadius,
           clipBehavior: Clip.antiAlias,
           child: InkWell(
-            onTap: isDisabled ? null : onTap,
+            onTap: isDisabled ? null : widget.onTap,
             borderRadius: borderRadius,
             child: ListingItemContainer(
               isActive: interactionActive,
               isDisabled: isDisabled,
-              isHovering: isHovering && !interactionActive,
+              isHovering: widget.isHovering && !interactionActive,
               borderRadius: borderRadius,
               padding: EdgeInsets.symmetric(
                 horizontal: CompactLayout.value(context, 8),
@@ -83,15 +104,16 @@ class ProjectItem extends StatelessWidget {
                   if (isHighlighted)
                     _StarButton(
                       isStarred: project.isStarred,
-                      onPressed: onStarToggle,
+                      onPressed: widget.onStarToggle,
                     ),
                   _ProjectActions(
                     isDisabled: isDisabled,
                     installedTools: installedTools,
-                    onShowInFinder: onShowInFinder,
-                    onOpenInTerminal: onOpenInTerminal,
-                    onOpenWith: onOpenWith,
-                    onDelete: onDelete,
+                    onShowInFinder: widget.onShowInFinder,
+                    onOpenInTerminal: widget.onOpenInTerminal,
+                    onOpenWith: widget.onOpenWith,
+                    onDelete: widget.onDelete,
+                    menuController: _menuController,
                   ),
                 ],
               ),
@@ -122,33 +144,19 @@ class ProjectItem extends StatelessWidget {
     return tool;
   }
 
-  Future<void> _showContextMenu(
-    BuildContext context,
-    TapDownDetails details,
-  ) async {
-    final menuBuilder = _ProjectMenuBuilder(
-      installedTools: installedTools,
-      onShowInFinder: onShowInFinder,
-      onOpenInTerminal: onOpenInTerminal,
-      onOpenWith: onOpenWith,
-      onDelete: onDelete,
-    );
+  void _openContextMenu(TapDownDetails details) {
+    final position = details.globalPosition;
+    final anchorRect = Rect.fromLTWH(position.dx, position.dy, 0, 0);
 
-    final action = await showMenu<_MenuAction>(
+    _menuController.showMenu(
       context: context,
-      position: RelativeRect.fromLTRB(
-        details.globalPosition.dx,
-        details.globalPosition.dy,
-        details.globalPosition.dx,
-        details.globalPosition.dy,
-      ),
-      items: menuBuilder.buildMenuEntries(context),
-      shape: menuBuilder.menuShape(context),
-      color: menuBuilder.menuColor(Theme.of(context)),
-      elevation: 12,
+      anchorRect: anchorRect,
+      installedTools: installedTools,
+      onShowInFinder: widget.onShowInFinder,
+      onOpenInTerminal: widget.onOpenInTerminal,
+      onOpenWith: widget.onOpenWith,
+      onDelete: widget.onDelete,
     );
-
-    action?.onSelected();
   }
 }
 
@@ -352,6 +360,7 @@ class _ProjectActions extends StatelessWidget {
   final VoidCallback onOpenInTerminal;
   final void Function(ToolId toolId) onOpenWith;
   final VoidCallback onDelete;
+  final _ProjectMenuController menuController;
 
   const _ProjectActions({
     required this.isDisabled,
@@ -360,6 +369,7 @@ class _ProjectActions extends StatelessWidget {
     required this.onOpenInTerminal,
     required this.onOpenWith,
     required this.onDelete,
+    required this.menuController,
   });
 
   @override
@@ -380,6 +390,7 @@ class _ProjectActions extends StatelessWidget {
       onOpenInTerminal: onOpenInTerminal,
       onOpenWith: onOpenWith,
       onDelete: onDelete,
+      menuController: menuController,
     );
   }
 }
@@ -392,6 +403,7 @@ class _ProjectActionsMenu extends StatefulWidget {
   final VoidCallback onOpenInTerminal;
   final void Function(ToolId toolId) onOpenWith;
   final VoidCallback onDelete;
+  final _ProjectMenuController menuController;
 
   const _ProjectActionsMenu({
     required this.installedTools,
@@ -399,6 +411,7 @@ class _ProjectActionsMenu extends StatefulWidget {
     required this.onOpenInTerminal,
     required this.onOpenWith,
     required this.onDelete,
+    required this.menuController,
   });
 
   @override
@@ -407,9 +420,7 @@ class _ProjectActionsMenu extends StatefulWidget {
 
 class _ProjectActionsMenuState extends State<_ProjectActionsMenu> {
   bool _isHovered = false;
-  bool _isMenuOpen = false;
   final GlobalKey _menuButtonKey = GlobalKey();
-  OverlayEntry? _overlayEntry;
 
   @override
   Widget build(BuildContext context) {
@@ -426,25 +437,32 @@ class _ProjectActionsMenuState extends State<_ProjectActionsMenu> {
         child: GestureDetector(
           behavior: HitTestBehavior.opaque,
           onTap: _openMenu,
-          child: Tooltip(
-            message: 'Project options',
-            child: Container(
-              key: _menuButtonKey,
-              padding: EdgeInsets.all(CompactLayout.value(context, 8)),
-              decoration: BoxDecoration(
-                color: (_isHovered || _isMenuOpen)
-                    ? accentColor.withOpacity(0.12)
-                    : Colors.transparent,
-                borderRadius: BorderRadius.circular(
-                  CompactLayout.value(context, 10),
+          child: ValueListenableBuilder<bool>(
+            valueListenable: widget.menuController.isMenuOpen,
+            builder: (context, isMenuOpen, _) {
+              final isActive = _isHovered || isMenuOpen;
+
+              return Tooltip(
+                message: 'Project options',
+                child: Container(
+                  key: _menuButtonKey,
+                  padding: EdgeInsets.all(CompactLayout.value(context, 8)),
+                  decoration: BoxDecoration(
+                    color: isActive
+                        ? accentColor.withOpacity(0.12)
+                        : Colors.transparent,
+                    borderRadius: BorderRadius.circular(
+                      CompactLayout.value(context, 10),
+                    ),
+                  ),
+                  child: Icon(
+                    Icons.more_horiz,
+                    size: CompactLayout.value(context, 16),
+                    color: isActive ? accentColor : iconColor,
+                  ),
                 ),
-              ),
-              child: Icon(
-                Icons.more_horiz,
-                size: CompactLayout.value(context, 16),
-                color: (_isHovered || _isMenuOpen) ? accentColor : iconColor,
-              ),
-            ),
+              );
+            },
           ),
         ),
       ),
@@ -452,38 +470,85 @@ class _ProjectActionsMenuState extends State<_ProjectActionsMenu> {
   }
 
   void _openMenu() {
-    _removeMenu();
-
     final buttonContext = _menuButtonKey.currentContext;
     if (buttonContext == null) return;
-
-    final overlayBox =
-        Navigator.of(context).overlay?.context.findRenderObject() as RenderBox?;
-    if (overlayBox == null) return;
 
     final renderBox = buttonContext.findRenderObject();
     if (renderBox == null || renderBox is! RenderBox) return;
 
     final buttonRect = renderBox.localToGlobal(Offset.zero) & renderBox.size;
 
-    final menuBuilder = _ProjectMenuBuilder(
+    widget.menuController.showMenu(
+      context: context,
+      anchorRect: buttonRect,
       installedTools: widget.installedTools,
       onShowInFinder: widget.onShowInFinder,
       onOpenInTerminal: widget.onOpenInTerminal,
       onOpenWith: widget.onOpenWith,
       onDelete: widget.onDelete,
     );
+  }
+}
+
+// ==================== Menu Controller ====================
+
+class _ProjectMenuController {
+  _ProjectMenuController() : isMenuOpen = ValueNotifier(false);
+
+  final ValueNotifier<bool> isMenuOpen;
+  OverlayEntry? _overlayEntry;
+
+  void showMenu({
+    required BuildContext context,
+    required Rect anchorRect,
+    required List<Tool> installedTools,
+    required VoidCallback onShowInFinder,
+    required VoidCallback onOpenInTerminal,
+    required void Function(ToolId) onOpenWith,
+    required VoidCallback onDelete,
+  }) {
+    hideMenu();
+
+    final overlayState = Overlay.of(context);
+    if (overlayState == null) return;
+
+    final overlayBox =
+        overlayState.context.findRenderObject() as RenderBox?;
+    if (overlayBox == null) return;
+
+    final menuBuilder = _ProjectMenuBuilder(
+      installedTools: installedTools,
+      onShowInFinder: onShowInFinder,
+      onOpenInTerminal: onOpenInTerminal,
+      onOpenWith: onOpenWith,
+      onDelete: onDelete,
+    );
 
     final toolActions = menuBuilder.resolveToolActions(context);
     final menuWidth = menuBuilder.menuWidth(context);
-    final menuHeight = menuBuilder.estimateMenuHeight(
+    final desiredMenuHeight = menuBuilder.estimateMenuHeight(
       context,
       toolActions.length,
+    );
+    final availablePadding = CompactLayout.value(context, 8);
+    final availableHeight = math.max(
+      0.0,
+      overlayBox.size.height - (availablePadding * 2),
+    ).toDouble();
+    final minMenuHeight = menuBuilder.minimumMenuHeight(context);
+    var menuHeight = math.min(desiredMenuHeight, availableHeight).toDouble();
+    if (menuHeight < minMenuHeight && availableHeight >= minMenuHeight) {
+      menuHeight = minMenuHeight;
+    }
+    final openWithHeight = menuBuilder.constrainedOpenWithHeight(
+      context,
+      toolActions.length,
+      menuHeight,
     );
 
     final menuRect = _MenuPositioner.calculateMenuRect(
       context: context,
-      buttonRect: buttonRect,
+      anchorRect: anchorRect,
       overlaySize: overlayBox.size,
       menuWidth: menuWidth,
       menuHeight: menuHeight,
@@ -495,32 +560,36 @@ class _ProjectActionsMenuState extends State<_ProjectActionsMenu> {
         menuWidth: menuWidth,
         menuHeight: menuHeight,
         menuBuilder: menuBuilder,
-        onDismiss: _removeMenu,
-        onAction: _handleMenuAction,
+        onDismiss: hideMenu,
+        onAction: _handleAction,
         toolActions: toolActions,
+        openWithSectionHeight: openWithHeight,
       ),
     );
 
-    Overlay.of(context).insert(_overlayEntry!);
-    setState(() => _isMenuOpen = true);
+    overlayState.insert(_overlayEntry!);
+    isMenuOpen.value = true;
   }
 
-  void _removeMenu() {
-    if (_overlayEntry == null) return;
+  void hideMenu() {
+    if (_overlayEntry == null) {
+      isMenuOpen.value = false;
+      return;
+    }
+
     _overlayEntry!.remove();
     _overlayEntry = null;
-    if (mounted) setState(() => _isMenuOpen = false);
+    isMenuOpen.value = false;
   }
 
-  void _handleMenuAction(_MenuAction action) {
-    _removeMenu();
+  void _handleAction(_MenuAction action) {
+    hideMenu();
     action.onSelected();
   }
 
-  @override
   void dispose() {
-    _removeMenu();
-    super.dispose();
+    hideMenu();
+    isMenuOpen.dispose();
   }
 }
 
@@ -532,6 +601,7 @@ class _CustomMenuOverlay extends StatelessWidget {
   final VoidCallback onDismiss;
   final void Function(_MenuAction) onAction;
   final List<_MenuAction> toolActions;
+  final double openWithSectionHeight;
 
   const _CustomMenuOverlay({
     required this.menuRect,
@@ -541,6 +611,7 @@ class _CustomMenuOverlay extends StatelessWidget {
     required this.onDismiss,
     required this.onAction,
     required this.toolActions,
+    required this.openWithSectionHeight,
   });
 
   @override
@@ -567,7 +638,7 @@ class _CustomMenuOverlay extends StatelessWidget {
                   clipBehavior: Clip.antiAlias,
                   child: menuBuilder.buildMenuContent(
                     context,
-                    menuWidth: menuWidth,
+                    openWithSectionHeight: openWithSectionHeight,
                     toolActions: toolActions,
                     onAction: onAction,
                   ),
@@ -601,7 +672,7 @@ class _ProjectMenuBuilder {
   static const double _baseActionTileHeight = 38.0;
   static const double _baseMenuWidth = 260.0;
   static const double _headerHeight = 30.0;
-  static const double _dividerHeight = 9.0;
+  static const int _bottomActionCount = 3;
 
   List<_MenuAction> resolveToolActions(BuildContext context) =>
       _buildToolActions(context);
@@ -610,35 +681,38 @@ class _ProjectMenuBuilder {
       CompactLayout.value(context, _baseMenuWidth);
 
   double estimateMenuHeight(BuildContext context, int toolCount) {
-    const bottomActionCount = 3;
-    final headerHeight = CompactLayout.value(context, _headerHeight);
-    final dividerHeight = CompactLayout.value(context, _dividerHeight);
-    final actionHeight = CompactLayout.value(context, _baseActionTileHeight);
+    final headerHeight = _headerSectionHeight(context);
+    final dividerHeight = _dividerSectionHeight(context);
     final openWithHeight = _openWithSectionHeight(context, toolCount);
 
     return headerHeight +
         openWithHeight +
         dividerHeight +
-        (bottomActionCount * actionHeight) +
+        _bottomActionsHeight(context) +
         dividerHeight;
   }
 
   Widget buildMenuContent(
     BuildContext context, {
-    required double menuWidth,
+    required double openWithSectionHeight,
     required List<_MenuAction> toolActions,
     required void Function(_MenuAction) onAction,
   }) {
     return Column(
-      mainAxisSize: MainAxisSize.min,
+      mainAxisSize: MainAxisSize.max,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         _MenuSectionHeader(label: 'Open with'),
-        _OpenWithSection(
-          toolActions: toolActions,
-          menuWidth: menuWidth,
-          sectionHeight: _openWithSectionHeight(context, toolActions.length),
-          onAction: onAction,
+        Expanded(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxHeight: openWithSectionHeight,
+            ),
+            child: _OpenWithSection(
+              toolActions: toolActions,
+              onAction: onAction,
+            ),
+          ),
         ),
         _MenuDivider(),
         _MenuActionTile(
@@ -692,39 +766,6 @@ class _ProjectMenuBuilder {
     );
   }
 
-  List<PopupMenuEntry<_MenuAction>> buildMenuEntries(BuildContext context) {
-    final toolActions = _buildToolActions(context);
-
-    return <PopupMenuEntry<_MenuAction>>[
-      _buildHeader(context, 'Open with'),
-      ..._buildOpenWithPopupSection(context, toolActions),
-      PopupMenuDivider(height: CompactLayout.value(context, 9)),
-      _buildPopupActionItem(
-        _MenuAction(
-          label: 'Reveal in Finder',
-          icon: Icons.folder_open,
-          onSelected: onShowInFinder,
-        ),
-      ),
-      _buildPopupActionItem(
-        _MenuAction(
-          label: 'Open in Terminal',
-          icon: Icons.terminal,
-          onSelected: onOpenInTerminal,
-        ),
-      ),
-      PopupMenuDivider(height: CompactLayout.value(context, 9)),
-      _buildPopupActionItem(
-        _MenuAction(
-          label: 'Hide project',
-          icon: Icons.delete_outline,
-          onSelected: onDelete,
-          isDestructive: true,
-        ),
-      ),
-    ];
-  }
-
   List<_MenuAction> _buildToolActions(BuildContext context) {
     return installedTools
         .map(
@@ -751,70 +792,42 @@ class _ProjectMenuBuilder {
     final maxHeight = math.max(
       actionHeight * 5,
       MediaQuery.of(context).size.height * 0.45,
-    );
-    return math.min(baseHeight, maxHeight);
+    ).toDouble();
+    return math.min(baseHeight, maxHeight).toDouble();
   }
 
-  PopupMenuEntry<_MenuAction> _buildHeader(BuildContext context, String label) {
-    return PopupMenuItem<_MenuAction>(
-      enabled: false,
-      height: CompactLayout.value(context, _headerHeight),
-      padding: EdgeInsets.fromLTRB(
-        CompactLayout.value(context, 12),
-        CompactLayout.value(context, 6),
-        CompactLayout.value(context, 12),
-        CompactLayout.value(context, 4),
-      ),
-      child: _MenuSectionHeader(label: label),
-    );
-  }
+  double minimumMenuHeight(BuildContext context) =>
+      _reservedHeight(context) + _actionTileHeight(context);
 
-  PopupMenuItem<_MenuAction> _buildPopupActionItem(_MenuAction action) {
-    return PopupMenuItem<_MenuAction>(
-      value: action,
-      enabled: action.enabled,
-      padding: EdgeInsets.zero,
-      child: _MenuActionTile(action: action),
-    );
-  }
-
-  List<PopupMenuEntry<_MenuAction>> _buildOpenWithPopupSection(
+  double constrainedOpenWithHeight(
     BuildContext context,
-    List<_MenuAction> toolActions,
+    int toolCount,
+    double menuHeight,
   ) {
-    if (toolActions.isEmpty) {
-      return [
-        _buildPopupActionItem(
-          const _MenuAction(
-            label: 'No supported tools installed',
-            icon: Icons.block,
-            onSelected: _noop,
-            enabled: false,
-          ),
-        ),
-      ];
-    }
-
-    final sectionHeight = _openWithSectionHeight(context, toolActions.length);
-
-    return [
-      PopupMenuItem<_MenuAction>(
-        enabled: false,
-        padding: EdgeInsets.zero,
-        height: sectionHeight,
-        child: SizedBox(
-          width: menuWidth(context),
-          height: sectionHeight,
-          child: _OpenWithSection(
-            toolActions: toolActions,
-            menuWidth: menuWidth(context),
-            sectionHeight: sectionHeight,
-            onAction: (action) => Navigator.of(context).pop(action),
-          ),
-        ),
-      ),
-    ];
+    final maxSectionHeight = _openWithSectionHeight(context, toolCount);
+    final minSectionHeight = _actionTileHeight(context);
+    final available = math.max(minSectionHeight, menuHeight - _reservedHeight(context));
+    return math.min(maxSectionHeight, available).toDouble();
   }
+
+  double _actionTileHeight(BuildContext context) =>
+      CompactLayout.value(context, _baseActionTileHeight);
+
+  double _headerSectionHeight(BuildContext context) =>
+      CompactLayout.value(context, _headerHeight);
+
+  double _dividerSectionHeight(BuildContext context) {
+    final margin = CompactLayout.value(context, 4);
+    return CompactLayout.value(context, 1) + (margin * 2);
+  }
+
+  double _bottomActionsHeight(BuildContext context) =>
+      _actionTileHeight(context) * _bottomActionCount;
+
+  double _reservedHeight(BuildContext context) =>
+      _headerSectionHeight(context) +
+      (_dividerSectionHeight(context) * 2) +
+      _bottomActionsHeight(context);
 
   Color menuColor(ThemeData theme) {
     if (theme.brightness == Brightness.dark) {
@@ -883,14 +896,10 @@ class _MenuDivider extends StatelessWidget {
 
 class _OpenWithSection extends StatelessWidget {
   final List<_MenuAction> toolActions;
-  final double menuWidth;
-  final double sectionHeight;
   final void Function(_MenuAction) onAction;
 
   const _OpenWithSection({
     required this.toolActions,
-    required this.menuWidth,
-    required this.sectionHeight,
     required this.onAction,
   });
 
@@ -908,21 +917,16 @@ class _OpenWithSection extends StatelessWidget {
       );
     }
 
-    return SizedBox(
-      width: menuWidth,
-      height: sectionHeight,
-      child: Scrollbar(
-        radius: Radius.circular(CompactLayout.value(context, 5)),
-        thickness: 4,
-        child: ListView.builder(
-          padding: EdgeInsets.zero,
-          shrinkWrap: true,
-          physics: const ClampingScrollPhysics(),
-          itemCount: toolActions.length,
-          itemBuilder: (context, index) => _MenuActionTile(
-            action: toolActions[index],
-            onPressed: () => onAction(toolActions[index]),
-          ),
+    return Scrollbar(
+      radius: Radius.circular(CompactLayout.value(context, 5)),
+      thickness: 4,
+      child: ListView.builder(
+        padding: EdgeInsets.zero,
+        physics: const ClampingScrollPhysics(),
+        itemCount: toolActions.length,
+        itemBuilder: (context, index) => _MenuActionTile(
+          action: toolActions[index],
+          onPressed: () => onAction(toolActions[index]),
         ),
       ),
     );
@@ -1044,7 +1048,7 @@ class _MenuActionTileState extends State<_MenuActionTile> {
 class _MenuPositioner {
   static Rect calculateMenuRect({
     required BuildContext context,
-    required Rect buttonRect,
+    required Rect anchorRect,
     required Size overlaySize,
     required double menuWidth,
     required double menuHeight,
@@ -1053,24 +1057,24 @@ class _MenuPositioner {
     final horizontalOffset = -CompactLayout.value(context, 6);
     final verticalOffset = CompactLayout.value(context, 10);
 
-    final desiredLeft = buttonRect.left + horizontalOffset;
+    final desiredLeft = anchorRect.left + horizontalOffset;
     final left = math.min(
       overlaySize.width - menuWidth - horizontalPadding,
       math.max(horizontalPadding, desiredLeft),
     );
 
-    final spaceBelow = overlaySize.height - buttonRect.bottom;
+    final spaceBelow = overlaySize.height - anchorRect.bottom;
     final shouldShowAbove =
-        menuHeight + verticalOffset > spaceBelow && buttonRect.top > menuHeight;
+        menuHeight + verticalOffset > spaceBelow && anchorRect.top > menuHeight;
 
     final top = shouldShowAbove
         ? math.max(
             horizontalPadding,
-            buttonRect.top - menuHeight - verticalOffset,
+            anchorRect.top - menuHeight - verticalOffset,
           )
         : math.min(
             overlaySize.height - menuHeight - horizontalPadding,
-            buttonRect.bottom + verticalOffset,
+            anchorRect.bottom + verticalOffset,
           );
 
     return Rect.fromLTWH(left, top, menuWidth, menuHeight);
