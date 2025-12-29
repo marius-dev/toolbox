@@ -88,6 +88,42 @@ class ProjectUseCases {
     }
   }
 
+  Future<void> openInTerminal(String path) async {
+    if (!Directory(path).existsSync()) return;
+
+    try {
+      if (Platform.isMacOS) {
+        await Process.run('open', ['-a', 'Terminal', path]);
+      } else if (Platform.isWindows) {
+        final sanitized = path.replaceAll('"', r'\"');
+        await Process.run(
+          'cmd',
+          [
+            '/c',
+            'start',
+            'cmd',
+            '/k',
+            'cd',
+            '/d',
+            '"$sanitized"',
+          ],
+        );
+      } else if (Platform.isLinux) {
+        final terminal = await _findLinuxTerminal();
+        if (terminal != null) {
+          final args = _linuxTerminalArguments(terminal, path);
+          await Process.start(terminal, args);
+        } else {
+          await _fallbackOpen(path, null);
+        }
+      } else {
+        await _fallbackOpen(path, null);
+      }
+    } catch (e) {
+      print('Error opening terminal: $e');
+    }
+  }
+
   Future<void> openWith(
     Project project,
     OpenWithApp app, {
@@ -151,8 +187,6 @@ class ProjectUseCases {
         return ToolId.appcode;
       case OpenWithApp.fleet:
         return ToolId.fleet;
-      case OpenWithApp.preview:
-        return ToolId.preview;
     }
   }
 
@@ -219,19 +253,6 @@ class ProjectUseCases {
       case OpenWithApp.appcode:
       case OpenWithApp.fleet:
         break;
-      case OpenWithApp.preview:
-        if (Platform.isMacOS) {
-          command = 'open';
-          args = ['-a', 'Preview', path];
-        } else if (Platform.isWindows) {
-          command = 'cmd';
-          args = ['/c', 'start', ''];
-          args.add(path);
-        } else {
-          command = 'xdg-open';
-          args = [path];
-        }
-        break;
       case null:
         if (Platform.isMacOS) {
           command = 'open';
@@ -248,6 +269,45 @@ class ProjectUseCases {
     }
 
     await Process.run(command, args);
+  }
+
+  Future<String?> _findLinuxTerminal() async {
+    final envTerminal = Platform.environment['TERMINAL'];
+    if (envTerminal != null && await _isCommandAvailable(envTerminal)) {
+      return envTerminal;
+    }
+
+    for (final candidate in _linuxTerminalCandidates) {
+      if (await _isCommandAvailable(candidate)) {
+        return candidate;
+      }
+    }
+
+    return null;
+  }
+
+  List<String> _linuxTerminalArguments(String terminal, String path) {
+    final escapedPath = path.replaceAll('"', r'\"');
+    switch (terminal) {
+      case 'konsole':
+        return ['--workdir', path];
+      case 'kitty':
+        return ['--directory', path];
+      case 'xterm':
+      case 'urxvt':
+        return ['-e', 'bash', '-lc', 'cd "$escapedPath" && exec bash'];
+      default:
+        return ['--working-directory', path];
+    }
+  }
+
+  Future<bool> _isCommandAvailable(String command) async {
+    try {
+      final result = await Process.run('which', [command]);
+      return result.exitCode == 0;
+    } catch (_) {
+      return false;
+    }
   }
 
   List<Project> sortProjects(List<Project> projects, SortOption sortOption) {
@@ -290,3 +350,16 @@ class _ResolvedTool {
 
   _ResolvedTool(this.tool);
 }
+
+const _linuxTerminalCandidates = [
+  'gnome-terminal',
+  'konsole',
+  'xfce4-terminal',
+  'tilix',
+  'lxterminal',
+  'terminator',
+  'alacritty',
+  'kitty',
+  'xterm',
+  'urxvt',
+];

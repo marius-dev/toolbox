@@ -61,6 +61,11 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
     });
   }
 
+  @override
+  void onWindowFocus() {
+    WidgetsBinding.instance.addPostFrameCallback((_) => _focusSearchField());
+  }
+
   void _toggleSettings() {
     setState(() => _showSettings = !_showSettings);
     if (!_showSettings) {
@@ -69,14 +74,19 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
   }
 
   void _focusSearchField() {
-    if (!mounted || _selectedTab != LauncherTab.projects || _showSettings)
-      return;
+    if (!mounted || _selectedTab != LauncherTab.projects || _showSettings) return;
+    _dismissPopupMenus();
     FocusScope.of(context).requestFocus(_searchFocusNode);
   }
 
   void _focusProjectList() {
     if (!mounted) return;
     FocusScope.of(context).requestFocus(_projectListFocusNode);
+  }
+
+  void _dismissPopupMenus() {
+    final navigator = Navigator.of(context);
+    navigator.popUntil((route) => route is! PopupRoute);
   }
 
   @override
@@ -293,6 +303,7 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
         controller: _searchController,
         focusNode: _searchFocusNode,
         onNavigateNext: _focusProjectList,
+        onSearchFocus: _dismissPopupMenus,
         onSearchChanged: _projectProvider.setSearchQuery,
         currentSort: _projectProvider.sortOption,
         onSortChanged: _projectProvider.setSortOption,
@@ -324,6 +335,8 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
               onStarToggle: _projectProvider.toggleStar,
               onShowInFinder: (project) =>
                   _projectProvider.showInFinder(project.path),
+              onOpenInTerminal: (project) =>
+                  _projectProvider.openInTerminal(project),
               onOpenWith: (project, app) => _projectProvider.openWith(
                 project,
                 app,
@@ -346,7 +359,6 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
         builder: (context, _) {
           return ToolsSection(
             installed: _toolsProvider.installed,
-            available: _toolsProvider.available,
             isLoading: _toolsProvider.isLoading,
             defaultToolId: _toolsProvider.defaultToolId,
             onDefaultChanged: (id) => _toolsProvider.setDefaultTool(id),

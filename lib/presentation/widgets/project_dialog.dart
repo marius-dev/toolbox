@@ -78,13 +78,8 @@ class _ProjectDialogState extends State<ProjectDialog> {
     });
 
     final tools = await ToolDiscoveryService.instance.discoverTools();
-    final installed =
-        tools
-            .where((tool) => tool.isInstalled && tool.id != ToolId.preview)
-            .toList()
-          ..sort(
-            (a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()),
-          );
+    final installed = tools.where((tool) => tool.isInstalled).toList()
+      ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
 
     ToolId? initialId;
     if (widget.project?.lastUsedToolId != null &&

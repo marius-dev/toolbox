@@ -84,16 +84,49 @@ class SettingsScreen extends StatelessWidget {
       animation: ThemeProvider.instance,
       builder: (context, _) {
         final themeProvider = ThemeProvider.instance;
-        final isDark = themeProvider.isDarkMode;
+        final accentColor = themeProvider.accentColor;
+        final isDarkTheme = Theme.of(context).brightness == Brightness.dark;
+        final borderColor = isDarkTheme
+            ? Colors.white.withOpacity(0.12)
+            : Colors.black.withOpacity(0.08);
 
         return SettingsTile(
-          title: 'Light mode',
-          subtitle: 'Switch between dark and light surfaces',
+          title: 'Appearance',
+          subtitle: 'Follow system or choose light/dark surfaces',
           icon: Icons.light_mode,
-          trailing: Switch(
-            value: !isDark,
-            onChanged: (_) => themeProvider.toggleTheme(),
-            activeThumbColor: themeProvider.accentColor,
+          trailing: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: borderColor),
+            ),
+            child: ToggleButtons(
+              isSelected: [
+                themeProvider.themeMode == ThemeMode.system,
+                themeProvider.themeMode == ThemeMode.light,
+                themeProvider.themeMode == ThemeMode.dark,
+              ],
+              onPressed: (index) {
+                const modes = [
+                  ThemeMode.system,
+                  ThemeMode.light,
+                  ThemeMode.dark,
+                ];
+                themeProvider.setThemeMode(modes[index]);
+              },
+              borderRadius: BorderRadius.circular(10),
+              renderBorder: false,
+              constraints:
+                  const BoxConstraints(minWidth: 68, minHeight: 34),
+              color: Theme.of(context).textTheme.bodyMedium!.color,
+              selectedColor: accentColor,
+              fillColor: accentColor.withOpacity(isDarkTheme ? 0.18 : 0.14),
+              children: const [
+                Text('System'),
+                Text('Light'),
+                Text('Dark'),
+              ],
+            ),
           ),
         );
       },

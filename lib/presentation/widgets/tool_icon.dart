@@ -117,9 +117,6 @@ class ToolIcon extends StatelessWidget {
     if (tool.id == ToolId.vscode) {
       return Icons.code_rounded;
     }
-    if (tool.id == ToolId.preview) {
-      return Icons.image_rounded;
-    }
     return Icons.extension_rounded;
   }
 

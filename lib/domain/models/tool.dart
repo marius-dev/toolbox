@@ -13,7 +13,6 @@ enum ToolId {
   rubymine,
   appcode,
   fleet,
-  preview,
 }
 
 @immutable
@@ -34,11 +33,7 @@ class Tool {
     required this.isInstalled,
   });
 
-  Tool copyWith({
-    String? path,
-    String? iconPath,
-    bool? isInstalled,
-  }) {
+  Tool copyWith({String? path, String? iconPath, bool? isInstalled}) {
     return Tool(
       id: id,
       name: name,

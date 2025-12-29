@@ -14,6 +14,7 @@ class ProjectList extends StatefulWidget {
   final ValueChanged<Project> onProjectTap;
   final ValueChanged<Project> onStarToggle;
   final ValueChanged<Project> onShowInFinder;
+  final ValueChanged<Project> onOpenInTerminal;
   final void Function(Project project, OpenWithApp app) onOpenWith;
   final ValueChanged<Project> onDelete;
   final FocusNode focusNode;
@@ -27,6 +28,7 @@ class ProjectList extends StatefulWidget {
     required this.onProjectTap,
     required this.onStarToggle,
     required this.onShowInFinder,
+    required this.onOpenInTerminal,
     required this.onOpenWith,
     required this.onDelete,
     required this.focusNode,
@@ -85,10 +87,7 @@ class _ProjectListState extends State<ProjectList> {
       _itemKeys.removeRange(ordered.length, _itemKeys.length);
     } else {
       _itemKeys.addAll(
-        List.generate(
-          ordered.length - _itemKeys.length,
-          (_) => GlobalKey(),
-        ),
+        List.generate(ordered.length - _itemKeys.length, (_) => GlobalKey()),
       );
     }
   }
@@ -172,10 +171,7 @@ class _ProjectListState extends State<ProjectList> {
 
     if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
       setState(() {
-        _selectedIndex = math.min(
-          ordered.length - 1,
-          _selectedIndex + 1,
-        );
+        _selectedIndex = math.min(ordered.length - 1, _selectedIndex + 1);
         _selectedProjectId = ordered[_selectedIndex].id;
         _highlightedIndex = _selectedIndex;
       });
@@ -239,42 +235,51 @@ class _ProjectListState extends State<ProjectList> {
       focusNode: widget.focusNode,
       onKeyEvent: _handleKeyEvent,
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-        child: CustomScrollView(
-          controller: _scrollController,
-          slivers: [
-            if (favorites.isNotEmpty) ...[
-              SliverToBoxAdapter(
-                child: _buildSectionHeader(context, 'Favorites'),
+        padding: const EdgeInsets.fromLTRB(0, 0, 0, 16),
+        child: ScrollConfiguration(
+          behavior: const _NoScrollbarBehavior(),
+          child: Scrollbar(
+            controller: _scrollController,
+            radius: const Radius.circular(6),
+            thickness: 5,
+            child: Padding(
+              padding: const EdgeInsets.only(left: 10, right: 10),
+              child: CustomScrollView(
+                controller: _scrollController,
+                slivers: [
+                  if (favorites.isNotEmpty) ...[
+                    SliverToBoxAdapter(
+                      child: _buildSectionHeader(context, 'Favorites'),
+                    ),
+                    SliverList(
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) =>
+                            _buildProjectEntry(favorites[index], index),
+                        childCount: favorites.length,
+                      ),
+                    ),
+                    if (others.isNotEmpty)
+                      const SliverToBoxAdapter(child: SizedBox(height: 12)),
+                  ],
+                  if (others.isNotEmpty) ...[
+                    if (favorites.isNotEmpty)
+                      SliverToBoxAdapter(
+                        child: _buildSectionHeader(context, 'Projects'),
+                      ),
+                    SliverList(
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) => _buildProjectEntry(
+                          others[index],
+                          favorites.length + index,
+                        ),
+                        childCount: others.length,
+                      ),
+                    ),
+                  ],
+                ],
               ),
-              SliverList(
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) => _buildProjectEntry(
-                    favorites[index],
-                    index,
-                  ),
-                  childCount: favorites.length,
-                ),
-              ),
-              if (others.isNotEmpty)
-                const SliverToBoxAdapter(child: SizedBox(height: 12)),
-            ],
-            if (others.isNotEmpty) ...[
-              if (favorites.isNotEmpty)
-                SliverToBoxAdapter(
-                  child: _buildSectionHeader(context, 'Projects'),
-                ),
-              SliverList(
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) => _buildProjectEntry(
-                    others[index],
-                    favorites.length + index,
-                  ),
-                  childCount: others.length,
-                ),
-              ),
-            ],
-          ],
+            ),
+          ),
         ),
       ),
     );
@@ -284,8 +289,8 @@ class _ProjectListState extends State<ProjectList> {
     final theme = Theme.of(context);
     final baseColor =
         theme.textTheme.bodySmall?.color ?? theme.colorScheme.onSurface;
-    final headerStyle = (theme.textTheme.labelLarge ?? theme.textTheme.bodyMedium)
-        ?.copyWith(
+    final headerStyle =
+        (theme.textTheme.labelLarge ?? theme.textTheme.bodyMedium)?.copyWith(
           color: baseColor.withOpacity(0.75),
           fontWeight: FontWeight.w600,
           letterSpacing: 0.4,
@@ -293,19 +298,14 @@ class _ProjectListState extends State<ProjectList> {
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 6, top: 4),
-      child: Text(
-        label,
-        style: headerStyle,
-      ),
+      child: Text(label, style: headerStyle),
     );
   }
 
-  Widget _buildProjectEntry(
-    Project project,
-    int globalIndex,
-  ) {
+  Widget _buildProjectEntry(Project project, int globalIndex) {
     final isHovering = _isPointerHovering && _highlightedIndex == globalIndex;
-    final isFocused = widget.focusNode.hasFocus && globalIndex == _selectedIndex;
+    final isFocused =
+        widget.focusNode.hasFocus && globalIndex == _selectedIndex;
 
     return MouseRegion(
       cursor: project.pathExists
@@ -324,6 +324,7 @@ class _ProjectListState extends State<ProjectList> {
           onTap: () => widget.onProjectTap(project),
           onStarToggle: () => widget.onStarToggle(project),
           onShowInFinder: () => widget.onShowInFinder(project),
+          onOpenInTerminal: () => widget.onOpenInTerminal(project),
           onOpenWith: (app) => widget.onOpenWith(project, app),
           onDelete: () => widget.onDelete(project),
         ),
@@ -352,8 +353,19 @@ class _ProjectSections {
   final List<Project> others;
   final List<Project> ordered;
 
-  _ProjectSections({
-    required this.favorites,
-    required this.others,
-  }) : ordered = [...favorites, ...others];
+  _ProjectSections({required this.favorites, required this.others})
+    : ordered = [...favorites, ...others];
+}
+
+class _NoScrollbarBehavior extends ScrollBehavior {
+  const _NoScrollbarBehavior();
+
+  @override
+  Widget buildScrollbar(
+    BuildContext context,
+    Widget child,
+    ScrollableDetails details,
+  ) {
+    return child;
+  }
 }

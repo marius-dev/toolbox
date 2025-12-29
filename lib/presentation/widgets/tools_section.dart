@@ -8,7 +8,6 @@ import 'tool_icon.dart';
 
 class ToolsSection extends StatefulWidget {
   final List<Tool> installed;
-  final List<Tool> available;
   final bool isLoading;
   final ToolId? defaultToolId;
   final ValueChanged<ToolId>? onDefaultChanged;
@@ -17,7 +16,6 @@ class ToolsSection extends StatefulWidget {
   const ToolsSection({
     super.key,
     required this.installed,
-    required this.available,
     required this.isLoading,
     required this.defaultToolId,
     this.onDefaultChanged,
@@ -30,7 +28,6 @@ class ToolsSection extends StatefulWidget {
 
 class _ToolsSectionState extends State<ToolsSection> {
   bool _installedExpanded = true;
-  bool _availableExpanded = false;
   ToolId? _currentDefaultId;
 
   @override
@@ -87,22 +84,6 @@ class _ToolsSectionState extends State<ToolsSection> {
                         expanded: _installedExpanded,
                         onToggle: () => setState(
                           () => _installedExpanded = !_installedExpanded,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      _buildSectionCard(
-                        context,
-                        panelColor: panelColor,
-                        borderColor: borderColor,
-                        title: 'Suggested tools',
-                        subtitle:
-                            'Discovered locations for common editors and viewers',
-                        tools: widget.available,
-                        emptyLabel:
-                            'Looks like everything here is installed. Add more tools to see suggestions.',
-                        expanded: _availableExpanded,
-                        onToggle: () => setState(
-                          () => _availableExpanded = !_availableExpanded,
                         ),
                       ),
                     ],
@@ -299,8 +280,11 @@ class _ToolTileState extends State<_ToolTile> {
     final theme = Theme.of(context);
     final accentColor = ThemeProvider.instance.accentColor;
     final mutedText = theme.textTheme.bodyMedium!.color!;
-    final pathText = tool.path != null
-        ? StringUtils.ellipsisStart(tool.path!, maxLength: 60)
+    final displayPath = tool.path != null
+        ? StringUtils.replaceHomeWithTilde(tool.path!)
+        : null;
+    final pathText = displayPath != null
+        ? StringUtils.ellipsisStart(displayPath, maxLength: 60)
         : 'Path not found';
     final canToggleDefault =
         tool.isInstalled && widget.onDefaultChanged != null;

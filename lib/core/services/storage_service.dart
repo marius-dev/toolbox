@@ -76,20 +76,39 @@ class StorageService {
   // Theme preferences
   Future<Map<String, dynamic>> getThemePreferences() async {
     final prefs = await _readPreferences();
+    String? themeMode = prefs['themeMode'];
+
+    // Legacy support for the old isDark flag
+    if (themeMode == null && prefs.containsKey('isDark')) {
+      themeMode = prefs['isDark'] == true ? 'dark' : 'light';
+    }
+
     return {
-      'isDark': prefs['isDark'] ?? true,
+      'themeMode': themeMode ?? 'system',
       'accentColor': prefs['accentColor'] ?? 0xFF6366F1,
     };
   }
 
   Future<void> saveThemePreferences({
-    required bool isDark,
+    required ThemeMode themeMode,
     required int accentColor,
   }) async {
     final prefs = await _readPreferences();
-    prefs['isDark'] = isDark;
+    prefs['themeMode'] = _themeModeToString(themeMode);
+    prefs.remove('isDark');
     prefs['accentColor'] = accentColor;
     await _writePreferences(prefs);
+  }
+
+  String _themeModeToString(ThemeMode mode) {
+    switch (mode) {
+      case ThemeMode.dark:
+        return 'dark';
+      case ThemeMode.light:
+        return 'light';
+      case ThemeMode.system:
+        return 'system';
+    }
   }
 
   // Hotkey preferences

@@ -31,7 +31,11 @@ const Map<ToolId, _JetBrainsProduct> _jetBrainsProducts = {
   ToolId.intellij: _JetBrainsProduct(
     name: 'IntelliJ IDEA',
     description: 'JetBrains IDE for polyglot projects',
-    macAppNames: ['IntelliJ IDEA', 'IntelliJ IDEA CE', 'IntelliJ IDEA Ultimate'],
+    macAppNames: [
+      'IntelliJ IDEA',
+      'IntelliJ IDEA CE',
+      'IntelliJ IDEA Ultimate',
+    ],
     windowsExecutableNames: ['idea64.exe'],
     linuxLaunchers: ['idea.sh', 'idea'],
     command: 'idea',
@@ -216,8 +220,6 @@ class ToolDiscoveryService {
     switch (id) {
       case ToolId.vscode:
         return _vsCodePaths();
-      case ToolId.preview:
-        return _previewPaths();
       default:
         return const [];
     }
@@ -248,13 +250,17 @@ class ToolDiscoveryService {
     }
 
     if (home != null) {
-      paths.addAll(_searchToolboxInstalls(
-        '$home/Library/Application Support/JetBrains/Toolbox/apps',
-        targets: product.macAppNames.map((name) => '$name.app').toList(),
-        matchDirectories: true,
-      ));
+      paths.addAll(
+        _searchToolboxInstalls(
+          '$home/Library/Application Support/JetBrains/Toolbox/apps',
+          targets: product.macAppNames.map((name) => '$name.app').toList(),
+          matchDirectories: true,
+        ),
+      );
       for (final command in product.allCommands) {
-        paths.add('$home/Library/Application Support/JetBrains/Toolbox/scripts/$command');
+        paths.add(
+          '$home/Library/Application Support/JetBrains/Toolbox/scripts/$command',
+        );
       }
     }
 
@@ -277,7 +283,10 @@ class ToolDiscoveryService {
       if (!jetBrainsDir.existsSync()) continue;
 
       for (final install in jetBrainsDir.listSync().whereType<Directory>()) {
-        final dirName = install.path.split(Platform.pathSeparator).last.toLowerCase();
+        final dirName = install.path
+            .split(Platform.pathSeparator)
+            .last
+            .toLowerCase();
         final matchesProduct = product.command.toLowerCase();
 
         if (dirName.contains(matchesProduct)) {
@@ -294,10 +303,12 @@ class ToolDiscoveryService {
         paths.add('$localAppData/JetBrains/Toolbox/scripts/$command.bat');
       }
       for (final exeName in product.windowsExecutableNames) {
-        paths.addAll(_searchToolboxInstalls(
-          '$localAppData/JetBrains/Toolbox/apps',
-          targets: [exeName],
-        ));
+        paths.addAll(
+          _searchToolboxInstalls(
+            '$localAppData/JetBrains/Toolbox/apps',
+            targets: [exeName],
+          ),
+        );
       }
     }
 
@@ -315,7 +326,10 @@ class ToolDiscoveryService {
     final optDir = Directory('/opt');
     if (optDir.existsSync()) {
       for (final install in optDir.listSync().whereType<Directory>()) {
-        final dirName = install.path.split(Platform.pathSeparator).last.toLowerCase();
+        final dirName = install.path
+            .split(Platform.pathSeparator)
+            .last
+            .toLowerCase();
         if (dirName.contains(product.command.toLowerCase())) {
           for (final launcher in product.linuxLaunchers) {
             paths.add('${install.path}/bin/$launcher');
@@ -333,10 +347,12 @@ class ToolDiscoveryService {
         paths.add('$home/.local/share/JetBrains/Toolbox/scripts/$command');
       }
 
-      paths.addAll(_searchToolboxInstalls(
-        '$home/.local/share/JetBrains/Toolbox/apps',
-        targets: product.linuxLaunchers,
-      ));
+      paths.addAll(
+        _searchToolboxInstalls(
+          '$home/.local/share/JetBrains/Toolbox/apps',
+          targets: product.linuxLaunchers,
+        ),
+      );
     }
 
     return paths;
@@ -389,8 +405,6 @@ class ToolDiscoveryService {
     switch (id) {
       case ToolId.vscode:
         return ['code'];
-      case ToolId.preview:
-        return const [];
       default:
         return const [];
     }
@@ -416,22 +430,7 @@ class ToolDiscoveryService {
       ];
     }
 
-    return const [
-      '/usr/bin/code',
-      '/usr/local/bin/code',
-      '/snap/bin/code',
-    ];
-  }
-
-  List<String> _previewPaths() {
-    if (Platform.isMacOS) {
-      return const [
-        '/System/Applications/Preview.app',
-        '/Applications/Preview.app',
-      ];
-    }
-
-    return const [];
+    return const ['/usr/bin/code', '/usr/local/bin/code', '/snap/bin/code'];
   }
 
   Future<String?> _which(String command) async {
@@ -461,8 +460,6 @@ class ToolDiscoveryService {
     switch (id) {
       case ToolId.vscode:
         return 'VS Code';
-      case ToolId.preview:
-        return 'Preview';
       default:
         return id.name;
     }
@@ -476,8 +473,6 @@ class ToolDiscoveryService {
     switch (id) {
       case ToolId.vscode:
         return 'Lightweight editor tuned for code';
-      case ToolId.preview:
-        return 'macOS document and image viewer';
       default:
         return '';
     }

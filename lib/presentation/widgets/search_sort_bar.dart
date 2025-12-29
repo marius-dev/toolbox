@@ -10,6 +10,7 @@ class SearchSortBar extends StatelessWidget {
   final ValueChanged<SortOption> onSortChanged;
   final FocusNode? focusNode;
   final VoidCallback? onNavigateNext;
+  final VoidCallback? onSearchFocus;
 
   const SearchSortBar({
     super.key,
@@ -19,6 +20,7 @@ class SearchSortBar extends StatelessWidget {
     required this.onSortChanged,
     this.focusNode,
     this.onNavigateNext,
+    this.onSearchFocus,
   });
 
   @override
@@ -56,6 +58,9 @@ class SearchSortBar extends StatelessWidget {
               return KeyEventResult.handled;
             }
             return KeyEventResult.ignored;
+          },
+          onFocusChange: (hasFocus) {
+            if (hasFocus) onSearchFocus?.call();
           },
           child: TextField(
             focusNode: focusNode,
@@ -121,9 +126,7 @@ class SearchSortBar extends StatelessWidget {
     final borderColor = isDark
         ? Colors.white.withOpacity(0.08)
         : Colors.black.withOpacity(0.06);
-    final bgColor = isDark
-        ? Colors.black.withOpacity(0.7)
-        : panelColor;
+    final bgColor = isDark ? Colors.black.withOpacity(0.7) : panelColor;
 
     return Container(
       decoration: BoxDecoration(
