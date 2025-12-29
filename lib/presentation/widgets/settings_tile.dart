@@ -19,14 +19,13 @@ class SettingsTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final panelColor = isDark
-        ? Colors.black.withOpacity(0.2)
-        : Colors.white.withOpacity(0.9);
-    final borderColor = isDark
-        ? Colors.white.withOpacity(0.08)
-        : Colors.black.withOpacity(0.06);
     final accentColor = ThemeProvider.instance.accentColor;
+    final isDarkTheme = Theme.of(context).brightness == Brightness.dark;
+    final backgroundColor =
+        isDarkTheme ? const Color(0xFF181A24) : Colors.white;
+    final borderColor = isDarkTheme
+        ? Colors.white.withOpacity(0.12)
+        : Colors.black.withOpacity(0.08);
 
     return Container(
       margin: CompactLayout.only(
@@ -35,10 +34,18 @@ class SettingsTile extends StatelessWidget {
       ),
       padding: EdgeInsets.all(CompactLayout.value(context, 12)),
       decoration: BoxDecoration(
-        color: panelColor,
+        color: backgroundColor,
         borderRadius:
             BorderRadius.circular(CompactLayout.value(context, 10)),
         border: Border.all(color: borderColor, width: 1),
+        boxShadow: [
+          if (isDarkTheme)
+            BoxShadow(
+              color: Colors.black.withOpacity(0.35),
+              blurRadius: 16,
+              offset: const Offset(0, 8),
+            ),
+        ],
       ),
       child: Row(
         children: [

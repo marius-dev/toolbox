@@ -3,6 +3,7 @@ import 'package:file_picker/file_picker.dart';
 
 import '../../core/services/tool_discovery_service.dart';
 import '../../core/services/window_service.dart';
+import '../../core/theme/glass_style.dart';
 import '../../core/theme/theme_provider.dart';
 import '../../core/utils/compact_layout.dart';
 import '../../domain/models/project.dart';
@@ -129,15 +130,14 @@ class _ProjectDialogState extends State<ProjectDialog> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     final accentColor = ThemeProvider.instance.accentColor;
-    final borderColor = theme.colorScheme.onSurface.withOpacity(
-      isDark ? 0.12 : 0.08,
+    final palette = GlassStylePalette(
+      style: ThemeProvider.instance.glassStyle,
+      isDark: theme.brightness == Brightness.dark,
+      accentColor: accentColor,
     );
-    final background = Color.alphaBlend(
-      isDark ? Colors.white.withOpacity(0.02) : Colors.black.withOpacity(0.02),
-      theme.colorScheme.surface,
-    );
+    final borderColor = palette.borderColor;
+    final background = palette.innerColor;
     final isEditing = widget.project != null;
 
     return AlertDialog(

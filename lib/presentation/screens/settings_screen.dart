@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import '../../core/theme/glass_style.dart';
 import '../../core/theme/theme_provider.dart';
 import '../../core/utils/compact_layout.dart';
 import '../widgets/color_picker_dialog.dart';
@@ -29,6 +31,8 @@ class SettingsScreen extends StatelessWidget {
               _buildToolsRescanTile(context),
               SizedBox(height: CompactLayout.value(context, 10)),
               _buildThemeToggle(context),
+              SizedBox(height: CompactLayout.value(context, 10)),
+              _buildGlassStyleTile(context),
               SizedBox(height: CompactLayout.value(context, 10)),
               _buildScaleTile(context),
               SizedBox(height: CompactLayout.value(context, 10)),
@@ -136,6 +140,58 @@ class SettingsScreen extends StatelessWidget {
               selectedColor: accentColor,
               fillColor: accentColor.withOpacity(isDarkTheme ? 0.18 : 0.14),
               children: const [Text('System'), Text('Light'), Text('Dark')],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildGlassStyleTile(BuildContext context) {
+    return AnimatedBuilder(
+      animation: ThemeProvider.instance,
+      builder: (context, _) {
+        final themeProvider = ThemeProvider.instance;
+        final accentColor = themeProvider.accentColor;
+        final isDarkTheme = Theme.of(context).brightness == Brightness.dark;
+        final borderColor = isDarkTheme
+            ? Colors.white.withOpacity(0.12)
+            : Colors.black.withOpacity(0.08);
+
+        return SettingsTile(
+          title: 'Glass finish',
+          subtitle: 'Choose between a clear or tinted glass base',
+          icon: Icons.opacity,
+          trailing: Container(
+            padding: EdgeInsets.symmetric(
+              horizontal: CompactLayout.value(context, 6),
+              vertical: CompactLayout.value(context, 4),
+            ),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(
+                CompactLayout.value(context, 10),
+              ),
+              border: Border.all(color: borderColor),
+            ),
+            child: ToggleButtons(
+              isSelected: [
+                themeProvider.glassStyle == GlassStyle.clear,
+                themeProvider.glassStyle == GlassStyle.tinted,
+              ],
+              onPressed: (index) {
+                final options = [GlassStyle.clear, GlassStyle.tinted];
+                themeProvider.setGlassStyle(options[index]);
+              },
+              borderRadius: BorderRadius.circular(10),
+              renderBorder: false,
+              constraints: BoxConstraints(
+                minWidth: CompactLayout.value(context, 64),
+                minHeight: CompactLayout.value(context, 30),
+              ),
+              color: Theme.of(context).textTheme.bodyMedium!.color,
+              selectedColor: accentColor,
+              fillColor: accentColor.withOpacity(isDarkTheme ? 0.18 : 0.14),
+              children: const [Text('Clear'), Text('Tinted')],
             ),
           ),
         );

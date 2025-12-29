@@ -13,11 +13,13 @@ class MainFlutterWindow: NSWindow {
     
     // CRITICAL: Enable transparency
     self.isOpaque = false
-    self.backgroundColor = NSColor.clear
-    self.hasShadow = true
+    flutterViewController.backgroundColor = .clear
+    flutterViewController.view.wantsLayer = true
+    flutterViewController.view.layer?.backgroundColor = NSColor.clear.cgColor
     
     // Make window level higher
     self.level = .floating
+    self.alphaValue = 1.0
     
     // Enable visual effect view for blur
     self.titlebarAppearsTransparent = true

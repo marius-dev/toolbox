@@ -4,6 +4,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 
 import '../../core/services/window_service.dart';
+import '../../core/theme/glass_style.dart';
 import '../../core/theme/theme_provider.dart';
 import '../../core/utils/compact_layout.dart';
 import '../../domain/models/project.dart';
@@ -11,6 +12,7 @@ import '../../domain/models/tool.dart';
 import '../providers/project_provider.dart';
 import '../providers/tools_provider.dart';
 import '../widgets/glass_button.dart';
+import '../widgets/glass_panel.dart';
 import '../widgets/tool_icon.dart';
 
 class AddProjectScreen extends StatefulWidget {
@@ -184,8 +186,12 @@ class _AddProjectScreenState extends State<AddProjectScreen>
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final accentColor = ThemeProvider.instance.accentColor;
+    final palette = GlassStylePalette.fromContext(
+      context,
+      style: ThemeProvider.instance.glassStyle,
+      accentColor: accentColor,
+    );
     final duration = _animationDuration(context);
     final curve = _animationCurve(context);
 
@@ -193,11 +199,11 @@ class _AddProjectScreenState extends State<AddProjectScreen>
       backgroundColor: Colors.transparent,
       body: Stack(
         children: [
-          _buildBackdrop(isDark, accentColor),
+          _buildBackdrop(palette),
           SafeArea(
             child: FadeTransition(
               opacity: CurvedAnimation(parent: _introController, curve: curve),
-              child: _buildContent(context, duration, curve, accentColor),
+              child: _buildContent(context, duration, curve, palette),
             ),
           ),
         ],
@@ -205,26 +211,13 @@ class _AddProjectScreenState extends State<AddProjectScreen>
     );
   }
 
-  Widget _buildBackdrop(bool isDark, Color accentColor) {
+  Widget _buildBackdrop(GlassStylePalette palette) {
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: isDark
-              ? [
-                  const Color(0xFF030712),
-                  Color.alphaBlend(
-                    accentColor.withOpacity(0.15),
-                    const Color(0xFF080C1C),
-                  ),
-                  const Color(0xFF0C1428),
-                ]
-              : [
-                  Colors.white,
-                  Color.alphaBlend(accentColor.withOpacity(0.08), Colors.white),
-                  Colors.grey.shade100,
-                ],
+          colors: palette.backgroundGradient,
         ),
       ),
       child: Stack(
@@ -232,12 +225,12 @@ class _AddProjectScreenState extends State<AddProjectScreen>
           Positioned(
             top: -120,
             left: -40,
-            child: _glow(accentColor.withOpacity(0.7), 260),
+            child: _glow(palette.glowColor, 260),
           ),
           Positioned(
             bottom: -180,
             right: -60,
-            child: _glow(accentColor.withOpacity(0.5), 340),
+            child: _glow(palette.glowColor.withOpacity(0.7), 340),
           ),
         ],
       ),
@@ -261,7 +254,7 @@ class _AddProjectScreenState extends State<AddProjectScreen>
     BuildContext context,
     Duration duration,
     Curve curve,
-    Color accentColor,
+    GlassStylePalette palette,
   ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -292,7 +285,7 @@ class _AddProjectScreenState extends State<AddProjectScreen>
                           context,
                           duration,
                           curve,
-                          accentColor,
+                          palette,
                         ),
                       ),
                     ),
@@ -311,7 +304,7 @@ class _AddProjectScreenState extends State<AddProjectScreen>
             top: 20,
             bottom: 20,
           ),
-          child: _buildBottomBar(context, duration, curve, accentColor),
+          child: _buildBottomBar(context, duration, curve),
         ),
       ],
     );
@@ -360,31 +353,17 @@ class _AddProjectScreenState extends State<AddProjectScreen>
     BuildContext context,
     Duration duration,
     Curve curve,
-    Color accentColor,
   ) {
-    final base = Theme.of(context).colorScheme.surface;
-    final border = Theme.of(context).colorScheme.onSurface.withOpacity(0.08);
+    final accentColor = ThemeProvider.instance.accentColor;
 
-    return AnimatedContainer(
-      width: double.infinity,
+    return GlassPanel(
       duration: duration,
       curve: curve,
       padding: EdgeInsets.symmetric(
         horizontal: CompactLayout.value(context, 14),
         vertical: CompactLayout.value(context, 10),
       ),
-      decoration: BoxDecoration(
-        color: Color.alphaBlend(accentColor.withOpacity(0.05), base),
-        borderRadius: BorderRadius.circular(CompactLayout.value(context, 16)),
-        border: Border.all(color: border),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            blurRadius: 16,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
+      borderRadius: BorderRadius.circular(CompactLayout.value(context, 16)),
       child: Align(
         alignment: Alignment.centerRight,
         child: Padding(
@@ -424,15 +403,11 @@ class _AddProjectScreenState extends State<AddProjectScreen>
     BuildContext context, {
     required String label,
     required IconData icon,
+    required GlassStylePalette palette,
     Widget? suffix,
   }) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final panelColor = isDark
-        ? Colors.white.withOpacity(0.04)
-        : Colors.black.withOpacity(0.02);
-    final borderColor = Theme.of(
-      context,
-    ).colorScheme.onSurface.withOpacity(isDark ? 0.1 : 0.08);
+    final panelColor = palette.innerColor;
+    final borderColor = palette.borderColor;
 
     return InputDecoration(
       labelText: label,
@@ -462,7 +437,7 @@ class _AddProjectScreenState extends State<AddProjectScreen>
     BuildContext context,
     Duration duration,
     Curve curve,
-    Color accentColor,
+    GlassStylePalette palette,
   ) {
     return FocusTraversalGroup(
       child: _buildCard(
@@ -490,7 +465,7 @@ class _AddProjectScreenState extends State<AddProjectScreen>
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          _buildPathField(context),
+                          _buildPathField(context, palette),
                           SizedBox(height: CompactLayout.value(context, 12)),
                           Align(
                             alignment: Alignment.centerLeft,
@@ -519,6 +494,7 @@ class _AddProjectScreenState extends State<AddProjectScreen>
                         controller: _nameController,
                         label: 'Project name',
                         icon: Icons.edit_note_rounded,
+                        palette: palette,
                         onChanged: (_) => setState(() {}),
                       ),
                     ),
@@ -539,14 +515,14 @@ class _AddProjectScreenState extends State<AddProjectScreen>
               style: Theme.of(context).textTheme.bodySmall,
             ),
             SizedBox(height: CompactLayout.value(context, 20)),
-            _buildToolsList(context, accentColor),
+            _buildToolsList(context),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildPathField(BuildContext context) {
+  Widget _buildPathField(BuildContext context, GlassStylePalette palette) {
     return TextField(
       controller: _pathController,
       focusNode: _pathFocus,
@@ -562,6 +538,7 @@ class _AddProjectScreenState extends State<AddProjectScreen>
             onPressed: _pickFolder,
           ),
         ),
+        palette: palette,
       ),
     );
   }
@@ -571,17 +548,24 @@ class _AddProjectScreenState extends State<AddProjectScreen>
     required TextEditingController controller,
     required String label,
     required IconData icon,
+    required GlassStylePalette palette,
     ValueChanged<String>? onChanged,
   }) {
     return TextField(
       controller: controller,
       onChanged: onChanged,
       textInputAction: TextInputAction.done,
-      decoration: _inputDecoration(context, label: label, icon: icon),
+      decoration: _inputDecoration(
+        context,
+        label: label,
+        icon: icon,
+        palette: palette,
+      ),
     );
   }
 
-  Widget _buildToolsList(BuildContext context, Color accentColor) {
+  Widget _buildToolsList(BuildContext context) {
+    final accentColor = ThemeProvider.instance.accentColor;
     if (_isLoadingTools) {
       return Padding(
         padding: EdgeInsets.symmetric(
@@ -666,26 +650,11 @@ class _AddProjectScreenState extends State<AddProjectScreen>
     required String description,
     required Widget child,
   }) {
-    final base = Theme.of(context).colorScheme.surface;
-    final border = Theme.of(context).colorScheme.onSurface.withOpacity(0.08);
-
-    return AnimatedContainer(
+    return GlassPanel(
       duration: duration,
       curve: curve,
-      width: double.infinity,
       padding: EdgeInsets.all(CompactLayout.value(context, 14)),
-      decoration: BoxDecoration(
-        color: base,
-        borderRadius: BorderRadius.circular(CompactLayout.value(context, 16)),
-        border: Border.all(color: border),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 22,
-            offset: const Offset(0, 16),
-          ),
-        ],
-      ),
+      borderRadius: BorderRadius.circular(CompactLayout.value(context, 16)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

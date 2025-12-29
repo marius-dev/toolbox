@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+
 import '../services/storage_service.dart';
+import 'glass_style.dart';
 
 class ThemeProvider extends ChangeNotifier with WidgetsBindingObserver {
   static final ThemeProvider _instance = ThemeProvider._internal();
@@ -15,6 +17,7 @@ class ThemeProvider extends ChangeNotifier with WidgetsBindingObserver {
   ThemeMode _themeMode = ThemeMode.system;
   Brightness _platformBrightness = Brightness.dark;
   Color _accentColor = const Color(0xFF6366F1);
+  GlassStyle _glassStyle = GlassStyle.tinted;
   double _scaleFactor = 1.0;
 
   static const List<double> scaleOptions = [
@@ -30,6 +33,7 @@ class ThemeProvider extends ChangeNotifier with WidgetsBindingObserver {
 
   ThemeMode get themeMode => _themeMode;
   Color get accentColor => _accentColor;
+  GlassStyle get glassStyle => _glassStyle;
   double get scaleFactor => _scaleFactor;
   double get effectiveScaleFactor => _mapToEffectiveScale(_scaleFactor);
   bool get isDarkMode => _effectiveBrightness == Brightness.dark;
@@ -59,6 +63,13 @@ class ThemeProvider extends ChangeNotifier with WidgetsBindingObserver {
     notifyListeners();
   }
 
+  void setGlassStyle(GlassStyle style) {
+    if (_glassStyle == style) return;
+    _glassStyle = style;
+    _saveThemePreferences();
+    notifyListeners();
+  }
+
   void setScaleFactor(double scale) {
     final normalized = _normalizeScale(scale);
     if (_scaleFactor == normalized) return;
@@ -84,6 +95,7 @@ class ThemeProvider extends ChangeNotifier with WidgetsBindingObserver {
     final prefs = await StorageService.instance.getThemePreferences();
     _themeMode = _themeModeFromString(prefs['themeMode'] as String?);
     _accentColor = Color(prefs['accentColor'] ?? 0xFF6366F1);
+    _glassStyle = GlassStyleExtension.fromString(prefs['glassStyle'] as String?);
     final storedScale = prefs['scale'];
     final scaleValue =
         storedScale is num ? storedScale.toDouble() : 1.0;
@@ -108,6 +120,7 @@ class ThemeProvider extends ChangeNotifier with WidgetsBindingObserver {
       themeMode: _themeMode,
       accentColor: _accentColor.value,
       appScale: _scaleFactor,
+      glassStyle: _glassStyle,
     );
   }
 

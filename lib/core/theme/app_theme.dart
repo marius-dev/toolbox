@@ -3,6 +3,8 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:project_launcher/core/theme/theme_provider.dart';
 
+import 'glass_style.dart';
+
 class AppTheme {
   static ThemeData get lightTheme => _buildTheme(Brightness.light);
   static ThemeData get darkTheme => _buildTheme(Brightness.dark);
@@ -10,19 +12,23 @@ class AppTheme {
   static ThemeData _buildTheme(Brightness brightness) {
     final isDark = brightness == Brightness.dark;
     final colorScheme = _buildColorScheme(brightness);
+    final glassStyle = ThemeProvider.instance.glassStyle;
+    final isClearGlass = glassStyle == GlassStyle.clear;
     final backgroundColor = isDark
-        ? const Color(0xFF050A14)
-        : const Color(0xFFF5F6FB);
-    final surfaceColor = isDark ? const Color(0xFF151B2F) : Colors.white;
+        ? (isClearGlass ? const Color(0xFF03050C) : const Color(0xFF050A14))
+        : (isClearGlass ? const Color(0xFFFDFDFD) : const Color(0xFFF5F6FB));
+    final surfaceColor = isDark
+        ? (isClearGlass ? const Color(0xFF121628) : const Color(0xFF151B2F))
+        : (isClearGlass ? Colors.white.withOpacity(0.96) : Colors.white);
     final elevatedSurface = isDark
-        ? const Color(0xFF1D2440)
-        : Colors.white.withOpacity(0.96);
+        ? (isClearGlass ? const Color(0xFF1A1E33) : const Color(0xFF1D2440))
+        : Colors.white.withOpacity(isClearGlass ? 0.92 : 0.96);
     final outlineColor = isDark
-        ? Colors.white.withOpacity(0.08)
-        : Colors.black.withOpacity(0.08);
+        ? Colors.white.withOpacity(isClearGlass ? 0.06 : 0.08)
+        : Colors.black.withOpacity(isClearGlass ? 0.04 : 0.08);
     final faintOutline = isDark
-        ? Colors.white.withOpacity(0.04)
-        : Colors.black.withOpacity(0.04);
+        ? Colors.white.withOpacity(isClearGlass ? 0.03 : 0.04)
+        : Colors.black.withOpacity(isClearGlass ? 0.02 : 0.04);
 
     return ThemeData(
       brightness: brightness,

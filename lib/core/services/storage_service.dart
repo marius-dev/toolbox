@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 
+import '../theme/glass_style.dart';
 class StorageService {
   static final StorageService _instance = StorageService._internal();
   static StorageService get instance => _instance;
@@ -89,10 +90,16 @@ class StorageService {
       scale = storedScale.toDouble();
     }
 
+    if (!prefs.containsKey('glassStyle')) {
+      prefs['glassStyle'] = 'tinted';
+      await _writePreferences(prefs);
+    }
+
     return {
       'themeMode': themeMode ?? 'system',
       'accentColor': prefs['accentColor'] ?? 0xFF6366F1,
       'scale': scale,
+      'glassStyle': prefs['glassStyle'] ?? 'tinted',
     };
   }
 
@@ -100,12 +107,14 @@ class StorageService {
     required ThemeMode themeMode,
     required int accentColor,
     required double appScale,
+    required GlassStyle glassStyle,
   }) async {
     final prefs = await _readPreferences();
     prefs['themeMode'] = _themeModeToString(themeMode);
     prefs.remove('isDark');
     prefs['accentColor'] = accentColor;
     prefs['scale'] = appScale;
+    prefs['glassStyle'] = glassStyle.storageKey;
     await _writePreferences(prefs);
   }
 

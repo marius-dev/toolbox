@@ -15,6 +15,7 @@ import '../widgets/empty_state.dart';
 import '../providers/tools_provider.dart';
 import '../widgets/tools_section.dart';
 import '../../core/services/window_service.dart';
+import '../../core/theme/glass_style.dart';
 import '../../core/theme/theme_provider.dart';
 import '../../core/utils/compact_layout.dart';
 
@@ -151,27 +152,19 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
       builder: (context, _) {
         final isDark = ThemeProvider.instance.isDarkMode;
         final accentColor = ThemeProvider.instance.accentColor;
+        final palette = GlassStylePalette(
+          style: ThemeProvider.instance.glassStyle,
+          isDark: isDark,
+          accentColor: accentColor,
+        );
         return Container(
           constraints: const BoxConstraints.expand(),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(26),
             gradient: LinearGradient(
-              colors: isDark
-                  ? [
-                      const Color(0xFF05070F),
-                      Color.alphaBlend(
-                        accentColor.withOpacity(0.12),
-                        const Color(0xFF05070F),
-                      ),
-                      const Color(0xFF090F1F),
-                    ]
-                  : [
-                      Colors.white,
-                      Colors.white,
-                      Colors.white.withOpacity(0.95),
-                    ],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
+              colors: palette.backgroundGradient,
             ),
             boxShadow: [
               BoxShadow(
@@ -183,7 +176,7 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
               ),
               if (isDark)
                 BoxShadow(
-                  color: accentColor.withOpacity(0.25),
+                  color: palette.glowColor.withOpacity(0.5),
                   blurRadius: 90,
                   offset: const Offset(0, 10),
                 ),
@@ -194,7 +187,7 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
             child: SizedBox.expand(
               child: BackdropFilter(
                 filter: ImageFilter.blur(sigmaX: 40, sigmaY: 40),
-                child: _buildContent(),
+                child: _buildContent(palette),
               ),
             ),
           ),
@@ -203,28 +196,9 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
     );
   }
 
-  Widget _buildContent() {
-    final isDark = ThemeProvider.instance.isDarkMode;
-    final accentColor = ThemeProvider.instance.accentColor;
-
-    final backgroundGradient = isDark
-        ? [
-            const Color(0xFF070C18),
-            Color.alphaBlend(
-              accentColor.withOpacity(0.18),
-              const Color(0xFF070C18),
-            ),
-            const Color(0xFF0F1428),
-          ]
-        : [
-            _lighten(accentColor, 0.4),
-            _lighten(accentColor, 0.7),
-            Colors.white,
-          ];
-
-    final borderColor = isDark
-        ? Colors.white.withOpacity(0.08)
-        : Colors.black.withOpacity(0.06);
+  Widget _buildContent(GlassStylePalette palette) {
+    final backgroundGradient = palette.backgroundGradient;
+    final borderColor = palette.borderColor;
 
     return Container(
       constraints: const BoxConstraints.expand(),
@@ -243,12 +217,12 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
           Positioned(
             top: -120,
             right: -20,
-            child: _buildGlow(accentColor, 240),
+            child: _buildGlow(palette.glowColor, 240),
           ),
           Positioned(
             bottom: -140,
             left: -30,
-            child: _buildGlow(accentColor.withOpacity(0.8), 320),
+            child: _buildGlow(palette.glowColor.withOpacity(0.8), 320),
           ),
           Positioned.fill(
             child: _showSettings
@@ -290,13 +264,6 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
           _buildToolsArea(),
       ],
     );
-  }
-
-  Color _lighten(Color color, double amount) {
-    final hsl = HSLColor.fromColor(color);
-    return hsl
-        .withLightness((hsl.lightness + amount).clamp(0.0, 1.0))
-        .toColor();
   }
 
   Widget _buildGlow(Color color, double size) {
