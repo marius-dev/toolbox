@@ -83,20 +83,29 @@ class StorageService {
       themeMode = prefs['isDark'] == true ? 'dark' : 'light';
     }
 
+    double scale = 1.0;
+    final storedScale = prefs['scale'];
+    if (storedScale is num) {
+      scale = storedScale.toDouble();
+    }
+
     return {
       'themeMode': themeMode ?? 'system',
       'accentColor': prefs['accentColor'] ?? 0xFF6366F1,
+      'scale': scale,
     };
   }
 
   Future<void> saveThemePreferences({
     required ThemeMode themeMode,
     required int accentColor,
+    required double appScale,
   }) async {
     final prefs = await _readPreferences();
     prefs['themeMode'] = _themeModeToString(themeMode);
     prefs.remove('isDark');
     prefs['accentColor'] = accentColor;
+    prefs['scale'] = appScale;
     await _writePreferences(prefs);
   }
 

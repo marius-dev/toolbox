@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../core/utils/compact_layout.dart';
+
 import '../../core/theme/theme_provider.dart';
 import '../../core/utils/string_utils.dart';
 import '../../domain/models/tool.dart';
@@ -54,7 +56,13 @@ class _ToolsSectionState extends State<ToolsSection> {
         colorScheme.onSurface.withOpacity(isDark ? 0.08 : 0.06);
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 8, 12, 10),
+      padding: CompactLayout.only(
+        context,
+        left: 10,
+        top: 6,
+        right: 10,
+        bottom: 8,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -63,14 +71,19 @@ class _ToolsSectionState extends State<ToolsSection> {
                 ? Container(
                     decoration: BoxDecoration(
                       color: panelColor,
-                      borderRadius: BorderRadius.circular(14),
+                      borderRadius: BorderRadius.circular(
+                        CompactLayout.value(context, 12),
+                      ),
                       border: Border.all(color: borderColor),
                     ),
-                    padding: const EdgeInsets.all(10),
+                    padding: EdgeInsets.all(CompactLayout.value(context, 8)),
                     child: const Center(child: CircularProgressIndicator()),
                   )
                 : ListView(
-                    padding: const EdgeInsets.only(top: 2, bottom: 4),
+                    padding: EdgeInsets.only(
+                      top: CompactLayout.value(context, 2),
+                      bottom: CompactLayout.value(context, 3),
+                    ),
                     children: [
                       _buildSectionCard(
                         context,
@@ -108,10 +121,10 @@ class _ToolsSectionState extends State<ToolsSection> {
     return Container(
       decoration: BoxDecoration(
         color: panelColor,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(CompactLayout.value(context, 10)),
         border: Border.all(color: borderColor),
       ),
-      padding: const EdgeInsets.all(10),
+      padding: EdgeInsets.all(CompactLayout.value(context, 8)),
       child: _buildSection(
         context,
         title: title,
@@ -146,40 +159,44 @@ class _ToolsSectionState extends State<ToolsSection> {
       children: [
         InkWell(
           onTap: onToggle,
-          borderRadius: BorderRadius.circular(6),
+          borderRadius:
+              BorderRadius.circular(CompactLayout.value(context, 6)),
           child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 6),
+            padding: EdgeInsets.symmetric(
+              vertical: CompactLayout.value(context, 4),
+            ),
             child: Row(
               children: [
                 Icon(
                   expanded ? Icons.expand_less : Icons.expand_more,
-                  size: 18,
+                  size: CompactLayout.value(context, 16),
                   color: mutedText,
                 ),
-                const SizedBox(width: 4),
+                SizedBox(width: CompactLayout.value(context, 4)),
                 Text(
                   title,
                   style: Theme.of(context).textTheme.bodyLarge!.copyWith(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                  ),
+                        fontSize: CompactLayout.value(context, 13),
+                        fontWeight: FontWeight.w700,
+                      ),
                 ),
                 Container(
-                  margin: const EdgeInsets.only(left: 8),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 2,
+                  margin: EdgeInsets.only(left: CompactLayout.value(context, 8)),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: CompactLayout.value(context, 7),
+                    vertical: CompactLayout.value(context, 2),
                   ),
                   decoration: BoxDecoration(
                     color: accentColor.withOpacity(0.12),
-                    borderRadius: BorderRadius.circular(6),
+                    borderRadius:
+                        BorderRadius.circular(CompactLayout.value(context, 6)),
                   ),
                   child: Text(
                     tools.length.toString(),
                     style: TextStyle(
                       color: accentColor,
                       fontWeight: FontWeight.w700,
-                      fontSize: 11,
+                      fontSize: CompactLayout.value(context, 10),
                     ),
                   ),
                 ),
@@ -187,7 +204,7 @@ class _ToolsSectionState extends State<ToolsSection> {
             ),
           ),
         ),
-        const SizedBox(height: 2),
+        SizedBox(height: CompactLayout.value(context, 2)),
         Text(
           subtitle,
           style: Theme.of(
@@ -195,16 +212,21 @@ class _ToolsSectionState extends State<ToolsSection> {
           ).textTheme.bodySmall!.copyWith(color: mutedText.withOpacity(0.8)),
         ),
         if (expanded) ...[
-          const SizedBox(height: 8),
+          SizedBox(height: CompactLayout.value(context, 6)),
           if (tools.isEmpty)
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+              padding: EdgeInsets.symmetric(
+                horizontal: CompactLayout.value(context, 10),
+                vertical: CompactLayout.value(context, 10),
+              ),
               decoration: BoxDecoration(
                 color: isDark
                     ? Colors.white.withOpacity(0.03)
                     : Colors.black.withOpacity(0.02),
-                borderRadius: BorderRadius.circular(6),
+                borderRadius: BorderRadius.circular(
+                  CompactLayout.value(context, 6),
+                ),
               ),
               child: Text(emptyLabel, style: TextStyle(color: mutedText)),
             )
@@ -293,14 +315,19 @@ class _ToolTileState extends State<_ToolTile> {
       onEnter: (_) => setState(() => _isHovering = true),
       onExit: (_) => setState(() => _isHovering = false),
       child: ListingItemContainer(
-        margin: const EdgeInsets.symmetric(vertical: 4),
+        margin: EdgeInsets.symmetric(
+          vertical: CompactLayout.value(context, 3),
+        ),
         isActive: false,
         isHovering: _isHovering,
         isDisabled: !tool.isInstalled,
         child: Row(
           children: [
-            ToolIcon(tool: tool),
-            const SizedBox(width: 12),
+            ToolIcon(
+              tool: tool,
+              size: CompactLayout.value(context, 24),
+            ),
+            SizedBox(width: CompactLayout.value(context, 10)),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -313,56 +340,64 @@ class _ToolTileState extends State<_ToolTile> {
                           style: TextStyle(
                             color: widget.textColor,
                             fontWeight: FontWeight.w700,
-                            fontSize: 13,
+                            fontSize: CompactLayout.value(context, 12),
                           ),
                         ),
                       ),
                       if (!tool.isInstalled)
                         Container(
-                          margin: const EdgeInsets.only(left: 8),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 2,
+                          margin: EdgeInsets.only(
+                            left: CompactLayout.value(context, 8),
+                          ),
+                          padding: EdgeInsets.symmetric(
+                            horizontal: CompactLayout.value(context, 6),
+                            vertical: CompactLayout.value(context, 2),
                           ),
                           decoration: BoxDecoration(
                             color: Colors.red.withOpacity(0.16),
-                            borderRadius: BorderRadius.circular(4),
+                            borderRadius: BorderRadius.circular(
+                              CompactLayout.value(context, 4),
+                            ),
                           ),
-                          child: const Text(
+                          child: Text(
                             'Not installed',
                             style: TextStyle(
                               color: Colors.red,
-                              fontSize: 10,
+                              fontSize: CompactLayout.value(context, 10),
                               fontWeight: FontWeight.w600,
                             ),
                           ),
                         ),
                       if (widget.isDefault)
                         Container(
-                          margin: const EdgeInsets.only(left: 8),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 2,
+                          margin: EdgeInsets.only(
+                            left: CompactLayout.value(context, 8),
+                          ),
+                          padding: EdgeInsets.symmetric(
+                            horizontal: CompactLayout.value(context, 6),
+                            vertical: CompactLayout.value(context, 2),
                           ),
                           decoration: BoxDecoration(
                             color: accentColor.withOpacity(0.16),
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(
+                              CompactLayout.value(context, 10),
+                            ),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Icon(
                                 Icons.check_rounded,
-                                size: 14,
+                                size: CompactLayout.value(context, 14),
                                 color: accentColor,
                               ),
-                              const SizedBox(width: 4),
+                              SizedBox(width: CompactLayout.value(context, 4)),
                               Text(
                                 'Default',
                                 style: TextStyle(
                                   color: accentColor,
                                   fontWeight: FontWeight.w700,
-                                  fontSize: 11,
+                                  fontSize: CompactLayout.value(context, 10),
                                 ),
                               ),
                             ],
@@ -370,28 +405,28 @@ class _ToolTileState extends State<_ToolTile> {
                         ),
                     ],
                   ),
-                  const SizedBox(height: 4),
+                  SizedBox(height: CompactLayout.value(context, 4)),
                   Text(
                     tool.description,
                     style: theme.textTheme.bodySmall!.copyWith(
                       color: mutedText.withOpacity(0.9),
                     ),
                   ),
-                  const SizedBox(height: 6),
+                  SizedBox(height: CompactLayout.value(context, 5)),
                   Row(
                     children: [
                       Icon(
                         Icons.folder_rounded,
-                        size: 14,
+                        size: CompactLayout.value(context, 14),
                         color: theme.iconTheme.color,
                       ),
-                      const SizedBox(width: 6),
+                      SizedBox(width: CompactLayout.value(context, 5)),
                       Expanded(
                         child: Text(
                           pathText,
                           style: theme.textTheme.bodySmall!.copyWith(
                             color: mutedText.withOpacity(0.8),
-                            fontSize: 11,
+                            fontSize: CompactLayout.value(context, 11),
                           ),
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -436,12 +471,12 @@ class _ToolTileState extends State<_ToolTile> {
     final textColor = theme.textTheme.bodyMedium!.color!;
 
     return Padding(
-      padding: const EdgeInsets.only(left: 4),
+      padding: EdgeInsets.only(left: CompactLayout.value(context, 4)),
       child: PopupMenuButton<_ToolTileAction>(
         icon: Icon(
           Icons.more_horiz,
           color: theme.iconTheme.color,
-          size: 18,
+          size: CompactLayout.value(context, 16),
         ),
         color: bgColor,
         shape: RoundedRectangleBorder(
@@ -468,10 +503,10 @@ class _ToolTileState extends State<_ToolTile> {
                 children: [
                   Icon(
                     Icons.open_in_new_rounded,
-                    size: 18,
+                    size: CompactLayout.value(context, 16),
                     color: textColor,
                   ),
-                  const SizedBox(width: 8),
+                  SizedBox(width: CompactLayout.value(context, 6)),
                   Text(
                     'Open',
                     style: TextStyle(color: textColor),
@@ -486,10 +521,10 @@ class _ToolTileState extends State<_ToolTile> {
                 children: [
                   Icon(
                     Icons.check_rounded,
-                    size: 18,
+                    size: CompactLayout.value(context, 16),
                     color: textColor,
                   ),
-                  const SizedBox(width: 8),
+                  SizedBox(width: CompactLayout.value(context, 6)),
                   Text(
                     'Set as default',
                     style: TextStyle(color: textColor),

@@ -42,7 +42,7 @@ class AppTheme {
         elevation: 0,
         textStyle: TextStyle(
           color: isDark ? Colors.white70 : Colors.black87,
-          fontSize: 13,
+          fontSize: 12,
         ),
       ),
 
@@ -51,15 +51,15 @@ class AppTheme {
         fillColor: elevatedSurface,
         hintStyle: TextStyle(
           color: isDark ? Colors.white.withOpacity(0.6) : Colors.black45,
-          fontSize: 13,
+          fontSize: 12,
         ),
         labelStyle: TextStyle(
           color: isDark ? Colors.white70 : Colors.black54,
-          fontSize: 13,
+          fontSize: 12,
         ),
         contentPadding: const EdgeInsets.symmetric(
-          horizontal: 14,
-          vertical: 12,
+          horizontal: 10,
+          vertical: 8,
         ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
@@ -87,45 +87,45 @@ class AppTheme {
       dialogTheme: DialogThemeData(
         backgroundColor: elevatedSurface,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(18),
           side: BorderSide(color: outlineColor),
         ),
         titleTextStyle: TextStyle(
           color: isDark ? Colors.white : Colors.black87,
-          fontSize: 18,
+          fontSize: 16,
           fontWeight: FontWeight.w600,
         ),
         contentTextStyle: TextStyle(
           color: isDark ? Colors.white70 : Colors.black87,
-          fontSize: 14,
+          fontSize: 13,
         ),
       ),
 
       iconTheme: IconThemeData(
         color: isDark ? Colors.white70 : Colors.black54,
-        size: 20,
+        size: 16,
       ),
 
       textTheme: TextTheme(
         bodyLarge: TextStyle(
           color: isDark ? Colors.white : Colors.black87,
-          fontSize: 14,
-          height: 1.4,
+          fontSize: 13,
+          height: 1.3,
         ),
         bodyMedium: TextStyle(
           color: isDark ? Colors.white70 : Colors.black54,
-          fontSize: 13,
-          height: 1.4,
+          fontSize: 12,
+          height: 1.3,
         ),
         titleMedium: TextStyle(
           color: isDark ? Colors.white : Colors.black87,
           fontWeight: FontWeight.w600,
-          fontSize: 15,
+          fontSize: 14,
         ),
         titleLarge: TextStyle(
           color: isDark ? Colors.white : Colors.black87,
           fontWeight: FontWeight.w600,
-          fontSize: 20,
+          fontSize: 18,
         ),
       ),
 
@@ -136,7 +136,7 @@ class AppTheme {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
-          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           textStyle: const TextStyle(fontWeight: FontWeight.w600),
         ),
       ),

@@ -5,6 +5,7 @@ import '../../domain/models/project.dart';
 import '../../domain/models/tool.dart';
 import '../../core/theme/theme_provider.dart';
 import '../../core/utils/string_utils.dart';
+import '../../core/utils/compact_layout.dart';
 import 'listing_item_container.dart';
 import 'tool_icon.dart';
 
@@ -58,7 +59,10 @@ class ProjectItem extends StatelessWidget {
     final borderRadius = BorderRadius.circular(14);
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 8),
+      margin: CompactLayout.only(
+        context,
+        bottom: 6,
+      ),
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onSecondaryTapDown: isDisabled
@@ -76,24 +80,28 @@ class ProjectItem extends StatelessWidget {
               isDisabled: isDisabled,
               isHovering: isHovering && !interactionActive,
               borderRadius: borderRadius,
+              padding: EdgeInsets.symmetric(
+                horizontal: CompactLayout.value(context, 8),
+                vertical: CompactLayout.value(context, 6),
+              ),
               child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   _buildAvatar(context, isDisabled),
-                  const SizedBox(width: 14),
+                  SizedBox(width: CompactLayout.value(context, 10)),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         _buildInfoHeader(context, isDisabled),
-                        const SizedBox(height: 6),
+                        SizedBox(height: CompactLayout.value(context, 4)),
                         _buildMetaRow(context, isDisabled),
-                        const SizedBox(height: 6),
+                        SizedBox(height: CompactLayout.value(context, 4)),
                         _buildPathRow(context, isDisabled),
                       ],
                     ),
                   ),
-                  const SizedBox(width: 8),
+                  SizedBox(width: CompactLayout.value(context, 6)),
                   _buildStarButton(context, isHighlighted),
                   _buildActions(context, isDisabled),
                 ],
@@ -109,9 +117,11 @@ class ProjectItem extends StatelessWidget {
     final accentColor = ThemeProvider.instance.accentColor;
     final textColor = Theme.of(context).textTheme.bodyLarge!.color!;
 
+    final avatarSize = CompactLayout.value(context, 38);
+
     return Container(
-      width: 44,
-      height: 44,
+      width: avatarSize,
+      height: avatarSize,
       decoration: BoxDecoration(
         gradient: isDisabled
             ? LinearGradient(
@@ -122,7 +132,7 @@ class ProjectItem extends StatelessWidget {
                 end: Alignment.bottomRight,
                 colors: [_lighten(accentColor, 0.2), accentColor],
               ),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(CompactLayout.value(context, 10)),
         boxShadow: [
           if (!isDisabled)
             BoxShadow(
@@ -138,7 +148,7 @@ class ProjectItem extends StatelessWidget {
           style: TextStyle(
             color: textColor,
             fontWeight: FontWeight.bold,
-            fontSize: 15,
+            fontSize: CompactLayout.value(context, 13),
           ),
         ),
       ),
@@ -160,11 +170,11 @@ class ProjectItem extends StatelessWidget {
             style: TextStyle(
               color: isDisabled ? mutedText : textPrimary,
               fontWeight: FontWeight.w700,
-              fontSize: 14,
+              fontSize: CompactLayout.value(context, 13),
             ),
           ),
         ),
-        if (isDisabled) _buildNotFoundBadge(),
+        if (isDisabled) _buildNotFoundBadge(context),
       ],
     );
   }
@@ -203,13 +213,13 @@ class ProjectItem extends StatelessWidget {
     return Row(
       children: [
         _buildPathAppIcon(mutedText),
-        const SizedBox(width: 6),
+        SizedBox(width: CompactLayout.value(context, 4)),
         Expanded(
           child: Text(
             StringUtils.ellipsisStart(displayPath, maxLength: 55),
             style: TextStyle(
               color: isDisabled ? mutedText.withOpacity(0.6) : mutedText,
-              fontSize: 12,
+              fontSize: CompactLayout.value(context, 11),
             ),
             overflow: TextOverflow.ellipsis,
           ),
@@ -218,18 +228,21 @@ class ProjectItem extends StatelessWidget {
     );
   }
 
-  Widget _buildNotFoundBadge() {
+  Widget _buildNotFoundBadge(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      padding: EdgeInsets.symmetric(
+        horizontal: CompactLayout.value(context, 6),
+        vertical: CompactLayout.value(context, 2),
+      ),
       decoration: BoxDecoration(
         color: Colors.red.withOpacity(0.2),
-        borderRadius: BorderRadius.circular(4),
+        borderRadius: BorderRadius.circular(CompactLayout.value(context, 4)),
       ),
-      child: const Text(
+      child: Text(
         'Not Found',
         style: TextStyle(
           color: Colors.red,
-          fontSize: 10,
+          fontSize: CompactLayout.value(context, 10),
           fontWeight: FontWeight.w600,
         ),
       ),
@@ -279,7 +292,7 @@ class ProjectItem extends StatelessWidget {
         color: project.isStarred
             ? Colors.amber
             : Theme.of(context).iconTheme.color,
-        size: 18,
+        size: CompactLayout.value(context, 16),
       ),
       onPressed: onStarToggle,
     );
@@ -392,21 +405,25 @@ class _ProjectActionsMenuState extends State<_ProjectActionsMenu> {
             action.onSelected();
           },
           elevation: 12,
-          offset: const Offset(-6, 10),
+          offset: Offset(
+            -CompactLayout.value(context, 6),
+            CompactLayout.value(context, 10),
+          ),
           shape: menuBuilder.menuShape(context),
           color: menuBuilder.menuColor(Theme.of(context)),
           itemBuilder: (context) => menuBuilder.buildMenuEntries(context),
           child: Container(
-            padding: const EdgeInsets.all(6),
+            padding: EdgeInsets.all(CompactLayout.value(context, 4)),
             decoration: BoxDecoration(
               color: (_isHovered || _isMenuOpen)
                   ? accentColor.withOpacity(0.12)
                   : Colors.transparent,
-              borderRadius: BorderRadius.circular(10),
+              borderRadius:
+                  BorderRadius.circular(CompactLayout.value(context, 10)),
             ),
             child: Icon(
               Icons.more_horiz,
-              size: 18,
+              size: CompactLayout.value(context, 16),
               color: (_isHovered || _isMenuOpen) ? accentColor : iconColor,
             ),
           ),
@@ -431,15 +448,15 @@ class _ProjectMenuBuilder {
   final void Function(OpenWithApp app) onOpenWith;
   final VoidCallback onDelete;
 
-  static const double _actionTileExtent = 52.0;
-  static const double _menuWidth = 260.0;
+  static const double _baseActionTileExtent = 52.0;
+  static const double _baseMenuWidth = 260.0;
 
   List<PopupMenuEntry<_MenuAction>> buildMenuEntries(BuildContext context) {
-    final toolActions = _toolActions();
+    final toolActions = _toolActions(context);
 
     return <PopupMenuEntry<_MenuAction>>[
       ..._buildOpenWithSection(context, toolActions),
-      const PopupMenuDivider(height: 8),
+      PopupMenuDivider(height: CompactLayout.value(context, 6)),
       _buildActionItem(
         _MenuAction(
           label: 'Reveal in Finder',
@@ -456,7 +473,7 @@ class _ProjectMenuBuilder {
           semanticsLabel: 'Open project in terminal',
         ),
       ),
-      const PopupMenuDivider(height: 8),
+      PopupMenuDivider(height: CompactLayout.value(context, 6)),
       _buildActionItem(
         _MenuAction(
           label: 'Hide project',
@@ -484,8 +501,13 @@ class _ProjectMenuBuilder {
 
     return PopupMenuItem<_MenuAction>(
       enabled: false,
-      height: 32,
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+      height: CompactLayout.value(context, 30),
+      padding: EdgeInsets.fromLTRB(
+        CompactLayout.value(context, 12),
+        CompactLayout.value(context, 6),
+        CompactLayout.value(context, 12),
+        CompactLayout.value(context, 4),
+      ),
       child: Text(label.toUpperCase(), style: headerStyle),
     );
   }
@@ -521,7 +543,8 @@ class _ProjectMenuBuilder {
       ];
     }
 
-    final sectionHeight = _openWithSectionHeight(context, toolActions.length);
+    final sectionHeight =
+        _openWithSectionHeight(context, toolActions.length);
 
     return [
       _buildHeader(context, 'Open with'),
@@ -531,11 +554,11 @@ class _ProjectMenuBuilder {
         height: sectionHeight,
         child: ConstrainedBox(
           constraints: BoxConstraints.tightFor(
-            width: _menuWidth,
+            width: _menuWidth(context),
             height: sectionHeight,
           ),
           child: Scrollbar(
-            radius: const Radius.circular(6),
+            radius: Radius.circular(CompactLayout.value(context, 5)),
             thickness: 4,
             child: ListView.builder(
               padding: EdgeInsets.zero,
@@ -556,7 +579,7 @@ class _ProjectMenuBuilder {
     ];
   }
 
-  List<_MenuAction> _toolActions() {
+  List<_MenuAction> _toolActions(BuildContext context) {
     return installedTools
         .map((tool) {
           final appTarget = _mapToOpenWithApp(tool.id);
@@ -565,7 +588,11 @@ class _ProjectMenuBuilder {
           return _MenuAction(
             label: '${tool.name}',
             icon: Icons.launch,
-            leading: ToolIcon(tool: tool, size: 18, borderRadius: 4),
+            leading: ToolIcon(
+              tool: tool,
+              size: CompactLayout.value(context, 18),
+              borderRadius: CompactLayout.value(context, 4),
+            ),
             onSelected: () => onOpenWith(appTarget),
             semanticsLabel: 'Open project with ${tool.name}',
           );
@@ -574,12 +601,19 @@ class _ProjectMenuBuilder {
         .toList(growable: false);
   }
 
-  double _openWithSectionHeight(BuildContext context, int toolCount) {
-    if (toolCount <= 0) return _actionTileExtent;
+  double _actionTileExtent(BuildContext context) =>
+      CompactLayout.value(context, _baseActionTileExtent);
 
-    final baseHeight = toolCount * _actionTileExtent;
+  double _menuWidth(BuildContext context) =>
+      CompactLayout.value(context, _baseMenuWidth);
+
+  double _openWithSectionHeight(BuildContext context, int toolCount) {
+    final actionExtent = _actionTileExtent(context);
+    if (toolCount <= 0) return actionExtent;
+
+    final baseHeight = toolCount * actionExtent;
     final maxHeight = math.max(
-      _actionTileExtent * 5,
+      actionExtent * 5,
       MediaQuery.of(context).size.height * 0.45,
     );
     return math.min(baseHeight, maxHeight);
@@ -701,37 +735,49 @@ class _MenuActionTileState extends State<_MenuActionTile> {
           splashColor: Colors.transparent,
           highlightColor: Colors.transparent,
           hoverColor: Colors.transparent,
-          child: Container(
-            margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-            decoration: BoxDecoration(
-              color: widget.action.enabled && _hovered
-                  ? accent.withOpacity(0.08)
-                  : Colors.transparent,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Row(
-              children: [
-                if (widget.action.leading != null) ...[
-                  widget.action.leading!,
-                ] else ...[
-                  Icon(widget.action.icon, size: 18, color: textColor),
-                ],
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    widget.action.label,
-                    style: TextStyle(
+            child: Container(
+              margin: EdgeInsets.symmetric(
+                horizontal: CompactLayout.value(context, 8),
+                vertical: CompactLayout.value(context, 4),
+              ),
+              padding: EdgeInsets.symmetric(
+                horizontal: CompactLayout.value(context, 10),
+                vertical: CompactLayout.value(context, 8),
+              ),
+              decoration: BoxDecoration(
+                color: widget.action.enabled && _hovered
+                    ? accent.withOpacity(0.08)
+                    : Colors.transparent,
+                borderRadius: BorderRadius.circular(
+                  CompactLayout.value(context, 10),
+                ),
+              ),
+              child: Row(
+                children: [
+                  if (widget.action.leading != null) ...[
+                    widget.action.leading!,
+                  ] else ...[
+                    Icon(
+                      widget.action.icon,
+                      size: CompactLayout.value(context, 16),
                       color: textColor,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 13,
+                    ),
+                  ],
+                  SizedBox(width: CompactLayout.value(context, 10)),
+                  Expanded(
+                    child: Text(
+                      widget.action.label,
+                      style: TextStyle(
+                        color: textColor,
+                        fontWeight: FontWeight.w600,
+                        fontSize: CompactLayout.value(context, 12),
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
-        ),
       ),
     );
   }

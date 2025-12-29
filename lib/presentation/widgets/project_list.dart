@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../core/utils/compact_layout.dart';
 import '../../domain/models/project.dart';
 import '../../domain/models/tool.dart';
 import 'project_item.dart';
@@ -231,11 +232,13 @@ class _ProjectListState extends State<ProjectList> {
     final favorites = sections.favorites;
     final others = sections.others;
 
+    final headerPadding = CompactLayout.only(context, top: 4, bottom: 6);
+
     return Focus(
       focusNode: widget.focusNode,
       onKeyEvent: _handleKeyEvent,
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(0, 0, 0, 16),
+        padding: CompactLayout.only(context, bottom: 12),
         child: ScrollConfiguration(
           behavior: const _NoScrollbarBehavior(),
           child: Scrollbar(
@@ -243,13 +246,16 @@ class _ProjectListState extends State<ProjectList> {
             radius: const Radius.circular(6),
             thickness: 5,
             child: Padding(
-              padding: const EdgeInsets.only(left: 10, right: 10),
+              padding: CompactLayout.symmetric(context, horizontal: 8),
               child: CustomScrollView(
                 controller: _scrollController,
                 slivers: [
                   if (favorites.isNotEmpty) ...[
                     SliverToBoxAdapter(
-                      child: _buildSectionHeader(context, 'Favorites'),
+                      child: Padding(
+                        padding: headerPadding,
+                        child: _buildSectionHeader(context, 'Favorites'),
+                      ),
                     ),
                     SliverList(
                       delegate: SliverChildBuilderDelegate(
@@ -259,12 +265,19 @@ class _ProjectListState extends State<ProjectList> {
                       ),
                     ),
                     if (others.isNotEmpty)
-                      const SliverToBoxAdapter(child: SizedBox(height: 12)),
+                      SliverToBoxAdapter(
+                        child: SizedBox(
+                          height: CompactLayout.value(context, 10),
+                        ),
+                      ),
                   ],
                   if (others.isNotEmpty) ...[
                     if (favorites.isNotEmpty)
                       SliverToBoxAdapter(
-                        child: _buildSectionHeader(context, 'Projects'),
+                        child: Padding(
+                          padding: headerPadding,
+                          child: _buildSectionHeader(context, 'Projects'),
+                        ),
                       ),
                     SliverList(
                       delegate: SliverChildBuilderDelegate(

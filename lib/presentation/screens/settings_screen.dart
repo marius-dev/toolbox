@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/theme_provider.dart';
+import '../../core/utils/compact_layout.dart';
 import '../widgets/color_picker_dialog.dart';
 import '../widgets/hotkey_picker.dart';
 import '../widgets/settings_tile.dart';
@@ -21,14 +22,16 @@ class SettingsScreen extends StatelessWidget {
         _buildHeader(context),
         Expanded(
           child: ListView(
-            padding: const EdgeInsets.all(20),
+            padding: EdgeInsets.all(CompactLayout.value(context, 16)),
             children: [
               const HotkeyPicker(),
-              const SizedBox(height: 12),
+              SizedBox(height: CompactLayout.value(context, 10)),
               _buildToolsRescanTile(context),
-              const SizedBox(height: 12),
+              SizedBox(height: CompactLayout.value(context, 10)),
               _buildThemeToggle(context),
-              const SizedBox(height: 12),
+              SizedBox(height: CompactLayout.value(context, 10)),
+              _buildScaleTile(context),
+              SizedBox(height: CompactLayout.value(context, 10)),
               _buildAccentColorPicker(context),
             ],
           ),
@@ -39,20 +42,21 @@ class SettingsScreen extends StatelessWidget {
 
   Widget _buildHeader(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(CompactLayout.value(context, 16)),
       child: Row(
         children: [
           IconButton(
             icon: Icon(
               Icons.arrow_back,
               color: Theme.of(context).iconTheme.color,
+              size: CompactLayout.value(context, 20),
             ),
             onPressed: onBack,
           ),
           Text(
             'Settings',
             style: Theme.of(context).textTheme.bodyLarge!.copyWith(
-              fontSize: 20,
+              fontSize: CompactLayout.value(context, 18),
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -72,7 +76,10 @@ class SettingsScreen extends StatelessWidget {
         onPressed: onRescan,
         style: TextButton.styleFrom(
           foregroundColor: accentColor,
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+          padding: EdgeInsets.symmetric(
+            horizontal: CompactLayout.value(context, 12),
+            vertical: CompactLayout.value(context, 6),
+          ),
         ),
         child: const Text('Rescan'),
       ),
@@ -95,9 +102,14 @@ class SettingsScreen extends StatelessWidget {
           subtitle: 'Follow system or choose light/dark surfaces',
           icon: Icons.light_mode,
           trailing: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+            padding: EdgeInsets.symmetric(
+              horizontal: CompactLayout.value(context, 6),
+              vertical: CompactLayout.value(context, 4),
+            ),
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(
+                CompactLayout.value(context, 10),
+              ),
               border: Border.all(color: borderColor),
             ),
             child: ToggleButtons(
@@ -116,16 +128,70 @@ class SettingsScreen extends StatelessWidget {
               },
               borderRadius: BorderRadius.circular(10),
               renderBorder: false,
-              constraints:
-                  const BoxConstraints(minWidth: 68, minHeight: 34),
+              constraints: BoxConstraints(
+                minWidth: CompactLayout.value(context, 64),
+                minHeight: CompactLayout.value(context, 30),
+              ),
               color: Theme.of(context).textTheme.bodyMedium!.color,
               selectedColor: accentColor,
               fillColor: accentColor.withOpacity(isDarkTheme ? 0.18 : 0.14),
-              children: const [
-                Text('System'),
-                Text('Light'),
-                Text('Dark'),
-              ],
+              children: const [Text('System'), Text('Light'), Text('Dark')],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildScaleTile(BuildContext context) {
+    return AnimatedBuilder(
+      animation: ThemeProvider.instance,
+      builder: (context, _) {
+        final themeProvider = ThemeProvider.instance;
+        final isDarkTheme = Theme.of(context).brightness == Brightness.dark;
+
+        final borderColor = isDarkTheme
+            ? Colors.white.withOpacity(0.12)
+            : Colors.black.withOpacity(0.08);
+
+        return SettingsTile(
+          title: 'App size',
+          subtitle: 'Scale the UI',
+          icon: Icons.zoom_out_map,
+          trailing: Container(
+            padding: EdgeInsets.symmetric(
+              horizontal: CompactLayout.value(context, 12),
+              vertical: CompactLayout.value(context, 6),
+            ),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(
+                CompactLayout.value(context, 10),
+              ),
+              border: Border.all(color: borderColor),
+            ),
+            child: DropdownButtonHideUnderline(
+              child: DropdownButton<double>(
+                value: themeProvider.scaleFactor,
+                iconEnabledColor: themeProvider.accentColor,
+                dropdownColor: isDarkTheme ? Colors.grey[850] : Colors.white,
+                items: ThemeProvider.scaleOptions.map((scale) {
+                  final label = '${(scale * 100).round()}%';
+                  return DropdownMenuItem<double>(
+                    value: scale,
+                    child: Text(
+                      label,
+                      style: TextStyle(
+                        fontSize: CompactLayout.value(context, 12),
+                      ),
+                    ),
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  if (value != null) {
+                    themeProvider.setScaleFactor(value);
+                  }
+                },
+              ),
             ),
           ),
         );
@@ -159,13 +225,13 @@ class SettingsScreen extends StatelessWidget {
 
     return InkWell(
       onTap: () => _showColorPicker(context),
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(CompactLayout.value(context, 10)),
       child: Container(
-        width: 36,
-        height: 36,
+        width: CompactLayout.value(context, 34),
+        height: CompactLayout.value(context, 34),
         decoration: BoxDecoration(
           color: currentColor,
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(CompactLayout.value(context, 10)),
           border: Border.all(color: borderColor),
         ),
       ),

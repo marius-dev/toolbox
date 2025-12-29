@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+
 import '../../domain/models/project.dart';
 import '../../core/theme/theme_provider.dart';
+import '../../core/utils/compact_layout.dart';
 
 class SearchSortBar extends StatelessWidget {
   final TextEditingController controller;
@@ -26,13 +28,37 @@ class SearchSortBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 8),
-      child: Row(
-        children: [
-          Expanded(child: _buildSearchField(context)),
-          const SizedBox(width: 10),
-          _buildSortPicker(context),
-        ],
+      padding: CompactLayout.only(
+        context,
+        left: 18,
+        top: 10,
+        right: 18,
+        bottom: 6,
+      ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final isStacked = constraints.maxWidth < 420;
+          if (isStacked) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _buildSearchField(context),
+                SizedBox(height: CompactLayout.value(context, 6)),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: _buildSortPicker(context),
+                ),
+              ],
+            );
+          }
+          return Row(
+            children: [
+              Expanded(child: _buildSearchField(context)),
+              SizedBox(width: CompactLayout.value(context, 6)),
+              _buildSortPicker(context),
+            ],
+          );
+        },
       ),
     );
   }
@@ -74,23 +100,23 @@ class SearchSortBar extends StatelessWidget {
               hintText: 'Search by name or path',
               prefixIcon: Icon(
                 Icons.search,
-                size: 18,
+                size: CompactLayout.value(context, 16),
                 color: Theme.of(context).iconTheme.color,
               ),
-              prefixIconConstraints: const BoxConstraints(
-                minWidth: 40,
-                minHeight: 40,
+              prefixIconConstraints: BoxConstraints(
+                minWidth: CompactLayout.value(context, 36),
+                minHeight: CompactLayout.value(context, 36),
               ),
               suffixIcon: value.text.isNotEmpty
                   ? IconButton(
                       padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(
-                        minHeight: 36,
-                        minWidth: 36,
+                      constraints: BoxConstraints(
+                        minHeight: CompactLayout.value(context, 32),
+                        minWidth: CompactLayout.value(context, 32),
                       ),
                       icon: Icon(
                         Icons.close,
-                        size: 16,
+                        size: CompactLayout.value(context, 14),
                         color: Theme.of(context).iconTheme.color,
                       ),
                       onPressed: () {
@@ -99,17 +125,19 @@ class SearchSortBar extends StatelessWidget {
                       },
                     )
                   : null,
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 12,
-                vertical: 10,
+              contentPadding: EdgeInsets.symmetric(
+                horizontal: CompactLayout.value(context, 10),
+                vertical: CompactLayout.value(context, 6),
               ),
               enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius:
+                    BorderRadius.circular(CompactLayout.value(context, 10)),
                 borderSide: BorderSide(color: borderColor),
               ),
               focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: accentColor, width: 1.5),
+                borderRadius:
+                    BorderRadius.circular(CompactLayout.value(context, 10)),
+                borderSide: BorderSide(color: accentColor, width: 1.2),
               ),
             ),
           ),
@@ -132,15 +160,17 @@ class SearchSortBar extends StatelessWidget {
       decoration: BoxDecoration(
         color: panelColor,
         border: Border.all(color: borderColor),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(CompactLayout.value(context, 10)),
       ),
-      constraints: const BoxConstraints(minHeight: 44),
+      constraints:
+          BoxConstraints(minHeight: CompactLayout.value(context, 40)),
       child: PopupMenuButton<SortOption>(
         initialValue: currentSort,
         padding: EdgeInsets.zero,
         color: bgColor,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius:
+              BorderRadius.circular(CompactLayout.value(context, 10)),
           side: BorderSide(color: borderColor),
         ),
         onSelected: onSortChanged,
@@ -148,25 +178,30 @@ class SearchSortBar extends StatelessWidget {
             .map((option) => _buildSortMenuItem(context, option))
             .toList(),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          padding: EdgeInsets.symmetric(
+            horizontal: CompactLayout.value(context, 10),
+            vertical: CompactLayout.value(context, 6),
+          ),
           child: Row(
             children: [
               Icon(
                 Icons.sort_rounded,
-                size: 16,
+                size: CompactLayout.value(context, 14),
                 color: Theme.of(context).iconTheme.color,
               ),
-              const SizedBox(width: 8),
+              SizedBox(width: CompactLayout.value(context, 6)),
               Text(
                 currentSort.displayName,
                 style: Theme.of(
                   context,
-                ).textTheme.titleMedium!.copyWith(fontSize: 12),
+                ).textTheme.titleMedium!.copyWith(
+                    fontSize: CompactLayout.value(context, 12),
+                  ),
               ),
-              const SizedBox(width: 6),
+              SizedBox(width: CompactLayout.value(context, 4)),
               Icon(
                 Icons.keyboard_arrow_down,
-                size: 16,
+                size: CompactLayout.value(context, 14),
                 color: Theme.of(context).iconTheme.color,
               ),
             ],
@@ -185,14 +220,25 @@ class SearchSortBar extends StatelessWidget {
 
     return PopupMenuItem(
       value: option,
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: EdgeInsets.symmetric(
+        horizontal: CompactLayout.value(context, 10),
+        vertical: CompactLayout.value(context, 5),
+      ),
       child: Row(
         children: [
           if (isSelected)
-            Icon(Icons.check, size: 16, color: accentColor)
+            Icon(
+              Icons.check,
+              size: CompactLayout.value(context, 14),
+              color: accentColor,
+            )
           else
-            const Icon(Icons.check, size: 16, color: Colors.transparent),
-          const SizedBox(width: 8),
+            Icon(
+              Icons.check,
+              size: CompactLayout.value(context, 14),
+              color: Colors.transparent,
+            ),
+          SizedBox(width: CompactLayout.value(context, 6)),
           Text(
             option.displayName,
             style: Theme.of(context).textTheme.bodyMedium!.copyWith(

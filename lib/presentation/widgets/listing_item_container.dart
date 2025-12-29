@@ -14,7 +14,7 @@ class ListingItemContainer extends StatelessWidget {
   ListingItemContainer({
     super.key,
     required this.child,
-    this.padding = const EdgeInsets.all(10),
+    this.padding = const EdgeInsets.all(8),
     this.margin,
     BorderRadiusGeometry? borderRadius,
     this.isActive = false,

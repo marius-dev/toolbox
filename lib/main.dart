@@ -31,20 +31,44 @@ class ProjectLauncherApp extends StatefulWidget {
 }
 
 class _ProjectLauncherAppState extends State<ProjectLauncherApp> {
+  double _appliedScale = ThemeProvider.instance.effectiveScaleFactor;
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
       animation: ThemeProvider.instance,
       builder: (context, _) {
+        final scale = ThemeProvider.instance.effectiveScaleFactor;
+        if (_appliedScale != scale) {
+          _appliedScale = scale;
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            WindowService.instance.resizeForScale(scale);
+          });
+        }
         return MaterialApp(
           title: 'Project Launcher',
           debugShowCheckedModeBanner: false,
           theme: AppTheme.lightTheme,
           darkTheme: AppTheme.darkTheme,
           themeMode: ThemeProvider.instance.themeMode,
+          builder: (context, child) =>
+              _buildScaledContent(context, child, scale),
           home: const LauncherScreen(),
         );
       },
+    );
+  }
+
+  Widget _buildScaledContent(
+    BuildContext context,
+    Widget? child,
+    double scale,
+  ) {
+    final mediaQuery = MediaQuery.of(context);
+    return MediaQuery(
+      data: mediaQuery.copyWith(
+        textScaleFactor: scale,
+      ),
+      child: child ?? const SizedBox.shrink(),
     );
   }
 }

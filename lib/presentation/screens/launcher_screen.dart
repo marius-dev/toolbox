@@ -108,6 +108,7 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
         final isDark = ThemeProvider.instance.isDarkMode;
         final accentColor = ThemeProvider.instance.accentColor;
         return Container(
+          constraints: const BoxConstraints.expand(),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(26),
             gradient: LinearGradient(
@@ -146,9 +147,11 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(26),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 40, sigmaY: 40),
-              child: _buildContent(),
+            child: SizedBox.expand(
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 40, sigmaY: 40),
+                child: _buildContent(),
+              ),
             ),
           ),
         );
@@ -180,6 +183,7 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
         : Colors.black.withOpacity(0.06);
 
     return Container(
+      constraints: const BoxConstraints.expand(),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
@@ -190,6 +194,7 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
         borderRadius: BorderRadius.circular(26),
       ),
       child: Stack(
+        fit: StackFit.expand,
         children: [
           Positioned(
             top: -120,

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+
 import '../../core/theme/theme_provider.dart';
+import '../../core/utils/compact_layout.dart';
 
 class SettingsTile extends StatelessWidget {
   final String title;
@@ -27,20 +29,25 @@ class SettingsTile extends StatelessWidget {
     final accentColor = ThemeProvider.instance.accentColor;
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
+      margin: CompactLayout.only(
+        context,
+        bottom: 10,
+      ),
+      padding: EdgeInsets.all(CompactLayout.value(context, 12)),
       decoration: BoxDecoration(
         color: panelColor,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius:
+            BorderRadius.circular(CompactLayout.value(context, 10)),
         border: Border.all(color: borderColor, width: 1),
       ),
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(8),
+            padding: EdgeInsets.all(CompactLayout.value(context, 6)),
             decoration: BoxDecoration(
               color: accentColor.withOpacity(0.12),
-              borderRadius: BorderRadius.circular(8),
+              borderRadius:
+                  BorderRadius.circular(CompactLayout.value(context, 8)),
             ),
             child: Icon(
               icon,
@@ -48,18 +55,18 @@ class SettingsTile extends StatelessWidget {
               size: 20,
             ),
           ),
-          const SizedBox(width: 16),
+          SizedBox(width: CompactLayout.value(context, 12)),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(title, style: Theme.of(context).textTheme.titleMedium),
-                const SizedBox(height: 2),
+                SizedBox(height: CompactLayout.value(context, 2)),
                 Text(subtitle, style: Theme.of(context).textTheme.bodyMedium),
               ],
             ),
           ),
-          const SizedBox(width: 12),
+          SizedBox(width: CompactLayout.value(context, 10)),
           trailing,
         ],
       ),

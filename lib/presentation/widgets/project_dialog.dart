@@ -4,6 +4,7 @@ import 'package:file_picker/file_picker.dart';
 import '../../core/services/tool_discovery_service.dart';
 import '../../core/services/window_service.dart';
 import '../../core/theme/theme_provider.dart';
+import '../../core/utils/compact_layout.dart';
 import '../../domain/models/project.dart';
 import '../../domain/models/tool.dart';
 import 'tool_icon.dart';
@@ -142,14 +143,32 @@ class _ProjectDialogState extends State<ProjectDialog> {
     return AlertDialog(
       backgroundColor: background,
       elevation: 0,
-      insetPadding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
+      insetPadding: EdgeInsets.symmetric(
+        horizontal: CompactLayout.value(context, 28),
+        vertical: CompactLayout.value(context, 18),
+      ),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(26),
+        borderRadius: BorderRadius.circular(CompactLayout.value(context, 22)),
         side: BorderSide(color: borderColor),
       ),
-      titlePadding: const EdgeInsets.fromLTRB(28, 24, 28, 0),
-      contentPadding: const EdgeInsets.fromLTRB(28, 16, 28, 8),
-      actionsPadding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+      titlePadding: EdgeInsets.fromLTRB(
+        CompactLayout.value(context, 24),
+        CompactLayout.value(context, 18),
+        CompactLayout.value(context, 24),
+        0,
+      ),
+      contentPadding: EdgeInsets.fromLTRB(
+        CompactLayout.value(context, 24),
+        CompactLayout.value(context, 14),
+        CompactLayout.value(context, 24),
+        CompactLayout.value(context, 10),
+      ),
+      actionsPadding: EdgeInsets.fromLTRB(
+        CompactLayout.value(context, 18),
+        0,
+        CompactLayout.value(context, 18),
+        CompactLayout.value(context, 12),
+      ),
       title: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -157,7 +176,7 @@ class _ProjectDialogState extends State<ProjectDialog> {
             isEditing ? 'Edit Project' : 'Add Project',
             style: theme.textTheme.titleLarge,
           ),
-          const SizedBox(height: 4),
+          SizedBox(height: CompactLayout.value(context, 4)),
           Text(
             isEditing
                 ? 'Adjust the metadata for this workspace'
@@ -169,7 +188,9 @@ class _ProjectDialogState extends State<ProjectDialog> {
         ],
       ),
       content: ConstrainedBox(
-        constraints: const BoxConstraints(minWidth: 420),
+        constraints: BoxConstraints(
+          minWidth: CompactLayout.value(context, 380),
+        ),
         child: isEditing
             ? Column(
                 mainAxisSize: MainAxisSize.min,
@@ -179,9 +200,9 @@ class _ProjectDialogState extends State<ProjectDialog> {
                     label: 'Name',
                     icon: Icons.edit,
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: CompactLayout.value(context, 12)),
                   _buildPathField(),
-                  const SizedBox(height: 16),
+                  SizedBox(height: CompactLayout.value(context, 12)),
                   _buildTypeDropdown(),
                 ],
               )
@@ -208,7 +229,10 @@ class _ProjectDialogState extends State<ProjectDialog> {
         onPressed: _save,
         style: ElevatedButton.styleFrom(
           backgroundColor: accentColor,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          shape: RoundedRectangleBorder(
+            borderRadius:
+                BorderRadius.circular(CompactLayout.value(context, 8)),
+          ),
         ),
         child: const Text(
           'Save',
@@ -220,7 +244,7 @@ class _ProjectDialogState extends State<ProjectDialog> {
 
   Widget _buildWizardContent(BuildContext context) {
     return SizedBox(
-      width: 460,
+      width: CompactLayout.value(context, 430),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -269,7 +293,7 @@ class _ProjectDialogState extends State<ProjectDialog> {
     final content = () {
       if (_isLoadingTools) {
         return SizedBox(
-          height: 120,
+          height: CompactLayout.value(context, 110),
           child: Center(
             child: CircularProgressIndicator(
               color: ThemeProvider.instance.accentColor,
@@ -288,7 +312,7 @@ class _ProjectDialogState extends State<ProjectDialog> {
       }
 
       return SizedBox(
-        height: 220,
+        height: CompactLayout.value(context, 200),
         child: ListView.builder(
           itemCount: _installedTools.length,
           itemBuilder: (context, index) {
@@ -300,27 +324,37 @@ class _ProjectDialogState extends State<ProjectDialog> {
                 : baseBorderColor;
 
             return Container(
-              margin: const EdgeInsets.only(bottom: 8),
+              margin: CompactLayout.only(
+                context,
+                bottom: 6,
+              ),
               child: Material(
                 color: Colors.transparent,
                 child: InkWell(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(
+                    CompactLayout.value(context, 12),
+                  ),
                   onTap: () {
                     setState(() {
                       _selectedToolId = tool.id;
                     });
                   },
                   child: Container(
-                    padding: const EdgeInsets.all(12),
+                    padding: EdgeInsets.all(CompactLayout.value(context, 10)),
                     decoration: BoxDecoration(
                       color: panelColor,
-                      borderRadius: BorderRadius.circular(14),
+                      borderRadius: BorderRadius.circular(
+                          CompactLayout.value(context, 12)),
                       border: Border.all(color: borderColor, width: 1),
                     ),
                     child: Row(
                       children: [
-                        ToolIcon(tool: tool, size: 30, borderRadius: 8),
-                        const SizedBox(width: 12),
+                        ToolIcon(
+                          tool: tool,
+                          size: CompactLayout.value(context, 28),
+                          borderRadius: CompactLayout.value(context, 6),
+                        ),
+                        SizedBox(width: CompactLayout.value(context, 10)),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -329,9 +363,10 @@ class _ProjectDialogState extends State<ProjectDialog> {
                                 tool.name,
                                 style: theme.textTheme.bodyMedium!.copyWith(
                                   fontWeight: FontWeight.w600,
+                                  fontSize: CompactLayout.value(context, 13),
                                 ),
                               ),
-                              const SizedBox(height: 4),
+                              SizedBox(height: CompactLayout.value(context, 4)),
                               Text(
                                 tool.description,
                                 maxLines: 2,
@@ -343,7 +378,7 @@ class _ProjectDialogState extends State<ProjectDialog> {
                             ],
                           ),
                         ),
-                        const SizedBox(width: 12),
+                        SizedBox(width: CompactLayout.value(context, 10)),
                         Radio<ToolId>(
                           value: tool.id,
                           groupValue: _selectedToolId,
@@ -386,10 +421,12 @@ class _ProjectDialogState extends State<ProjectDialog> {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(18),
+      padding: EdgeInsets.all(CompactLayout.value(context, 14)),
       decoration: BoxDecoration(
         color: background,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(
+          CompactLayout.value(context, 16),
+        ),
         border: Border.all(color: borderColor),
       ),
       child: Column(
@@ -401,14 +438,14 @@ class _ProjectDialogState extends State<ProjectDialog> {
               fontWeight: FontWeight.w700,
             ),
           ),
-          const SizedBox(height: 4),
+          SizedBox(height: CompactLayout.value(context, 4)),
           Text(
             description,
             style: theme.textTheme.bodySmall!.copyWith(
               color: theme.textTheme.bodySmall!.color!.withOpacity(0.75),
             ),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: CompactLayout.value(context, 12)),
           child,
         ],
       ),
@@ -455,7 +492,10 @@ class _ProjectDialogState extends State<ProjectDialog> {
           foregroundColor: Colors.white,
           disabledBackgroundColor: accentColor.withOpacity(0.3),
           disabledForegroundColor: Colors.white.withOpacity(0.7),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          shape: RoundedRectangleBorder(
+            borderRadius:
+                BorderRadius.circular(CompactLayout.value(context, 8)),
+          ),
         ),
         child: Text(
           isLastStep ? 'Save' : 'Next',
@@ -489,8 +529,9 @@ class _ProjectDialogState extends State<ProjectDialog> {
         icon: Icon(
           Icons.folder_outlined,
           color: Theme.of(context).iconTheme.color,
+          size: CompactLayout.value(context, 18),
         ),
-        splashRadius: 18,
+        splashRadius: CompactLayout.value(context, 16),
         onPressed: _pickProjectFolder,
         tooltip: 'Pick folder',
       ),
@@ -521,7 +562,8 @@ class _ProjectDialogState extends State<ProjectDialog> {
         filled: true,
         fillColor: panelColor,
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
+          borderRadius:
+              BorderRadius.circular(CompactLayout.value(context, 10)),
           borderSide: BorderSide(color: borderColor),
         ),
       ),
@@ -560,15 +602,18 @@ class _ProjectDialogState extends State<ProjectDialog> {
         filled: true,
         fillColor: panelColor,
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
+          borderRadius:
+              BorderRadius.circular(CompactLayout.value(context, 10)),
           borderSide: BorderSide(color: borderColor),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
+          borderRadius:
+              BorderRadius.circular(CompactLayout.value(context, 10)),
           borderSide: BorderSide(color: borderColor),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
+          borderRadius:
+              BorderRadius.circular(CompactLayout.value(context, 10)),
           borderSide: BorderSide(color: accentColor, width: 1.5),
         ),
       ),

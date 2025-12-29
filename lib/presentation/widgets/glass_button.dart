@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/theme/theme_provider.dart';
+import '../../core/utils/compact_layout.dart';
 
 class GlassButton extends StatelessWidget {
   final IconData icon;
@@ -33,16 +34,18 @@ class GlassButton extends StatelessWidget {
         ? Colors.white.withOpacity(0.9)
         : Colors.black.withOpacity(0.65);
 
+    final resolvedSize = CompactLayout.value(context, size);
     final button = Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: onPressed,
         borderRadius: BorderRadius.circular(8),
         child: Container(
-          width: size,
-          height: size,
+          width: resolvedSize,
+          height: resolvedSize,
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(10),
+            borderRadius:
+                BorderRadius.circular(CompactLayout.value(context, 10)),
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
@@ -58,7 +61,11 @@ class GlassButton extends StatelessWidget {
                 ),
             ],
           ),
-          child: Icon(icon, color: iconColor, size: 16),
+          child: Icon(
+            icon,
+            color: iconColor,
+            size: CompactLayout.value(context, 14),
+          ),
         ),
       ),
     );

@@ -1,5 +1,8 @@
 import Cocoa
 import FlutterMacOS
+import QuartzCore
+
+private let kWindowCornerRadius: CGFloat = 26.0
 
 class MainFlutterWindow: NSWindow {
   override func awakeFromNib() {
@@ -20,6 +23,20 @@ class MainFlutterWindow: NSWindow {
     self.titlebarAppearsTransparent = true
     self.titleVisibility = .hidden
     self.styleMask.insert(.fullSizeContentView)
+    
+    // Match the window corner radius with the Flutter UI mask so no background is exposed.
+    if let contentView = self.contentView {
+      contentView.wantsLayer = true
+      contentView.layer?.cornerRadius = kWindowCornerRadius
+      contentView.layer?.masksToBounds = true
+      contentView.layer?.cornerCurve = .continuous
+      if let superview = contentView.superview {
+        superview.wantsLayer = true
+        superview.layer?.cornerRadius = kWindowCornerRadius
+        superview.layer?.masksToBounds = true
+        superview.layer?.cornerCurve = .continuous
+      }
+    }
     
     RegisterGeneratedPlugins(registry: flutterViewController)
 

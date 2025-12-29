@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/theme_provider.dart';
+import '../../core/utils/compact_layout.dart';
 import 'glass_button.dart';
 
 class LauncherHeader extends StatelessWidget {
@@ -22,30 +23,36 @@ class LauncherHeader extends StatelessWidget {
         final muted = Theme.of(context).textTheme.bodyMedium!.color!;
 
         return Container(
-          padding: const EdgeInsets.fromLTRB(24, 22, 24, 14),
+          padding: CompactLayout.only(
+            context,
+            left: 16,
+            top: 14,
+            right: 16,
+            bottom: 10,
+          ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Row(
                 children: [
-                  _buildLogo(accentColor),
-                  const SizedBox(width: 12),
+                  _buildLogo(accentColor, context),
+                  SizedBox(width: CompactLayout.value(context, 10)),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         'Projects toolbox',
                         style: TextStyle(
-                          fontSize: 18,
+                          fontSize: CompactLayout.value(context, 17),
                           fontWeight: FontWeight.w700,
                           color: textColor,
                         ),
                       ),
-                      const SizedBox(height: 2),
+                      SizedBox(height: CompactLayout.value(context, 2)),
                       Text(
                         'Launch apps, scripts & tools from one place',
                         style: TextStyle(
-                          fontSize: 12,
+                          fontSize: CompactLayout.value(context, 11),
                           color: muted.withOpacity(0.9),
                         ),
                       ),
@@ -58,22 +65,26 @@ class LauncherHeader extends StatelessWidget {
                   GlassButton(
                     icon: Icons.add,
                     onPressed: onAddProject,
+                    size: _compactButtonSize(context),
                     tooltip: 'Add Project',
                   ),
-                  const SizedBox(width: 8),
+                  SizedBox(width: CompactLayout.value(context, 6)),
                   GlassButton(
                     icon: Icons.card_giftcard_rounded,
                     onPressed: () {},
+                    size: _compactButtonSize(context),
                   ),
-                  const SizedBox(width: 8),
+                  SizedBox(width: CompactLayout.value(context, 6)),
                   GlassButton(
                     icon: Icons.help_outline_rounded,
                     onPressed: () {},
+                    size: _compactButtonSize(context),
                   ),
-                  const SizedBox(width: 8),
+                  SizedBox(width: CompactLayout.value(context, 6)),
                   GlassButton(
                     icon: Icons.settings_rounded,
                     onPressed: onSettingsPressed,
+                    size: _compactButtonSize(context),
                   ),
                 ],
               ),
@@ -84,17 +95,18 @@ class LauncherHeader extends StatelessWidget {
     );
   }
 
-  Widget _buildLogo(Color accentColor) {
+  Widget _buildLogo(Color accentColor, BuildContext context) {
     return Container(
-      width: 40,
-      height: 40,
+      width: CompactLayout.value(context, 38),
+      height: CompactLayout.value(context, 38),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [_lighten(accentColor, 0.25), accentColor],
         ),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius:
+            BorderRadius.circular(CompactLayout.value(context, 10)),
         boxShadow: [
           BoxShadow(
             color: accentColor.withOpacity(0.45),
@@ -103,9 +115,16 @@ class LauncherHeader extends StatelessWidget {
           ),
         ],
       ),
-      child: const Icon(Icons.bolt_rounded, color: Colors.white, size: 20),
+      child: Icon(
+        Icons.bolt_rounded,
+        color: Colors.white,
+        size: CompactLayout.value(context, 16),
+      ),
     );
   }
+ 
+  double _compactButtonSize(BuildContext context) =>
+      CompactLayout.value(context, 28);
 
   Color _lighten(Color color, double amount) {
     final hsl = HSLColor.fromColor(color);

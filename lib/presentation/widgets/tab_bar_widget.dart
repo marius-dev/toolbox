@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+
 import '../../core/theme/theme_provider.dart';
+import '../../core/utils/compact_layout.dart';
 
 enum LauncherTab { tools, projects }
 
@@ -30,8 +32,12 @@ class TabBarWidget extends StatelessWidget {
         final accentColor = ThemeProvider.instance.accentColor;
 
         return Container(
-          margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
-          padding: const EdgeInsets.all(4),
+          margin: CompactLayout.symmetric(
+            context,
+            horizontal: 18,
+            vertical: 8,
+          ),
+          padding: EdgeInsets.all(CompactLayout.value(context, 3)),
           decoration: BoxDecoration(
             color: panelColor,
             borderRadius: BorderRadius.circular(16),
@@ -47,11 +53,16 @@ class TabBarWidget extends StatelessWidget {
                 curve: Curves.easeOutCubic,
                 child: FractionallySizedBox(
                   widthFactor: 0.5,
-                  child: Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 2),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                      gradient: LinearGradient(
+                child: Container(
+                  margin: CompactLayout.only(
+                    context,
+                    left: 2,
+                    right: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    borderRadius:
+                        BorderRadius.circular(CompactLayout.value(context, 10)),
+                    gradient: LinearGradient(
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                         colors: [
@@ -110,7 +121,10 @@ class TabBarWidget extends StatelessWidget {
           onTap: () => onTabSelected(tab),
           borderRadius: BorderRadius.circular(12),
           child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 10),
+            padding: CompactLayout.symmetric(
+              context,
+              vertical: 8,
+            ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -118,14 +132,15 @@ class TabBarWidget extends StatelessWidget {
                   label,
                   style: TextStyle(
                     color: isActive ? textPrimary : textSecondary,
-                    fontSize: 13,
+                    fontSize: CompactLayout.value(context, 13),
                     fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
                   ),
                 ),
                 if (badge != null)
                   Container(
-                    margin: const EdgeInsets.only(left: 6),
-                    padding: const EdgeInsets.symmetric(
+                    margin: EdgeInsets.only(left: CompactLayout.value(context, 6)),
+                    padding: CompactLayout.symmetric(
+                      context,
                       horizontal: 6,
                       vertical: 2,
                     ),

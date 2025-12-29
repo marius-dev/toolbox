@@ -5,8 +5,8 @@ class WindowService {
   static final WindowService _instance = WindowService._internal();
   static WindowService get instance => _instance;
 
-  static const Size _windowSize = Size(520, 700);
-  static const double _edgePadding = 12;
+  static const Size _baseWindowSize = Size(460, 640);
+  static const double _edgePadding = 8;
 
   WindowService._internal();
 
@@ -37,7 +37,7 @@ class WindowService {
 
   Future<void> initialize() async {
     final windowOptions = WindowOptions(
-      size: _windowSize,
+      size: _baseWindowSize,
       backgroundColor: Colors.transparent,
       skipTaskbar: true,
       titleBarStyle: TitleBarStyle.hidden,
@@ -49,9 +49,30 @@ class WindowService {
       await windowManager.setBackgroundColor(Colors.transparent);
       await windowManager.setHasShadow(false);
       await windowManager.setMovable(false);
+      await _applyWindowBounds(_baseWindowSize);
       await _positionTopRight();
       await show();
     });
+  }
+
+  Future<void> resizeForScale(double scale) async {
+    final scaledSize = _scaledWindowSize(scale);
+    await _applyWindowBounds(scaledSize);
+    await _positionTopRight();
+  }
+
+  Size _scaledWindowSize(double scale) {
+    return Size(
+      _baseWindowSize.width * scale,
+      _baseWindowSize.height * scale,
+    );
+  }
+
+  Future<void> _applyWindowBounds(Size size) async {
+    await windowManager.setResizable(false);
+    await windowManager.setSize(size);
+    await windowManager.setMinimumSize(size);
+    await windowManager.setMaximumSize(size);
   }
 
   Future<void> show() async {
