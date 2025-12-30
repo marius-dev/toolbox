@@ -32,6 +32,8 @@ class ProjectItem extends StatefulWidget {
   final String searchQuery;
   final bool showDivider;
   final bool revealFullPath;
+  final bool isOpening;
+  final int openingDots;
 
   const ProjectItem({
     super.key,
@@ -49,6 +51,8 @@ class ProjectItem extends StatefulWidget {
     this.searchQuery = '',
     this.showDivider = true,
     this.revealFullPath = false,
+    this.isOpening = false,
+    this.openingDots = 0,
   });
 
   @override
@@ -99,17 +103,16 @@ class ProjectItemState extends State<ProjectItem> {
       ThemeProvider.instance.accentColor,
       isDarkMode,
     );
-    final background = widget.isFocused
-        ? accent.withOpacity(isDarkMode ? 0.24 : 0.12)
-        : widget.isHovering
-        ? theme.dividerColor.withOpacity(isDarkMode ? 0.12 : 0.08)
-        : Colors.transparent;
-    final borderColor = widget.isFocused
-        ? accent.withOpacity(0.85)
-        : Colors.transparent;
+    final isHighlighted =
+        widget.isFocused || widget.isHovering || widget.isOpening;
+    final highlightColor =
+        theme.dividerColor.withOpacity(isDarkMode ? 0.12 : 0.08);
+    final background = isHighlighted ? highlightColor : Colors.transparent;
+    const borderColor = Colors.transparent;
 
     final row = GestureDetector(
       behavior: HitTestBehavior.opaque,
+      onTap: _handleTap,
       onSecondaryTapDown: _openContextMenu,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
@@ -123,7 +126,7 @@ class ProjectItemState extends State<ProjectItem> {
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: borderColor,
-            width: widget.isFocused ? 1.2 : 1,
+            width: 1,
           ),
         ),
         child: SizedBox(
@@ -141,12 +144,14 @@ class ProjectItemState extends State<ProjectItem> {
                   preferredTool: _resolvePreferredTool(),
                   searchQuery: widget.searchQuery,
                   revealFullPath: widget.revealFullPath,
+                  isOpening: widget.isOpening,
+                  openingDots: widget.openingDots,
                   isDisabled: isDisabled,
                   accentColor: accent,
                 ),
               ),
               SizedBox(width: CompactLayout.value(context, 12)),
-              if (widget.isHovering || widget.isFocused) ...[
+              if (isHighlighted) ...[
                 _StarButton(
                   isStarred: project.isStarred,
                   onPressed: widget.onStarToggle,
@@ -204,6 +209,11 @@ class ProjectItemState extends State<ProjectItem> {
       onOpenWith: widget.onOpenWith,
       onDelete: widget.onDelete,
     );
+  }
+
+  void _handleTap() {
+    Focus.maybeOf(context)?.requestFocus();
+    widget.onTap();
   }
 
   bool get _isRecent {

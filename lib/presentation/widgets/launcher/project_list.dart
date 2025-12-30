@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -16,7 +17,7 @@ class ProjectList extends StatefulWidget {
   final List<Tool> installedTools;
   final ToolId? defaultToolId;
   final String searchQuery;
-  final ValueChanged<Project> onProjectTap;
+  final Future<void> Function(Project project) onProjectTap;
   final ValueChanged<Project> onStarToggle;
   final ValueChanged<Project> onShowInFinder;
   final ValueChanged<Project> onOpenInTerminal;
@@ -53,6 +54,9 @@ class _ProjectListState extends State<ProjectList> {
   String? _selectedProjectId;
   bool _isPointerHovering = false;
   bool _revealFullPath = false;
+  String? _openingProjectId;
+  int _openingDot = 0;
+  Timer? _openingTimer;
 
   @override
   void initState() {
@@ -78,12 +82,17 @@ class _ProjectListState extends State<ProjectList> {
     if (widget.focusNode.hasFocus && widget.projects.isNotEmpty) {
       WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToSelected());
     }
+    if (_openingProjectId != null &&
+        ordered.every((p) => p.id != _openingProjectId)) {
+      _stopOpening(_openingProjectId!);
+    }
   }
 
   @override
   void dispose() {
     widget.focusNode.removeListener(_handleFocusChange);
     _scrollController.dispose();
+    _openingTimer?.cancel();
     super.dispose();
   }
 
@@ -222,11 +231,7 @@ class _ProjectListState extends State<ProjectList> {
     if (event.logicalKey == LogicalKeyboardKey.enter ||
         event.logicalKey == LogicalKeyboardKey.numpadEnter) {
       final project = ordered[_selectedIndex];
-      if (!project.pathExists) {
-        _openContextMenuForIndex(_selectedIndex);
-        return KeyEventResult.handled;
-      }
-      widget.onProjectTap(project);
+      unawaited(_handleProjectTap(project, _selectedIndex));
       return KeyEventResult.handled;
     }
 
@@ -248,6 +253,94 @@ class _ProjectListState extends State<ProjectList> {
     if (index < 0 || index >= _itemKeys.length) return;
     final state = _itemKeys[index].currentState;
     state?.openContextMenuFromSelection();
+  }
+
+  Future<void> _handleProjectTap(Project project, int globalIndex) async {
+    final ordered = _orderedProjects();
+    if (globalIndex < 0 || globalIndex >= ordered.length) return;
+
+    setState(() {
+      _selectedIndex = globalIndex;
+      _selectedProjectId = project.id;
+      _highlightedIndex = globalIndex;
+      _isPointerHovering = false;
+    });
+
+    widget.focusNode.requestFocus();
+    _scrollToSelected();
+
+    if (!project.pathExists) {
+      _openContextMenuForIndex(globalIndex);
+      return;
+    }
+
+    await _runOpeningAction(
+      project,
+      () => widget.onProjectTap(project),
+    );
+  }
+
+  void _startOpening(String projectId) {
+    _openingTimer?.cancel();
+    setState(() {
+      _openingProjectId = projectId;
+      _openingDot = 0;
+    });
+
+    _openingTimer = Timer.periodic(const Duration(milliseconds: 420), (_) {
+      if (!mounted) return;
+      setState(() {
+        _openingDot = (_openingDot + 1) % 3;
+      });
+    });
+  }
+
+  void _stopOpening(String projectId) {
+    if (_openingProjectId != projectId) return;
+    _openingTimer?.cancel();
+    _openingTimer = null;
+    setState(() {
+      _openingProjectId = null;
+      _openingDot = 0;
+    });
+  }
+
+  Future<void> _runOpeningAction(
+    Project project,
+    Future<void> Function() action,
+  ) async {
+    final openingId = project.id;
+    _startOpening(openingId);
+
+    await Future.delayed(const Duration(seconds: 1));
+    if (_openingProjectId != openingId) return;
+
+    try {
+      await action();
+    } finally {
+      _stopOpening(openingId);
+    }
+  }
+
+  Future<void> _handleOpenInTerminal(Project project) {
+    return _runOpeningAction(
+      project,
+      () => Future.sync(() => widget.onOpenInTerminal(project)),
+    );
+  }
+
+  Future<void> _handleShowInFinder(Project project) {
+    return _runOpeningAction(
+      project,
+      () => Future.sync(() => widget.onShowInFinder(project)),
+    );
+  }
+
+  Future<void> _handleOpenWith(Project project, ToolId toolId) {
+    return _runOpeningAction(
+      project,
+      () => Future.sync(() => widget.onOpenWith(project, toolId)),
+    );
   }
 
   @override
@@ -336,6 +429,7 @@ class _ProjectListState extends State<ProjectList> {
     final isHovering = _isPointerHovering && _highlightedIndex == globalIndex;
     final isFocused =
         widget.focusNode.hasFocus && globalIndex == _selectedIndex;
+    final isOpening = _openingProjectId == project.id;
 
     final key = _itemKeys[globalIndex];
 
@@ -355,11 +449,21 @@ class _ProjectListState extends State<ProjectList> {
         searchQuery: widget.searchQuery,
         showDivider: globalIndex < _itemKeys.length - 1,
         revealFullPath: _revealFullPath,
-        onTap: () => widget.onProjectTap(project),
+        isOpening: isOpening,
+        openingDots: _openingDot,
+        onTap: () {
+          _handleProjectTap(project, globalIndex);
+        },
         onStarToggle: () => widget.onStarToggle(project),
-        onShowInFinder: () => widget.onShowInFinder(project),
-        onOpenInTerminal: () => widget.onOpenInTerminal(project),
-        onOpenWith: (toolId) => widget.onOpenWith(project, toolId),
+        onShowInFinder: () {
+          _handleShowInFinder(project);
+        },
+        onOpenInTerminal: () {
+          _handleOpenInTerminal(project);
+        },
+        onOpenWith: (toolId) {
+          _handleOpenWith(project, toolId);
+        },
         onDelete: () => widget.onDelete(project),
       ),
     );

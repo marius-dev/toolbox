@@ -5,6 +5,8 @@ class _ProjectDetails extends StatelessWidget {
   final Tool? preferredTool;
   final String searchQuery;
   final bool revealFullPath;
+  final bool isOpening;
+  final int openingDots;
   final bool isDisabled;
   final Color accentColor;
 
@@ -13,6 +15,8 @@ class _ProjectDetails extends StatelessWidget {
     required this.preferredTool,
     required this.searchQuery,
     required this.revealFullPath,
+    required this.isOpening,
+    required this.openingDots,
     required this.isDisabled,
     required this.accentColor,
   });
@@ -66,6 +70,7 @@ class _ProjectDetails extends StatelessWidget {
     final theme = Theme.of(context);
     final textColor = theme.textTheme.bodyMedium!.color!;
     final displayPath = StringUtils.replaceHomeWithTilde(project.path);
+    final openingText = 'Opening${'.' * ((openingDots % 3) + 1)}';
 
     return AnimatedSize(
       duration: const Duration(milliseconds: 150),
@@ -76,26 +81,37 @@ class _ProjectDetails extends StatelessWidget {
           _buildPathAppIcon(context, textColor),
           SizedBox(width: CompactLayout.value(context, 6)),
           Expanded(
-            child: Text.rich(
-              TextSpan(
-                children: _highlightMatches(
-                  displayPath,
-                  searchQuery,
-                  TextStyle(
-                    color: isDisabled
-                        ? textColor.withOpacity(0.4)
-                        : textColor.withOpacity(0.85),
-                    fontSize: 13,
+            child: isOpening
+                ? Text(
+                    openingText,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 13,
+                    ),
+                  )
+                : Text.rich(
+                    TextSpan(
+                      children: _highlightMatches(
+                        displayPath,
+                        searchQuery,
+                        TextStyle(
+                          color: isDisabled
+                              ? textColor.withOpacity(0.4)
+                              : textColor.withOpacity(0.85),
+                          fontSize: 13,
+                        ),
+                        TextStyle(
+                          color: accentColor,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    maxLines: revealFullPath ? 3 : 1,
+                    overflow: revealFullPath
+                        ? TextOverflow.visible
+                        : TextOverflow.ellipsis,
+                    softWrap: revealFullPath,
                   ),
-                  TextStyle(color: accentColor, fontWeight: FontWeight.w600),
-                ),
-              ),
-              maxLines: revealFullPath ? 3 : 1,
-              overflow: revealFullPath
-                  ? TextOverflow.visible
-                  : TextOverflow.ellipsis,
-              softWrap: revealFullPath,
-            ),
           ),
         ],
       ),
@@ -115,7 +131,7 @@ class _ProjectDetails extends StatelessWidget {
       message: 'Last opened with ${preferredTool!.name}',
       child: ToolIcon(
         tool: preferredTool!,
-        size: CompactLayout.value(context, 18),
+        size: CompactLayout.value(context, 20),
         borderRadius: 4,
       ),
     );

@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:project_launcher/domain/models/project.dart';
@@ -7,12 +5,12 @@ import 'package:project_launcher/presentation/screens/add_project_screen.dart';
 import 'package:project_launcher/presentation/screens/settings_screen.dart';
 import 'package:project_launcher/presentation/screens/workspaces_screen.dart';
 import 'package:project_launcher/presentation/widgets/project_dialog.dart';
-import 'package:project_launcher/presentation/widgets/workspace_dialog.dart';
 import 'package:window_manager/window_manager.dart';
 
 import '../providers/project_provider.dart';
 import '../providers/tools_provider.dart';
 import '../providers/workspace_provider.dart';
+import '../widgets/app_shell.dart';
 import '../widgets/empty_state.dart';
 import '../widgets/launcher/launcher_header.dart';
 import '../widgets/launcher/launcher_search_bar.dart';
@@ -20,8 +18,6 @@ import '../widgets/launcher/launcher_tab_bar.dart';
 import '../widgets/launcher/project_list.dart';
 import '../widgets/tools_section.dart';
 import '../../core/services/window_service.dart';
-import '../../core/theme/glass_style.dart';
-import '../../core/theme/theme_provider.dart';
 import '../../core/utils/compact_layout.dart';
 
 class LauncherScreen extends StatefulWidget {
@@ -156,103 +152,39 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: GestureDetector(
-        behavior: HitTestBehavior.deferToChild,
-        onTap: () => FocusScope.of(context).unfocus(),
-        child: _buildContainer(),
-      ),
-    );
-  }
-
-  Widget _buildContainer() {
-    return AnimatedBuilder(
-      animation: ThemeProvider.instance,
-      builder: (context, _) {
-        final isDark = ThemeProvider.instance.isDarkMode;
-        final accentColor = ThemeProvider.instance.accentColor;
-        final palette = GlassStylePalette(
-          style: ThemeProvider.instance.glassStyle,
-          isDark: isDark,
-          accentColor: accentColor,
-        );
-        return Container(
-          constraints: const BoxConstraints.expand(),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(26),
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: palette.backgroundGradient,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: isDark
-                    ? Colors.black.withOpacity(0.65)
-                    : Colors.black.withOpacity(0.1),
-                blurRadius: 60,
-                offset: const Offset(0, 30),
-              ),
-              if (isDark)
-                BoxShadow(
-                  color: palette.glowColor.withOpacity(0.5),
-                  blurRadius: 90,
-                  offset: const Offset(0, 10),
-                ),
-            ],
+    return GestureDetector(
+      behavior: HitTestBehavior.deferToChild,
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: AppShell(
+        blurSigma: 40,
+        glows: const [
+          GlowSpec(
+            alignment: Alignment.topRight,
+            offset: Offset(20, -120),
+            size: 240,
           ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(26),
-            child: SizedBox.expand(
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 40, sigmaY: 40),
-                child: _buildContent(palette),
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildContent(GlassStylePalette palette) {
-    final backgroundGradient = palette.backgroundGradient;
-    final borderColor = palette.borderColor;
-
-    return Container(
-      constraints: const BoxConstraints.expand(),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: backgroundGradient,
-        ),
-        border: Border.all(color: borderColor, width: 1),
-        borderRadius: BorderRadius.circular(26),
-      ),
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          Positioned(
-            top: -120,
-            right: -20,
-            child: _buildGlow(palette.glowColor, 240),
-          ),
-          Positioned(
-            bottom: -140,
-            left: -30,
-            child: _buildGlow(palette.glowColor.withOpacity(0.8), 320),
-          ),
-          Positioned.fill(
-            child: _showSettings
-                ? SettingsScreen(
-                    onBack: _toggleSettings,
-                    onRescan: _toolsProvider.refresh,
-                  )
-                : _buildMainView(),
+          GlowSpec(
+            alignment: Alignment.bottomLeft,
+            offset: Offset(-30, 140),
+            size: 320,
+            opacity: 0.8,
           ),
         ],
+        builder: (context, _) {
+          return Stack(
+            fit: StackFit.expand,
+            children: [
+              Positioned.fill(
+                child: _showSettings
+                    ? SettingsScreen(
+                        onBack: _toggleSettings,
+                        onRescan: _toolsProvider.refresh,
+                      )
+                    : _buildMainView(),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
@@ -301,21 +233,6 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
           ],
         );
       },
-    );
-  }
-
-  Widget _buildGlow(Color color, double size) {
-    return IgnorePointer(
-      child: Container(
-        width: size,
-        height: size,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          gradient: RadialGradient(
-            colors: [color.withOpacity(0.22), Colors.transparent],
-          ),
-        ),
-      ),
     );
   }
 
@@ -415,13 +332,16 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
     _showMessage('$label is not available yet');
   }
 
-  void _showMessage(String message) {
+  void _showMessage(
+    String message, {
+    Duration duration = const Duration(seconds: 2),
+  }) {
     if (!mounted) return;
     final messenger = ScaffoldMessenger.of(context);
     messenger
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        SnackBar(content: Text(message), duration: const Duration(seconds: 2)),
+        SnackBar(content: Text(message), duration: duration),
       );
   }
 
@@ -480,11 +400,7 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
               defaultToolId: _toolsProvider.defaultToolId,
               searchQuery: _projectProvider.searchQuery,
               focusNode: _projectListFocusNode,
-              onProjectTap: (project) => _projectProvider.openProject(
-                project,
-                defaultToolId: _toolsProvider.defaultToolId,
-                installedTools: _toolsProvider.installed,
-              ),
+              onProjectTap: _handleProjectOpen,
               onStarToggle: _projectProvider.toggleStar,
               onShowInFinder: (project) =>
                   _projectProvider.showInFinder(project.path),
@@ -519,6 +435,15 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
           );
         },
       ),
+    );
+  }
+
+  Future<void> _handleProjectOpen(Project project) async {
+    await _projectProvider.openProject(
+      project,
+      defaultToolId: _toolsProvider.defaultToolId,
+      installedTools: _toolsProvider.installed,
+      refreshDelay: const Duration(seconds: 1),
     );
   }
 }

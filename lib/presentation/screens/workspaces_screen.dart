@@ -1,12 +1,10 @@
 import 'dart:convert';
 import 'dart:io';
-import 'dart:ui';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/services/window_service.dart';
-import '../../core/theme/glass_style.dart';
 import '../../core/theme/theme_provider.dart';
 import '../../core/utils/compact_layout.dart';
 import '../../domain/models/project.dart';
@@ -14,6 +12,7 @@ import '../../domain/models/tool.dart';
 import '../../domain/models/workspace.dart';
 import '../providers/project_provider.dart';
 import '../providers/workspace_provider.dart';
+import '../widgets/app_shell.dart';
 import '../widgets/glass_button.dart';
 import '../widgets/glass_panel.dart';
 import '../widgets/launcher/project_list_scroll_behavior.dart';
@@ -328,80 +327,20 @@ class _WorkspacesScreenState extends State<WorkspacesScreen>
 
   @override
   Widget build(BuildContext context) {
-    final palette = GlassStylePalette.fromContext(
-      context,
-      style: ThemeProvider.instance.glassStyle,
-      accentColor: ThemeProvider.instance.accentColor,
-    );
     final duration = _animationDuration(context);
     final curve = _animationCurve(context);
 
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(26),
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: palette.backgroundGradient,
+    return AppShell(
+      blurSigma: 40,
+      builder: (context, _) {
+        return FadeTransition(
+          opacity: CurvedAnimation(
+            parent: _introController,
+            curve: curve,
           ),
-          border: Border.all(color: palette.borderColor),
-          boxShadow: palette.shadow,
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(26),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(
-              sigmaX: palette.blurSigma,
-              sigmaY: palette.blurSigma,
-            ),
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                _buildBackdrop(palette),
-                SafeArea(
-                  child: FadeTransition(
-                    opacity: CurvedAnimation(
-                      parent: _introController,
-                      curve: curve,
-                    ),
-                    child: _buildContent(context, duration, curve),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildBackdrop(GlassStylePalette palette) {
-    return Stack(
-      fit: StackFit.expand,
-      clipBehavior: Clip.none,
-      children: [
-        Positioned(top: -120, left: -40, child: _glow(palette.glowColor, 260)),
-        Positioned(
-          bottom: -180,
-          right: -60,
-          child: _glow(palette.glowColor.withOpacity(0.7), 340),
-        ),
-      ],
-    );
-  }
-
-  Widget _glow(Color color, double size) {
-    return IgnorePointer(
-      child: Container(
-        width: size,
-        height: size,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          gradient: RadialGradient(colors: [color, Colors.transparent]),
-        ),
-      ),
+          child: _buildContent(context, duration, curve),
+        );
+      },
     );
   }
 

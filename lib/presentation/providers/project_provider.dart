@@ -134,12 +134,16 @@ class ProjectProvider extends ChangeNotifier {
     Project project, {
     ToolId? defaultToolId,
     List<Tool> installedTools = const [],
+    Duration refreshDelay = Duration.zero,
   }) async {
     await _useCases.openProject(
       project,
       defaultToolId: defaultToolId,
       installedTools: installedTools,
     );
+    if (refreshDelay > Duration.zero) {
+      await Future.delayed(refreshDelay);
+    }
     await loadProjects();
   }
 
