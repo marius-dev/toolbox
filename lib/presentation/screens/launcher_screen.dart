@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:project_launcher/domain/models/project.dart';
@@ -5,14 +7,14 @@ import 'package:project_launcher/presentation/screens/add_project_screen.dart';
 import 'package:project_launcher/presentation/screens/settings_screen.dart';
 import 'package:project_launcher/presentation/widgets/project_dialog.dart';
 import 'package:window_manager/window_manager.dart';
-import 'dart:ui';
+
 import '../providers/project_provider.dart';
-import '../widgets/launcher_header.dart';
-import '../widgets/tab_bar_widget.dart';
-import '../widgets/search_sort_bar.dart';
-import '../widgets/project_list.dart';
-import '../widgets/empty_state.dart';
 import '../providers/tools_provider.dart';
+import '../widgets/empty_state.dart';
+import '../widgets/launcher/launcher_header.dart';
+import '../widgets/launcher/launcher_search_bar.dart';
+import '../widgets/launcher/launcher_tab_bar.dart';
+import '../widgets/launcher/project_list.dart';
 import '../widgets/tools_section.dart';
 import '../../core/services/window_service.dart';
 import '../../core/theme/glass_style.dart';
@@ -118,8 +120,10 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
   void _handleRawKeyEvent(RawKeyEvent event) {
     if (event is! RawKeyDownEvent) return;
     if (_showSettings || _selectedTab != LauncherTab.projects) return;
+    final hasModifiers =
+        event.isControlPressed || event.isMetaPressed || event.isAltPressed;
     if (_searchFocusNode.hasFocus) return;
-    if (event.isControlPressed || event.isMetaPressed || event.isAltPressed) {
+    if (hasModifiers) {
       return;
     }
 
@@ -238,31 +242,40 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
   }
 
   Widget _buildMainView() {
-    return Column(
-      children: [
-        LauncherHeader(
-          onSettingsPressed: _toggleSettings,
-          onAddProject: _openAddProjectScreen,
-        ),
-        TabBarWidget(
-          selectedTab: _selectedTab,
-          toolsBadge: _toolsProvider.installedCount,
-          onTabSelected: (tab) {
-            setState(() => _selectedTab = tab);
-            if (_selectedTab == LauncherTab.tools) {
-              _toolsProvider.loadTools();
-            } else {
-              WidgetsBinding.instance.addPostFrameCallback(
-                (_) => _focusSearchField(),
-              );
-            }
-          },
-        ),
-        if (_selectedTab == LauncherTab.projects)
-          ..._buildProjectsArea(context)
-        else
-          _buildToolsArea(),
-      ],
+    return AnimatedBuilder(
+      animation: Listenable.merge([_projectProvider, _toolsProvider]),
+      builder: (context, _) {
+        final hasMissingPaths = _projectProvider.projects.any(
+          (project) => !project.pathExists,
+        );
+        final isSyncing =
+            _projectProvider.isLoading || _toolsProvider.isLoading;
+
+        return Column(
+          children: [
+            LauncherHeader(
+              selectedTab: _selectedTab,
+              onTabSelected: (tab) {
+                setState(() => _selectedTab = tab);
+                if (_selectedTab == LauncherTab.tools) {
+                  _toolsProvider.loadTools();
+                } else {
+                  WidgetsBinding.instance.addPostFrameCallback(
+                    (_) => _focusSearchField(),
+                  );
+                }
+              },
+              onSettingsPressed: _toggleSettings,
+              isSyncing: isSyncing,
+              hasSyncErrors: hasMissingPaths,
+            ),
+            if (_selectedTab == LauncherTab.projects)
+              ..._buildProjectsArea(context)
+            else
+              _buildToolsArea(),
+          ],
+        );
+      },
     );
   }
 
@@ -283,9 +296,9 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
 
   Future<void> _openAddProjectScreen() async {
     _dismissPopupMenus();
-    final created = await Navigator.of(context).push<bool>(
-      _buildAddProjectRoute(),
-    );
+    final created = await Navigator.of(
+      context,
+    ).push<bool>(_buildAddProjectRoute());
     if (!mounted) return;
     if (created == true) {
       WidgetsBinding.instance.addPostFrameCallback((_) => _focusSearchField());
@@ -325,15 +338,36 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
     );
   }
 
+  void _handleImportFromGit() {
+    _showUnavailableAction('Import from Git');
+  }
+
+  void _handleCreateWorkspace() {
+    _showUnavailableAction('Create workspace');
+  }
+
+  void _showUnavailableAction(String label) {
+    if (!mounted) return;
+    final messenger = ScaffoldMessenger.of(context);
+    messenger
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text('$label is not available yet'),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+  }
+
   void _showEditProjectDialog(BuildContext context, Project project) {
     showDialog(
       context: context,
       builder: (context) => ProjectDialog(
         project: project,
         defaultToolId: _toolsProvider.defaultToolId,
-        onSave: (name, path, type, _) {
+        onSave: (name, path, _) {
           _projectProvider.updateProject(
-            project.copyWith(name: name, path: path, type: type),
+            project.copyWith(name: name, path: path),
           );
         },
       ),
@@ -341,16 +375,24 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
   }
 
   List<Widget> _buildProjectsArea(BuildContext context) {
+    final searchBar = AnimatedBuilder(
+      animation: _projectProvider,
+      builder: (context, _) {
+        return LauncherSearchBar(
+          controller: _searchController,
+          focusNode: _searchFocusNode,
+          onNavigateNext: _focusProjectList,
+          onSearchFocus: _dismissPopupMenus,
+          onSearchChanged: _projectProvider.setSearchQuery,
+          onAddProject: _openAddProjectScreen,
+          onImportFromGit: _handleImportFromGit,
+          onCreateWorkspace: _handleCreateWorkspace,
+        );
+      },
+    );
+
     return [
-      SearchSortBar(
-        controller: _searchController,
-        focusNode: _searchFocusNode,
-        onNavigateNext: _focusProjectList,
-        onSearchFocus: _dismissPopupMenus,
-        onSearchChanged: _projectProvider.setSearchQuery,
-        currentSort: _projectProvider.sortOption,
-        onSortChanged: _projectProvider.setSortOption,
-      ),
+      searchBar,
       SizedBox(height: CompactLayout.value(context, 20)),
       Expanded(
         child: AnimatedBuilder(
@@ -361,15 +403,14 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
             }
 
             if (!_projectProvider.hasProjects) {
-              return EmptyState(
-                onAddProject: _openAddProjectScreen,
-              );
+              return EmptyState(onAddProject: _openAddProjectScreen);
             }
 
             return ProjectList(
               projects: _projectProvider.projects,
               installedTools: _toolsProvider.installed,
               defaultToolId: _toolsProvider.defaultToolId,
+              searchQuery: _projectProvider.searchQuery,
               focusNode: _projectListFocusNode,
               onProjectTap: (project) => _projectProvider.openProject(
                 project,

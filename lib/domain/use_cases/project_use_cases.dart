@@ -14,13 +14,11 @@ class ProjectUseCases {
   Future<void> addProject({
     required String name,
     required String path,
-    required ProjectType type,
     ToolId? preferredToolId,
   }) async {
     final project = Project.create(
       name: name,
       path: path,
-      type: type,
       preferredToolId: preferredToolId,
     );
     await _repository.addProject(project);
@@ -289,8 +287,6 @@ class ProjectUseCases {
           return b.createdAt.compareTo(a.createdAt);
         case SortOption.name:
           return a.name.toLowerCase().compareTo(b.name.toLowerCase());
-        case SortOption.type:
-          return a.type.name.compareTo(b.type.name);
       }
     });
 

@@ -10,7 +10,6 @@ import '../../core/services/window_service.dart';
 import '../../core/theme/glass_style.dart';
 import '../../core/theme/theme_provider.dart';
 import '../../core/utils/compact_layout.dart';
-import '../../domain/models/project.dart';
 import '../../domain/models/tool.dart';
 import '../providers/project_provider.dart';
 import '../providers/tools_provider.dart';
@@ -180,7 +179,6 @@ class _AddProjectScreenState extends State<AddProjectScreen>
     await widget.projectProvider.addProject(
       name: _nameController.text.trim(),
       path: _pathController.text.trim(),
-      type: ProjectType.flutter,
       preferredToolId: preferredToolId,
     );
 

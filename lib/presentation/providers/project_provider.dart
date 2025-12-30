@@ -1,8 +1,9 @@
 import 'package:flutter/foundation.dart';
+
 import '../../domain/models/project.dart';
 import '../../domain/models/tool.dart';
-import '../../domain/use_cases/project_use_cases.dart';
 import '../../domain/repositories/project_repository.dart';
+import '../../domain/use_cases/project_use_cases.dart';
 
 class ProjectProvider extends ChangeNotifier {
   final ProjectUseCases _useCases;
@@ -24,6 +25,7 @@ class ProjectProvider extends ChangeNotifier {
   SortOption get sortOption => _sortOption;
   bool get isLoading => _isLoading;
   bool get hasProjects => _filteredProjects.isNotEmpty;
+  String get searchQuery => _searchQuery;
 
   // Methods
   Future<void> loadProjects() async {
@@ -52,13 +54,11 @@ class ProjectProvider extends ChangeNotifier {
   Future<void> addProject({
     required String name,
     required String path,
-    required ProjectType type,
     ToolId? preferredToolId,
   }) async {
     await _useCases.addProject(
       name: name,
       path: path,
-      type: type,
       preferredToolId: preferredToolId,
     );
     await loadProjects();

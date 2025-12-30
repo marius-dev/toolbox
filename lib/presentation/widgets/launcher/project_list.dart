@@ -3,15 +3,19 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../../core/utils/compact_layout.dart';
-import '../../domain/models/project.dart';
-import '../../domain/models/tool.dart';
+import '../../../core/utils/compact_layout.dart';
+import '../../../domain/models/project.dart';
+import '../../../domain/models/tool.dart';
 import 'project_item.dart';
+import 'project_list_scroll_behavior.dart';
+import 'project_section_header.dart';
+import 'project_sections.dart';
 
 class ProjectList extends StatefulWidget {
   final List<Project> projects;
   final List<Tool> installedTools;
   final ToolId? defaultToolId;
+  final String searchQuery;
   final ValueChanged<Project> onProjectTap;
   final ValueChanged<Project> onStarToggle;
   final ValueChanged<Project> onShowInFinder;
@@ -26,6 +30,7 @@ class ProjectList extends StatefulWidget {
     required this.projects,
     required this.installedTools,
     required this.defaultToolId,
+    required this.searchQuery,
     required this.onProjectTap,
     required this.onStarToggle,
     required this.onShowInFinder,
@@ -42,11 +47,12 @@ class ProjectList extends StatefulWidget {
 
 class _ProjectListState extends State<ProjectList> {
   final ScrollController _scrollController = ScrollController();
-  final List<GlobalKey> _itemKeys = [];
+  final List<GlobalKey<ProjectItemState>> _itemKeys = [];
   int _selectedIndex = 0;
   int? _highlightedIndex;
   String? _selectedProjectId;
   bool _isPointerHovering = false;
+  bool _revealFullPath = false;
 
   @override
   void initState() {
@@ -88,7 +94,10 @@ class _ProjectListState extends State<ProjectList> {
       _itemKeys.removeRange(ordered.length, _itemKeys.length);
     } else {
       _itemKeys.addAll(
-        List.generate(ordered.length - _itemKeys.length, (_) => GlobalKey()),
+        List.generate(
+          ordered.length - _itemKeys.length,
+          (_) => GlobalKey<ProjectItemState>(),
+        ),
       );
     }
   }
@@ -153,17 +162,29 @@ class _ProjectListState extends State<ProjectList> {
         _selectedProjectId = ordered[nextIndex].id;
         _highlightedIndex = nextIndex;
         _isPointerHovering = false;
+        _revealFullPath = false;
       });
       _scrollToSelected();
     } else {
       setState(() {
         _highlightedIndex = null;
         _isPointerHovering = false;
+        _revealFullPath = false;
       });
     }
   }
 
   KeyEventResult _handleKeyEvent(FocusNode node, KeyEvent event) {
+    if (event.logicalKey == LogicalKeyboardKey.altLeft ||
+        event.logicalKey == LogicalKeyboardKey.altRight) {
+      if (event is KeyDownEvent && !_revealFullPath) {
+        setState(() => _revealFullPath = true);
+      } else if (event is KeyUpEvent && _revealFullPath) {
+        setState(() => _revealFullPath = false);
+      }
+      return KeyEventResult.handled;
+    }
+
     if (event is! KeyDownEvent) {
       return KeyEventResult.ignored;
     }
@@ -200,7 +221,12 @@ class _ProjectListState extends State<ProjectList> {
 
     if (event.logicalKey == LogicalKeyboardKey.enter ||
         event.logicalKey == LogicalKeyboardKey.numpadEnter) {
-      widget.onProjectTap(ordered[_selectedIndex]);
+      final project = ordered[_selectedIndex];
+      if (!project.pathExists) {
+        _openContextMenuForIndex(_selectedIndex);
+        return KeyEventResult.handled;
+      }
+      widget.onProjectTap(project);
       return KeyEventResult.handled;
     }
 
@@ -218,12 +244,10 @@ class _ProjectListState extends State<ProjectList> {
     );
   }
 
-  int? get _currentHighlightedIndex {
-    if (_highlightedIndex != null) return _highlightedIndex;
-    if (!widget.focusNode.hasFocus) return null;
-    final ordered = _orderedProjects();
-    if (ordered.isEmpty) return null;
-    return _selectedIndex;
+  void _openContextMenuForIndex(int index) {
+    if (index < 0 || index >= _itemKeys.length) return;
+    final state = _itemKeys[index].currentState;
+    state?.openContextMenuFromSelection();
   }
 
   @override
@@ -231,65 +255,75 @@ class _ProjectListState extends State<ProjectList> {
     final sections = _projectSections();
     final favorites = sections.favorites;
     final others = sections.others;
-
-    final headerPadding = CompactLayout.only(context, top: 4, bottom: 6);
+    final headerPadding = CompactLayout.only(context, top: 6, bottom: 4);
+    final theme = Theme.of(context);
+    final background = theme.brightness == Brightness.dark
+        ? Colors.black.withOpacity(0.5)
+        : Colors.white.withOpacity(0.9);
+    final borderColor = theme.dividerColor.withOpacity(0.16);
 
     return Focus(
       focusNode: widget.focusNode,
       onKeyEvent: _handleKeyEvent,
-      child: Padding(
-        padding: CompactLayout.only(context, bottom: 12),
-        child: ScrollConfiguration(
-          behavior: const _NoScrollbarBehavior(),
-          child: Scrollbar(
-            controller: _scrollController,
-            radius: const Radius.circular(6),
-            thickness: 5,
-            child: Padding(
-              padding: CompactLayout.symmetric(context, horizontal: 20),
-              child: CustomScrollView(
-                controller: _scrollController,
-                slivers: [
-                  if (favorites.isNotEmpty) ...[
-                    SliverToBoxAdapter(
-                      child: Padding(
-                        padding: headerPadding,
-                        child: _buildSectionHeader(context, 'Favorites'),
-                      ),
-                    ),
-                    SliverList(
-                      delegate: SliverChildBuilderDelegate(
-                        (context, index) =>
-                            _buildProjectEntry(favorites[index], index),
-                        childCount: favorites.length,
-                      ),
-                    ),
-                    if (others.isNotEmpty)
-                      SliverToBoxAdapter(
-                        child: SizedBox(
-                          height: CompactLayout.value(context, 10),
-                        ),
-                      ),
-                  ],
-                  if (others.isNotEmpty) ...[
-                    if (favorites.isNotEmpty)
+      child: Container(
+        margin: CompactLayout.only(context, left: 10, right: 10, bottom: 14),
+        decoration: BoxDecoration(
+          color: background,
+          borderRadius: BorderRadius.circular(22),
+          border: Border.all(color: borderColor),
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(22),
+          child: ScrollConfiguration(
+            behavior: const ProjectListScrollBehavior(),
+            child: Scrollbar(
+              controller: _scrollController,
+              radius: const Radius.circular(6),
+              thickness: 4,
+              child: Padding(
+                padding: CompactLayout.symmetric(context, horizontal: 12),
+                child: CustomScrollView(
+                  controller: _scrollController,
+                  slivers: [
+                    if (favorites.isNotEmpty) ...[
                       SliverToBoxAdapter(
                         child: Padding(
                           padding: headerPadding,
-                          child: _buildSectionHeader(context, 'Projects'),
+                          child: const ProjectSectionHeader(label: 'Favorites'),
                         ),
                       ),
-                    SliverList(
-                      delegate: SliverChildBuilderDelegate(
-                        (context, index) => _buildProjectEntry(
-                          others[index],
-                          favorites.length + index,
+                      SliverList(
+                        delegate: SliverChildBuilderDelegate(
+                          (context, index) =>
+                              _buildProjectEntry(favorites[index], index),
+                          childCount: favorites.length,
                         ),
-                        childCount: others.length,
                       ),
-                    ),
+                      if (others.isNotEmpty)
+                        const SliverToBoxAdapter(child: SizedBox(height: 6)),
+                    ],
+                    if (others.isNotEmpty) ...[
+                      if (favorites.isNotEmpty)
+                        SliverToBoxAdapter(
+                          child: Padding(
+                            padding: headerPadding,
+                            child: const ProjectSectionHeader(
+                              label: 'Projects',
+                            ),
+                          ),
+                        ),
+                      SliverList(
+                        delegate: SliverChildBuilderDelegate(
+                          (context, index) => _buildProjectEntry(
+                            others[index],
+                            favorites.length + index,
+                          ),
+                          childCount: others.length,
+                        ),
+                      ),
+                    ],
                   ],
-                ],
+                ),
               ),
             ),
           ),
@@ -298,27 +332,12 @@ class _ProjectListState extends State<ProjectList> {
     );
   }
 
-  Widget _buildSectionHeader(BuildContext context, String label) {
-    final theme = Theme.of(context);
-    final baseColor =
-        theme.textTheme.bodySmall?.color ?? theme.colorScheme.onSurface;
-    final headerStyle =
-        (theme.textTheme.labelLarge ?? theme.textTheme.bodyMedium)?.copyWith(
-          color: baseColor.withOpacity(0.75),
-          fontWeight: FontWeight.w600,
-          letterSpacing: 0.4,
-        );
-
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 6, top: 4),
-      child: Text(label, style: headerStyle),
-    );
-  }
-
   Widget _buildProjectEntry(Project project, int globalIndex) {
     final isHovering = _isPointerHovering && _highlightedIndex == globalIndex;
     final isFocused =
         widget.focusNode.hasFocus && globalIndex == _selectedIndex;
+
+    final key = _itemKeys[globalIndex];
 
     return MouseRegion(
       cursor: project.pathExists
@@ -326,28 +345,29 @@ class _ProjectListState extends State<ProjectList> {
           : SystemMouseCursors.basic,
       onEnter: (_) => _setHoverHighlight(globalIndex),
       onExit: (_) => _clearHoverHighlight(),
-      child: Container(
-        key: _itemKeys[globalIndex],
-        child: ProjectItem(
-          project: project,
-          installedTools: widget.installedTools,
-          defaultToolId: widget.defaultToolId,
-          isFocused: isFocused,
-          isHovering: isHovering,
-          onTap: () => widget.onProjectTap(project),
-          onStarToggle: () => widget.onStarToggle(project),
-          onShowInFinder: () => widget.onShowInFinder(project),
-          onOpenInTerminal: () => widget.onOpenInTerminal(project),
-          onOpenWith: (toolId) => widget.onOpenWith(project, toolId),
-          onDelete: () => widget.onDelete(project),
-        ),
+      child: ProjectItem(
+        key: key,
+        project: project,
+        installedTools: widget.installedTools,
+        defaultToolId: widget.defaultToolId,
+        isFocused: isFocused,
+        isHovering: isHovering,
+        searchQuery: widget.searchQuery,
+        showDivider: globalIndex < _itemKeys.length - 1,
+        revealFullPath: _revealFullPath,
+        onTap: () => widget.onProjectTap(project),
+        onStarToggle: () => widget.onStarToggle(project),
+        onShowInFinder: () => widget.onShowInFinder(project),
+        onOpenInTerminal: () => widget.onOpenInTerminal(project),
+        onOpenWith: (toolId) => widget.onOpenWith(project, toolId),
+        onDelete: () => widget.onDelete(project),
       ),
     );
   }
 
   List<Project> _orderedProjects() => _projectSections().ordered;
 
-  _ProjectSections _projectSections() {
+  ProjectSections _projectSections() {
     final favorites = <Project>[];
     final others = <Project>[];
     for (final project in widget.projects) {
@@ -357,28 +377,6 @@ class _ProjectListState extends State<ProjectList> {
         others.add(project);
       }
     }
-    return _ProjectSections(favorites: favorites, others: others);
-  }
-}
-
-class _ProjectSections {
-  final List<Project> favorites;
-  final List<Project> others;
-  final List<Project> ordered;
-
-  _ProjectSections({required this.favorites, required this.others})
-    : ordered = [...favorites, ...others];
-}
-
-class _NoScrollbarBehavior extends ScrollBehavior {
-  const _NoScrollbarBehavior();
-
-  @override
-  Widget buildScrollbar(
-    BuildContext context,
-    Widget child,
-    ScrollableDetails details,
-  ) {
-    return child;
+    return ProjectSections(favorites: favorites, others: others);
   }
 }

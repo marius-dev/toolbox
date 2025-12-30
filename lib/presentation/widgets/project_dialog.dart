@@ -16,10 +16,8 @@ class ProjectDialog extends StatefulWidget {
   final Function(
     String name,
     String path,
-    ProjectType type,
     ToolId? preferredToolId,
-  )
-  onSave;
+  ) onSave;
 
   const ProjectDialog({
     super.key,
@@ -35,7 +33,6 @@ class ProjectDialog extends StatefulWidget {
 class _ProjectDialogState extends State<ProjectDialog> {
   late TextEditingController _nameController;
   late TextEditingController _pathController;
-  late ProjectType _selectedType;
   int _currentStep = 0;
   bool _isLoadingTools = false;
   List<Tool> _installedTools = [];
@@ -46,7 +43,6 @@ class _ProjectDialogState extends State<ProjectDialog> {
     super.initState();
     _nameController = TextEditingController(text: widget.project?.name ?? '');
     _pathController = TextEditingController(text: widget.project?.path ?? '');
-    _selectedType = widget.project?.type ?? ProjectType.flutter;
 
     if (widget.project == null) {
       _loadInstalledTools();
@@ -120,7 +116,6 @@ class _ProjectDialogState extends State<ProjectDialog> {
       widget.onSave(
         _nameController.text,
         _pathController.text,
-        _selectedType,
         preferredToolId,
       );
       Navigator.pop(context);
@@ -203,7 +198,6 @@ class _ProjectDialogState extends State<ProjectDialog> {
                   SizedBox(height: CompactLayout.value(context, 12)),
                   _buildPathField(),
                   SizedBox(height: CompactLayout.value(context, 12)),
-                  _buildTypeDropdown(),
                 ],
               )
             : _buildWizardContent(context),
@@ -526,44 +520,6 @@ class _ProjectDialogState extends State<ProjectDialog> {
         onPressed: _pickProjectFolder,
         tooltip: 'Pick folder',
       ),
-    );
-  }
-
-  Widget _buildTypeDropdown() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final panelColor = isDark
-        ? Colors.white.withOpacity(0.05)
-        : Colors.white.withOpacity(0.95);
-    final borderColor = isDark
-        ? Colors.white.withOpacity(0.12)
-        : Colors.black.withOpacity(0.08);
-    final dropdownBg = Theme.of(context).colorScheme.surface;
-
-    return DropdownButtonFormField<ProjectType>(
-      initialValue: _selectedType,
-      dropdownColor: dropdownBg,
-      style: Theme.of(context).textTheme.bodyLarge,
-      decoration: InputDecoration(
-        labelText: 'Type',
-        labelStyle: Theme.of(context).textTheme.bodyMedium,
-        prefixIcon: Icon(
-          Icons.category,
-          color: Theme.of(context).iconTheme.color,
-        ),
-        filled: true,
-        fillColor: panelColor,
-        border: OutlineInputBorder(
-          borderRadius:
-              BorderRadius.circular(CompactLayout.value(context, 10)),
-          borderSide: BorderSide(color: borderColor),
-        ),
-      ),
-      items: ProjectType.values.map((type) {
-        return DropdownMenuItem(value: type, child: Text(type.displayName));
-      }).toList(),
-      onChanged: (type) {
-        if (type != null) setState(() => _selectedType = type);
-      },
     );
   }
 
