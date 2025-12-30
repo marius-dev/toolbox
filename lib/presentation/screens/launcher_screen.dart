@@ -161,13 +161,17 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
           GlowSpec(
             alignment: Alignment.topRight,
             offset: Offset(20, -120),
-            size: 240,
+            size: 280,
+            angle: 0.5,
+            thickness: 0.34,
           ),
           GlowSpec(
             alignment: Alignment.bottomLeft,
             offset: Offset(-30, 140),
-            size: 320,
-            opacity: 0.8,
+            size: 360,
+            opacity: 0.84,
+            angle: -0.28,
+            thickness: 0.46,
           ),
         ],
         builder: (context, _) {

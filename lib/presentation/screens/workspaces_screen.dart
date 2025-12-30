@@ -13,6 +13,7 @@ import '../../domain/models/workspace.dart';
 import '../providers/project_provider.dart';
 import '../providers/workspace_provider.dart';
 import '../widgets/app_shell.dart';
+import '../widgets/glass_action_button.dart';
 import '../widgets/glass_button.dart';
 import '../widgets/glass_panel.dart';
 import '../widgets/launcher/project_list_scroll_behavior.dart';
@@ -488,6 +489,9 @@ class _WorkspacesScreenState extends State<WorkspacesScreen>
     Duration duration,
     Curve curve,
   ) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bottomColor = isDark ? Colors.black.withOpacity(0.42) : null;
+
     return GlassPanel(
       duration: duration,
       curve: curve,
@@ -495,10 +499,10 @@ class _WorkspacesScreenState extends State<WorkspacesScreen>
         horizontal: CompactLayout.value(context, 18),
         vertical: CompactLayout.value(context, 14),
       ),
-      borderRadius: BorderRadius.vertical(
-        top: Radius.circular(0),
-      ),
+      borderRadius: BorderRadius.zero,
       margin: EdgeInsets.zero,
+      backgroundColor: bottomColor,
+      isTransparent: true,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [_buildActionGroup(context)],
@@ -518,46 +522,20 @@ class _WorkspacesScreenState extends State<WorkspacesScreen>
   }
 
   Widget _buildImportButton(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final accentColor = ThemeProvider.instance.accentColor;
-    final foreground = isDark ? Colors.white : accentColor;
-
-    return OutlinedButton.icon(
+    return GlassActionButton(
+      label: 'Import',
+      icon: Icons.upload_file_rounded,
       onPressed: _importWorkspace,
-      icon: const Icon(Icons.upload_file_rounded),
-      label: const Text('Import'),
-      style: OutlinedButton.styleFrom(
-        foregroundColor: foreground,
-        side: BorderSide(color: foreground),
-        padding: EdgeInsets.symmetric(
-          horizontal: CompactLayout.value(context, 16),
-          vertical: CompactLayout.value(context, 10),
-        ),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(CompactLayout.value(context, 12)),
-        ),
-      ),
+      primary: false,
     );
   }
 
   Widget _buildCreateButton(BuildContext context) {
-    final accentColor = ThemeProvider.instance.accentColor;
-
-    return ElevatedButton.icon(
+    return GlassActionButton(
+      label: 'Create',
+      icon: Icons.add_rounded,
       onPressed: _createWorkspace,
-      icon: const Icon(Icons.add_rounded),
-      label: const Text('Create'),
-      style: ElevatedButton.styleFrom(
-        backgroundColor: accentColor,
-        foregroundColor: Colors.white,
-        padding: EdgeInsets.symmetric(
-          horizontal: CompactLayout.value(context, 18),
-          vertical: CompactLayout.value(context, 12),
-        ),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(CompactLayout.value(context, 12)),
-        ),
-      ),
+      primary: true,
     );
   }
 }

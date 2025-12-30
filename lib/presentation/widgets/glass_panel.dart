@@ -13,6 +13,8 @@ class GlassPanel extends StatelessWidget {
   final Duration duration;
   final Curve curve;
   final bool withShadow;
+  final Color? backgroundColor;
+  final bool isTransparent;
 
   const GlassPanel({
     super.key,
@@ -23,6 +25,8 @@ class GlassPanel extends StatelessWidget {
     this.duration = const Duration(milliseconds: 320),
     this.curve = Curves.easeInOut,
     this.withShadow = true,
+    this.backgroundColor,
+    this.isTransparent = false,
   });
 
   @override
@@ -32,26 +36,32 @@ class GlassPanel extends StatelessWidget {
       style: ThemeProvider.instance.glassStyle,
       accentColor: ThemeProvider.instance.accentColor,
     );
+    final effectiveColor =
+        isTransparent ? Colors.transparent : (backgroundColor ?? palette.innerColor);
+    final gradient = isTransparent ? null : palette.gradient;
+    final border = isTransparent
+        ? Border.all(color: Colors.transparent, width: 0)
+        : Border.all(color: palette.borderColor);
 
     return AnimatedContainer(
       duration: duration,
       curve: curve,
       margin: margin,
       decoration: BoxDecoration(
-        gradient: palette.gradient,
+        gradient: gradient,
         borderRadius: borderRadius,
-        border: Border.all(color: palette.borderColor),
-        boxShadow: withShadow ? palette.shadow : null,
+        border: border,
+        boxShadow: withShadow && !isTransparent ? palette.shadow : null,
       ),
       child: ClipRRect(
         borderRadius: borderRadius,
         child: BackdropFilter(
           filter: ImageFilter.blur(
-            sigmaX: palette.blurSigma,
-            sigmaY: palette.blurSigma,
+            sigmaX: isTransparent ? 0 : palette.blurSigma,
+            sigmaY: isTransparent ? 0 : palette.blurSigma,
           ),
           child: Container(
-            color: palette.innerColor,
+            color: effectiveColor,
             padding: padding,
             child: child,
           ),

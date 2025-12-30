@@ -10,12 +10,16 @@ class GlowSpec {
   final Offset offset;
   final double size;
   final double opacity;
+  final double angle;
+  final double thickness;
 
   const GlowSpec({
     required this.alignment,
     required this.offset,
     required this.size,
     this.opacity = 1,
+    this.angle = -0.35,
+    this.thickness = 0.42,
   });
 }
 
@@ -51,14 +55,27 @@ class AppShell extends StatelessWidget {
             const [
               GlowSpec(
                 alignment: Alignment.topLeft,
-            offset: Offset(-40, -120),
-            size: 260,
-          ),
+                offset: Offset(-36, -160),
+                size: 320,
+                opacity: 0.7,
+                angle: -0.55,
+                thickness: 0.36,
+              ),
+              GlowSpec(
+                alignment: Alignment.topRight,
+                offset: Offset(140, -60),
+                size: 260,
+                opacity: 0.36,
+                angle: 0.48,
+                thickness: 0.32,
+              ),
               GlowSpec(
                 alignment: Alignment.bottomRight,
-                offset: Offset(60, 180),
-                size: 340,
-                opacity: 0.7,
+                offset: Offset(72, 200),
+                size: 420,
+                opacity: 0.82,
+                angle: -0.2,
+                thickness: 0.4,
               ),
             ];
 
@@ -109,7 +126,11 @@ class AppShell extends StatelessWidget {
                             : Colors.white.withOpacity(0.04),
                       ),
                     ),
-                    _GlowLayer(glowColor: palette.glowColor, specs: glowSpecs),
+                    _GlowLayer(
+                      glowColor: palette.glowColor,
+                      specs: glowSpecs,
+                      isDark: palette.isDark,
+                    ),
                     content,
                   ],
                 ),
@@ -125,8 +146,13 @@ class AppShell extends StatelessWidget {
 class _GlowLayer extends StatelessWidget {
   final Color glowColor;
   final List<GlowSpec> specs;
+  final bool isDark;
 
-  const _GlowLayer({required this.glowColor, required this.specs});
+  const _GlowLayer({
+    required this.glowColor,
+    required this.specs,
+    required this.isDark,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -139,23 +165,87 @@ class _GlowLayer extends StatelessWidget {
                 alignment: spec.alignment,
                 child: Transform.translate(
                   offset: spec.offset,
-                  child: Container(
-                    width: spec.size,
-                    height: spec.size,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: RadialGradient(
-                        colors: [
-                          glowColor.withOpacity(spec.opacity),
-                          Colors.transparent,
-                        ],
-                      ),
-                    ),
+                  child: _AuroraBand(
+                    color: glowColor,
+                    width: spec.size * 1.35,
+                    height: spec.size * spec.thickness,
+                    angle: spec.angle,
+                    opacity: spec.opacity,
+                    isDark: isDark,
                   ),
                 ),
               ),
             )
             .toList(),
+      ),
+    );
+  }
+}
+
+class _AuroraBand extends StatelessWidget {
+  final Color color;
+  final double width;
+  final double height;
+  final double angle;
+  final double opacity;
+  final bool isDark;
+
+  const _AuroraBand({
+    required this.color,
+    required this.width,
+    required this.height,
+    required this.angle,
+    required this.opacity,
+    required this.isDark,
+  });
+
+  Color _tint(Color target, double amount) {
+    final blendWith = isDark ? Colors.white : Colors.black;
+    return Color.lerp(target, blendWith, amount)!;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final halo = _tint(color, 0.18);
+    final highlight = _tint(color, isDark ? 0.52 : 0.68);
+    final depth = _tint(color, isDark ? 0.22 : 0.16);
+
+    return Transform.rotate(
+      angle: angle,
+      child: ImageFiltered(
+        imageFilter: ImageFilter.blur(
+          sigmaX: height * 0.9,
+          sigmaY: height * 0.9,
+        ),
+        child: Container(
+          width: width,
+          height: height,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(height),
+            gradient: LinearGradient(
+              begin: const Alignment(-1.2, 0.8),
+              end: const Alignment(1.1, -0.6),
+              colors: [
+                highlight.withOpacity(opacity * 0.6),
+                color.withOpacity(opacity * 0.18),
+                depth.withOpacity(opacity * 0.6),
+                halo.withOpacity(opacity * 0.2),
+              ],
+              stops: const [0.0, 0.38, 0.78, 1.0],
+            ),
+          ),
+          foregroundDecoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(height),
+            gradient: LinearGradient(
+              begin: const Alignment(-0.8, -1.2),
+              end: const Alignment(0.8, 1.0),
+              colors: [
+                Colors.white.withOpacity(opacity * (isDark ? 0.14 : 0.1)),
+                Colors.transparent,
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

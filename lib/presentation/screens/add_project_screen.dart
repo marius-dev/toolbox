@@ -12,6 +12,7 @@ import '../../domain/models/tool.dart';
 import '../providers/project_provider.dart';
 import '../providers/tools_provider.dart';
 import '../widgets/app_shell.dart';
+import '../widgets/glass_action_button.dart';
 import '../widgets/glass_button.dart';
 import '../widgets/glass_panel.dart';
 import '../widgets/tool_icon.dart';
@@ -298,7 +299,8 @@ class _AddProjectScreenState extends State<AddProjectScreen>
   }
 
   Widget _buildBottomBar(BuildContext context, Duration duration, Curve curve) {
-    final accentColor = ThemeProvider.instance.accentColor;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bottomColor = isDark ? Colors.black.withOpacity(0.42) : null;
 
     return GlassPanel(
       duration: duration,
@@ -307,13 +309,13 @@ class _AddProjectScreenState extends State<AddProjectScreen>
         horizontal: CompactLayout.value(context, 18),
         vertical: CompactLayout.value(context, 14),
       ),
-      borderRadius: BorderRadius.vertical(
-        top: Radius.circular(CompactLayout.value(context, 20)),
-      ),
+      borderRadius: BorderRadius.zero,
       margin: EdgeInsets.zero,
+      backgroundColor: bottomColor,
+      isTransparent: true,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.end,
-        children: [_buildSaveActionButton(context, accentColor)],
+        children: [_buildSaveActionButton(context)],
       ),
     );
   }
@@ -546,67 +548,14 @@ class _AddProjectScreenState extends State<AddProjectScreen>
     );
   }
 
-  Widget _buildSaveActionButton(BuildContext context, Color accentColor) {
+  Widget _buildSaveActionButton(BuildContext context) {
     final isEnabled = _canSave;
-    final isBusy = _isSaving;
-    final showActive = isEnabled || isBusy;
-    final gradientColors = showActive
-        ? [accentColor.withOpacity(0.95), accentColor.withOpacity(0.85)]
-        : [accentColor.withOpacity(0.45), accentColor.withOpacity(0.65)];
-    final borderColor = showActive
-        ? Colors.white.withOpacity(0.5)
-        : Colors.white.withOpacity(0.2);
 
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: isEnabled ? _save : null,
-        borderRadius: BorderRadius.circular(CompactLayout.value(context, 14)),
-        child: Ink(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: gradientColors,
-            ),
-            borderRadius: BorderRadius.circular(
-              CompactLayout.value(context, 14),
-            ),
-            border: Border.all(color: borderColor),
-            boxShadow: showActive
-                ? [
-                    BoxShadow(
-                      color: accentColor.withOpacity(0.35),
-                      blurRadius: 20,
-                      offset: const Offset(0, 10),
-                    ),
-                  ]
-                : [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.25),
-                      blurRadius: 12,
-                      offset: const Offset(0, 6),
-                    ),
-                  ],
-          ),
-          padding: EdgeInsets.symmetric(
-            horizontal: CompactLayout.value(context, 20),
-            vertical: CompactLayout.value(context, 14),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                'Save',
-                style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
+    return GlassActionButton(
+      label: _isSaving ? 'Saving…' : 'Save',
+      icon: _isSaving ? Icons.hourglass_top_rounded : Icons.check_rounded,
+      onPressed: isEnabled ? _save : null,
+      primary: true,
     );
   }
 }
