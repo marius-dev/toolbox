@@ -174,8 +174,8 @@ class _ProjectDialogState extends State<ProjectDialog> {
           SizedBox(height: CompactLayout.value(context, 4)),
           Text(
             isEditing
-                ? 'Adjust the metadata for this workspace'
-                : 'Follow the quick steps to configure your new workspace',
+                ? 'Adjust the metadata for this project'
+                : 'Follow the quick steps to configure your new project',
             style: theme.textTheme.bodySmall!.copyWith(
               color: theme.textTheme.bodySmall!.color!.withOpacity(0.8),
             ),

@@ -6,6 +6,7 @@ class Project {
   final String id;
   final String name;
   final String path;
+  final String? workspaceId;
   final bool isStarred;
   final DateTime lastOpened;
   final DateTime createdAt;
@@ -15,6 +16,7 @@ class Project {
     required this.id,
     required this.name,
     required this.path,
+    this.workspaceId,
     this.isStarred = false,
     required this.lastOpened,
     required this.createdAt,
@@ -27,6 +29,7 @@ class Project {
     String? id,
     String? name,
     String? path,
+    String? workspaceId,
     bool? isStarred,
     DateTime? lastOpened,
     DateTime? createdAt,
@@ -36,6 +39,7 @@ class Project {
       id: id ?? this.id,
       name: name ?? this.name,
       path: path ?? this.path,
+      workspaceId: workspaceId ?? this.workspaceId,
       isStarred: isStarred ?? this.isStarred,
       lastOpened: lastOpened ?? this.lastOpened,
       createdAt: createdAt ?? this.createdAt,
@@ -47,6 +51,7 @@ class Project {
     'id': id,
     'name': name,
     'path': path,
+    'workspaceId': workspaceId,
     'isStarred': isStarred,
     'lastOpened': lastOpened.toIso8601String(),
     'createdAt': createdAt.toIso8601String(),
@@ -76,6 +81,7 @@ class Project {
       id: json['id'],
       name: json['name'],
       path: json['path'],
+      workspaceId: json['workspaceId'],
       isStarred: json['isStarred'] ?? false,
       lastOpened: lastOpened,
       createdAt: createdAt,
@@ -91,6 +97,7 @@ class Project {
   static Project create({
     required String name,
     required String path,
+    required String workspaceId,
     ToolId? preferredToolId,
   }) {
     final now = DateTime.now();
@@ -98,6 +105,7 @@ class Project {
       id: now.millisecondsSinceEpoch.toString(),
       name: name,
       path: path,
+      workspaceId: workspaceId,
       lastOpened: now,
       createdAt: now,
       lastUsedToolId: preferredToolId,

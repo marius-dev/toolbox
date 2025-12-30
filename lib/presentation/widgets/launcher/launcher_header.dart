@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../core/theme/theme_provider.dart';
 import '../../../core/utils/compact_layout.dart';
+import '../../../domain/models/workspace.dart';
 import 'launcher_tab_bar.dart';
 
 part 'launcher_header_buttons.dart';
@@ -10,16 +11,24 @@ class LauncherHeader extends StatelessWidget {
   final LauncherTab selectedTab;
   final ValueChanged<LauncherTab> onTabSelected;
   final VoidCallback onSettingsPressed;
-  final bool isSyncing;
   final bool hasSyncErrors;
+  final List<Workspace> workspaces;
+  final Workspace? selectedWorkspace;
+  final bool isWorkspaceLoading;
+  final ValueChanged<String> onWorkspaceSelected;
+  final VoidCallback onManageWorkspaces;
 
   const LauncherHeader({
     super.key,
     required this.selectedTab,
     required this.onTabSelected,
     required this.onSettingsPressed,
-    this.isSyncing = false,
     this.hasSyncErrors = false,
+    required this.workspaces,
+    required this.selectedWorkspace,
+    required this.isWorkspaceLoading,
+    required this.onWorkspaceSelected,
+    required this.onManageWorkspaces,
   });
 
   @override
@@ -52,12 +61,12 @@ class LauncherHeader extends StatelessWidget {
                       ),
                     ),
                   ),
-                  _StatusIcon(
-                    tooltip: isSyncing
-                        ? 'Syncing projects'
-                        : 'All workspaces up to date',
-                    icon: isSyncing ? Icons.sync_rounded : Icons.cloud_done,
-                    isActive: isSyncing,
+                  _WorkspaceSelector(
+                    workspaces: workspaces,
+                    selectedWorkspace: selectedWorkspace,
+                    isLoading: isWorkspaceLoading,
+                    onSelect: onWorkspaceSelected,
+                    onManage: onManageWorkspaces,
                   ),
                   SizedBox(width: CompactLayout.value(context, 6)),
                   _StatusIcon(
@@ -85,7 +94,7 @@ class LauncherHeader extends StatelessWidget {
               SizedBox(height: CompactLayout.value(context, 2)),
               Text(
                 selectedTab == LauncherTab.projects
-                    ? 'Search and open workspaces instantly'
+                    ? 'Search and open projects instantly'
                     : 'Manage your preferred editors and utilities',
                 style: textTheme.bodySmall!.copyWith(color: labelColor),
               ),

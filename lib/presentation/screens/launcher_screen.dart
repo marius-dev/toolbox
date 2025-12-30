@@ -5,11 +5,14 @@ import 'package:flutter/services.dart';
 import 'package:project_launcher/domain/models/project.dart';
 import 'package:project_launcher/presentation/screens/add_project_screen.dart';
 import 'package:project_launcher/presentation/screens/settings_screen.dart';
+import 'package:project_launcher/presentation/screens/workspaces_screen.dart';
 import 'package:project_launcher/presentation/widgets/project_dialog.dart';
+import 'package:project_launcher/presentation/widgets/workspace_dialog.dart';
 import 'package:window_manager/window_manager.dart';
 
 import '../providers/project_provider.dart';
 import '../providers/tools_provider.dart';
+import '../providers/workspace_provider.dart';
 import '../widgets/empty_state.dart';
 import '../widgets/launcher/launcher_header.dart';
 import '../widgets/launcher/launcher_search_bar.dart';
@@ -31,6 +34,7 @@ class LauncherScreen extends StatefulWidget {
 class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
   late final ProjectProvider _projectProvider;
   late final ToolsProvider _toolsProvider;
+  late final WorkspaceProvider _workspaceProvider;
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
   final FocusNode _projectListFocusNode = FocusNode();
@@ -42,7 +46,8 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
     super.initState();
     _projectProvider = ProjectProvider.create();
     _toolsProvider = ToolsProvider.create();
-    _projectProvider.loadProjects();
+    _workspaceProvider = WorkspaceProvider.create();
+    _initializeData();
     _toolsProvider.loadTools();
     windowManager.addListener(this);
     RawKeyboard.instance.addListener(_handleRawKeyEvent);
@@ -57,7 +62,16 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
     _projectListFocusNode.dispose();
     _projectProvider.dispose();
     _toolsProvider.dispose();
+    _workspaceProvider.dispose();
     super.dispose();
+  }
+
+  Future<void> _initializeData() async {
+    await _workspaceProvider.loadWorkspaces();
+    if (!mounted) return;
+    final workspaceId = _workspaceProvider.selectedWorkspaceId;
+    _projectProvider.setWorkspaceId(workspaceId);
+    await _projectProvider.loadProjects(fallbackWorkspaceId: workspaceId);
   }
 
   @override
@@ -118,6 +132,8 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
   }
 
   void _handleRawKeyEvent(RawKeyEvent event) {
+    final route = ModalRoute.of(context);
+    if (route == null || !route.isCurrent) return;
     if (event is! RawKeyDownEvent) return;
     if (_showSettings || _selectedTab != LauncherTab.projects) return;
     final hasModifiers =
@@ -243,13 +259,13 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
 
   Widget _buildMainView() {
     return AnimatedBuilder(
-      animation: Listenable.merge([_projectProvider, _toolsProvider]),
+      animation: Listenable.merge(
+        [_projectProvider, _toolsProvider, _workspaceProvider],
+      ),
       builder: (context, _) {
         final hasMissingPaths = _projectProvider.projects.any(
           (project) => !project.pathExists,
         );
-        final isSyncing =
-            _projectProvider.isLoading || _toolsProvider.isLoading;
 
         return Column(
           children: [
@@ -266,8 +282,15 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
                 }
               },
               onSettingsPressed: _toggleSettings,
-              isSyncing: isSyncing,
               hasSyncErrors: hasMissingPaths,
+              workspaces: _workspaceProvider.workspaces,
+              selectedWorkspace: _workspaceProvider.selectedWorkspace,
+              isWorkspaceLoading: _workspaceProvider.isLoading,
+              onWorkspaceSelected: (workspaceId) async {
+                await _workspaceProvider.setSelectedWorkspace(workspaceId);
+                _projectProvider.setWorkspaceId(workspaceId);
+              },
+              onManageWorkspaces: _openWorkspacesScreen,
             ),
             if (_selectedTab == LauncherTab.projects)
               ..._buildProjectsArea(context)
@@ -296,16 +319,21 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
 
   Future<void> _openAddProjectScreen() async {
     _dismissPopupMenus();
+    final workspaceId = _workspaceProvider.selectedWorkspaceId;
+    if (workspaceId == null || workspaceId.isEmpty) {
+      _showMessage('Workspace not ready');
+      return;
+    }
     final created = await Navigator.of(
       context,
-    ).push<bool>(_buildAddProjectRoute());
+    ).push<bool>(_buildAddProjectRoute(workspaceId));
     if (!mounted) return;
     if (created == true) {
       WidgetsBinding.instance.addPostFrameCallback((_) => _focusSearchField());
     }
   }
 
-  PageRouteBuilder<bool> _buildAddProjectRoute() {
+  PageRouteBuilder<bool> _buildAddProjectRoute(String workspaceId) {
     return PageRouteBuilder<bool>(
       transitionDuration: const Duration(milliseconds: 420),
       reverseTransitionDuration: const Duration(milliseconds: 320),
@@ -313,6 +341,7 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
         final child = AddProjectScreen(
           projectProvider: _projectProvider,
           toolsProvider: _toolsProvider,
+          workspaceId: workspaceId,
         );
         final media = MediaQuery.of(context);
         if (media.disableAnimations || media.accessibleNavigation) {
@@ -342,18 +371,67 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
     _showUnavailableAction('Import from Git');
   }
 
-  void _handleCreateWorkspace() {
-    _showUnavailableAction('Create workspace');
+  Future<void> _handleCreateWorkspace() async {
+    if (!mounted) return;
+    final name = await showDialog<String>(
+      context: context,
+      builder: (context) => const WorkspaceDialog(),
+    );
+    final trimmed = name?.trim();
+    if (trimmed == null || trimmed.isEmpty) return;
+    await _workspaceProvider.createWorkspace(trimmed);
+  }
+
+  Future<void> _openWorkspacesScreen() async {
+    _dismissPopupMenus();
+    await Navigator.of(context).push<bool>(_buildWorkspacesRoute());
+  }
+
+  PageRouteBuilder<bool> _buildWorkspacesRoute() {
+    return PageRouteBuilder<bool>(
+      transitionDuration: const Duration(milliseconds: 420),
+      reverseTransitionDuration: const Duration(milliseconds: 320),
+      pageBuilder: (context, animation, secondaryAnimation) {
+        final child = WorkspacesScreen(
+          workspaceProvider: _workspaceProvider,
+          projectProvider: _projectProvider,
+        );
+        final media = MediaQuery.of(context);
+        if (media.disableAnimations || media.accessibleNavigation) {
+          return child;
+        }
+
+        final curved = CurvedAnimation(
+          parent: animation,
+          curve: Curves.easeOutCubic,
+        );
+
+        return FadeTransition(
+          opacity: curved,
+          child: SlideTransition(
+            position: Tween<Offset>(
+              begin: const Offset(0, 0.04),
+              end: Offset.zero,
+            ).animate(curved),
+            child: child,
+          ),
+        );
+      },
+    );
   }
 
   void _showUnavailableAction(String label) {
+    _showMessage('$label is not available yet');
+  }
+
+  void _showMessage(String message) {
     if (!mounted) return;
     final messenger = ScaffoldMessenger.of(context);
     messenger
       ..hideCurrentSnackBar()
       ..showSnackBar(
         SnackBar(
-          content: Text('$label is not available yet'),
+          content: Text(message),
           duration: const Duration(seconds: 2),
         ),
       );
@@ -398,6 +476,9 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
         child: AnimatedBuilder(
           animation: Listenable.merge([_projectProvider, _toolsProvider]),
           builder: (context, _) {
+            if (_workspaceProvider.isLoading) {
+              return const Center(child: CircularProgressIndicator());
+            }
             if (_projectProvider.isLoading) {
               return const Center(child: CircularProgressIndicator());
             }

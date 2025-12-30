@@ -20,11 +20,13 @@ import '../widgets/tool_icon.dart';
 class AddProjectScreen extends StatefulWidget {
   final ProjectProvider projectProvider;
   final ToolsProvider toolsProvider;
+  final String workspaceId;
 
   const AddProjectScreen({
     super.key,
     required this.projectProvider,
     required this.toolsProvider,
+    required this.workspaceId,
   });
 
   @override
@@ -180,6 +182,7 @@ class _AddProjectScreenState extends State<AddProjectScreen>
       name: _nameController.text.trim(),
       path: _pathController.text.trim(),
       preferredToolId: preferredToolId,
+      workspaceId: widget.workspaceId,
     );
 
     if (!mounted) return;

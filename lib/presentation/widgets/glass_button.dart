@@ -8,6 +8,8 @@ class GlassButton extends StatelessWidget {
   final VoidCallback onPressed;
   final double size;
   final String? tooltip;
+  final Color? tintColor;
+  final Color? iconColor;
 
   const GlassButton({
     super.key,
@@ -15,24 +17,36 @@ class GlassButton extends StatelessWidget {
     required this.onPressed,
     this.size = 32,
     this.tooltip,
+    this.tintColor,
+    this.iconColor,
   });
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final accent = ThemeProvider.instance.accentColor;
+    final accent = tintColor ?? ThemeProvider.instance.accentColor;
     final baseColor = isDark
         ? Colors.white.withOpacity(0.05)
         : Colors.black.withOpacity(0.02);
     final highlight = isDark
         ? accent.withOpacity(0.18)
         : accent.withOpacity(0.08);
-    final borderColor = isDark
+    final baseBorder = isDark
         ? Colors.white.withOpacity(0.1)
         : Colors.black.withOpacity(0.08);
-    final iconColor = isDark
+    final borderColor = tintColor == null
+        ? baseBorder
+        : Color.alphaBlend(
+            accent.withOpacity(isDark ? 0.25 : 0.18),
+            baseBorder,
+          );
+    final defaultIconColor = isDark
         ? Colors.white.withOpacity(0.9)
         : Colors.black.withOpacity(0.65);
+    final resolvedIconColor = iconColor ??
+        (tintColor == null
+            ? defaultIconColor
+            : accent.withOpacity(isDark ? 0.95 : 0.85));
 
     final resolvedSize = CompactLayout.value(context, size);
     final button = Material(
@@ -63,7 +77,7 @@ class GlassButton extends StatelessWidget {
           ),
           child: Icon(
             icon,
-            color: iconColor,
+            color: resolvedIconColor,
             size: CompactLayout.value(context, 14),
           ),
         ),

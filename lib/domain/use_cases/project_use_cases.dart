@@ -14,11 +14,13 @@ class ProjectUseCases {
   Future<void> addProject({
     required String name,
     required String path,
+    required String workspaceId,
     ToolId? preferredToolId,
   }) async {
     final project = Project.create(
       name: name,
       path: path,
+      workspaceId: workspaceId,
       preferredToolId: preferredToolId,
     );
     await _repository.addProject(project);

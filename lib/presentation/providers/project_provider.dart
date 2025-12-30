@@ -13,6 +13,7 @@ class ProjectProvider extends ChangeNotifier {
   String _searchQuery = '';
   SortOption _sortOption = SortOption.recent;
   bool _isLoading = false;
+  String? _selectedWorkspaceId;
 
   ProjectProvider(this._useCases);
 
@@ -26,19 +27,29 @@ class ProjectProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
   bool get hasProjects => _filteredProjects.isNotEmpty;
   String get searchQuery => _searchQuery;
+  String? get selectedWorkspaceId => _selectedWorkspaceId;
 
   // Methods
-  Future<void> loadProjects() async {
+  Future<void> loadProjects({String? fallbackWorkspaceId}) async {
     _isLoading = true;
     notifyListeners();
 
     try {
       _projects = await _useCases.getAllProjects();
+      await _assignMissingWorkspaces(
+        fallbackWorkspaceId ?? _selectedWorkspaceId,
+      );
       _applyFiltersAndSort();
     } finally {
       _isLoading = false;
       notifyListeners();
     }
+  }
+
+  void setWorkspaceId(String? workspaceId) {
+    if (_selectedWorkspaceId == workspaceId) return;
+    _selectedWorkspaceId = workspaceId;
+    _applyFiltersAndSort();
   }
 
   void setSearchQuery(String query) {
@@ -55,13 +66,23 @@ class ProjectProvider extends ChangeNotifier {
     required String name,
     required String path,
     ToolId? preferredToolId,
+    String? workspaceId,
   }) async {
+    final resolvedWorkspaceId = workspaceId ?? _selectedWorkspaceId;
+    assert(
+      resolvedWorkspaceId != null && resolvedWorkspaceId.isNotEmpty,
+      'Workspace must be selected before adding a project.',
+    );
+    if (resolvedWorkspaceId == null || resolvedWorkspaceId.isEmpty) {
+      return;
+    }
     await _useCases.addProject(
       name: name,
       path: path,
       preferredToolId: preferredToolId,
+      workspaceId: resolvedWorkspaceId,
     );
-    await loadProjects();
+    await loadProjects(fallbackWorkspaceId: resolvedWorkspaceId);
   }
 
   Future<void> updateProject(Project project) async {
@@ -116,10 +137,46 @@ class ProjectProvider extends ChangeNotifier {
     await loadProjects();
   }
 
+  Future<void> reassignWorkspace({
+    required String fromWorkspaceId,
+    required String toWorkspaceId,
+  }) async {
+    if (fromWorkspaceId == toWorkspaceId) return;
+    final updates = _projects
+        .where((project) => project.workspaceId == fromWorkspaceId)
+        .map((project) => project.copyWith(workspaceId: toWorkspaceId))
+        .toList();
+    for (final project in updates) {
+      await _useCases.updateProject(project);
+    }
+    await loadProjects(fallbackWorkspaceId: toWorkspaceId);
+  }
+
   void _applyFiltersAndSort() {
-    var filtered = _useCases.filterProjects(_projects, _searchQuery);
+    var filtered = _projects;
+    if (_selectedWorkspaceId != null && _selectedWorkspaceId!.isNotEmpty) {
+      filtered = filtered
+          .where((project) => project.workspaceId == _selectedWorkspaceId)
+          .toList();
+    }
+    filtered = _useCases.filterProjects(filtered, _searchQuery);
     filtered = _useCases.sortProjects(filtered, _sortOption);
     _filteredProjects = filtered;
     notifyListeners();
+  }
+
+  Future<void> _assignMissingWorkspaces(String? workspaceId) async {
+    if (workspaceId == null || workspaceId.isEmpty) return;
+    final updates = _projects
+        .where((project) =>
+            project.workspaceId == null || project.workspaceId!.isEmpty)
+        .map((project) => project.copyWith(workspaceId: workspaceId))
+        .toList();
+    for (final project in updates) {
+      await _useCases.updateProject(project);
+    }
+    if (updates.isNotEmpty) {
+      _projects = await _useCases.getAllProjects();
+    }
   }
 }

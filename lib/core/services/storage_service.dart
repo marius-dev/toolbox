@@ -20,6 +20,11 @@ class StorageService {
     return File('$path/projects.json');
   }
 
+  Future<File> get _workspacesFile async {
+    final path = await _localPath;
+    return File('$path/workspaces.json');
+  }
+
   Future<File> get _preferencesFile async {
     final path = await _localPath;
     return File('$path/preferences.json');
@@ -71,6 +76,30 @@ class StorageService {
       await file.writeAsString(json.encode(projects));
     } catch (e) {
       debugPrint('Error saving projects: $e');
+    }
+  }
+
+  // Workspace operations
+  Future<List<Map<String, dynamic>>> loadWorkspaces() async {
+    try {
+      final file = await _workspacesFile;
+      if (await file.exists()) {
+        final contents = await file.readAsString();
+        return List<Map<String, dynamic>>.from(json.decode(contents));
+      }
+      return [];
+    } catch (e) {
+      debugPrint('Error loading workspaces: $e');
+      return [];
+    }
+  }
+
+  Future<void> saveWorkspaces(List<Map<String, dynamic>> workspaces) async {
+    try {
+      final file = await _workspacesFile;
+      await file.writeAsString(json.encode(workspaces));
+    } catch (e) {
+      debugPrint('Error saving workspaces: $e');
     }
   }
 
@@ -165,6 +194,26 @@ class StorageService {
       prefs.remove('defaultToolId');
     } else {
       prefs['defaultToolId'] = toolId;
+    }
+    await _writePreferences(prefs);
+  }
+
+  // Selected workspace preference
+  Future<String?> getSelectedWorkspaceId() async {
+    final prefs = await _readPreferences();
+    final id = prefs['selectedWorkspaceId'];
+    if (id is String && id.isNotEmpty) {
+      return id;
+    }
+    return null;
+  }
+
+  Future<void> saveSelectedWorkspaceId(String? workspaceId) async {
+    final prefs = await _readPreferences();
+    if (workspaceId == null || workspaceId.isEmpty) {
+      prefs.remove('selectedWorkspaceId');
+    } else {
+      prefs['selectedWorkspaceId'] = workspaceId;
     }
     await _writePreferences(prefs);
   }
