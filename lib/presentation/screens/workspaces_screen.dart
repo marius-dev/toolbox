@@ -1,10 +1,16 @@
+import 'dart:convert';
+import 'dart:io';
 import 'dart:ui';
 
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 
+import '../../core/services/window_service.dart';
 import '../../core/theme/glass_style.dart';
 import '../../core/theme/theme_provider.dart';
 import '../../core/utils/compact_layout.dart';
+import '../../domain/models/project.dart';
+import '../../domain/models/tool.dart';
 import '../../domain/models/workspace.dart';
 import '../providers/project_provider.dart';
 import '../providers/workspace_provider.dart';
@@ -29,6 +35,8 @@ class WorkspacesScreen extends StatefulWidget {
 
 class _WorkspacesScreenState extends State<WorkspacesScreen>
     with SingleTickerProviderStateMixin {
+  static const int _workspaceExportVersion = 1;
+
   late final AnimationController _introController;
   final ScrollController _scrollController = ScrollController();
 
@@ -114,6 +122,195 @@ class _WorkspacesScreenState extends State<WorkspacesScreen>
   Future<void> _selectWorkspace(Workspace workspace) async {
     await widget.workspaceProvider.setSelectedWorkspace(workspace.id);
     widget.projectProvider.setWorkspaceId(workspace.id);
+  }
+
+  Future<void> _exportWorkspace(Workspace workspace) async {
+    final projects = widget.projectProvider.allProjects
+        .where((project) => project.workspaceId == workspace.id)
+        .toList();
+    final payload = {
+      'version': _workspaceExportVersion,
+      'workspace': workspace.toJson(),
+      'projects': projects.map((project) => project.toJson()).toList(),
+    };
+
+    final suggestedName = '${_sanitizeFileName(workspace.name)}.json';
+    final outputPath = await WindowService.instance.runWithAutoHideSuppressed(
+      () => FilePicker.platform.saveFile(
+        dialogTitle: 'Export workspace',
+        fileName: suggestedName,
+        type: FileType.custom,
+        allowedExtensions: const ['json'],
+      ),
+    );
+    if (outputPath == null || outputPath.isEmpty) return;
+
+    final resolvedPath = outputPath.toLowerCase().endsWith('.json')
+        ? outputPath
+        : '$outputPath.json';
+    try {
+      final encoder = const JsonEncoder.withIndent('  ');
+      await File(resolvedPath).writeAsString(encoder.convert(payload));
+    } catch (_) {
+      _showMessage('Failed to export workspace');
+      return;
+    }
+
+    _showMessage('Exported ${workspace.name}');
+  }
+
+  Future<void> _importWorkspace() async {
+    final result = await WindowService.instance.runWithAutoHideSuppressed(
+      () => FilePicker.platform.pickFiles(
+        dialogTitle: 'Import workspace',
+        type: FileType.custom,
+        allowedExtensions: const ['json'],
+      ),
+    );
+    if (result == null || result.files.isEmpty) return;
+    final selectedPath = result.files.single.path;
+    if (selectedPath == null || selectedPath.isEmpty) return;
+
+    final contents = await _readJsonFile(selectedPath);
+    if (contents == null) {
+      _showMessage('Unable to read workspace file');
+      return;
+    }
+
+    final decoded = _decodeJson(contents);
+    if (decoded == null) {
+      _showMessage('Invalid workspace file');
+      return;
+    }
+
+    final workspaceName = _extractWorkspaceName(decoded);
+    if (workspaceName == null || workspaceName.trim().isEmpty) {
+      _showMessage('Workspace file is missing a name');
+      return;
+    }
+
+    final createdWorkspace =
+        await widget.workspaceProvider.createWorkspace(workspaceName.trim());
+
+    final projects = _parseProjects(decoded);
+    final importedCount = await widget.projectProvider.importProjects(
+      workspaceId: createdWorkspace.id,
+      projects: projects,
+    );
+
+    if (!mounted) return;
+    await widget.workspaceProvider.setSelectedWorkspace(createdWorkspace.id);
+    widget.projectProvider.setWorkspaceId(createdWorkspace.id);
+
+    final suffix =
+        importedCount == 1 ? '1 project' : '$importedCount projects';
+    final message = importedCount > 0
+        ? 'Imported ${createdWorkspace.name} ($suffix)'
+        : 'Imported ${createdWorkspace.name}';
+    _showMessage(message);
+  }
+
+  String _sanitizeFileName(String name) {
+    final trimmed = name.trim();
+    if (trimmed.isEmpty) return 'workspace';
+    return trimmed.replaceAll(RegExp(r'[\\/:*?"<>|]'), '_');
+  }
+
+  Future<String?> _readJsonFile(String path) async {
+    try {
+      return await File(path).readAsString();
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Map<String, dynamic>? _decodeJson(String contents) {
+    try {
+      final decoded = json.decode(contents);
+      if (decoded is Map) {
+        return Map<String, dynamic>.from(decoded);
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  String? _extractWorkspaceName(Map<String, dynamic> decoded) {
+    final workspaceJson = _mapFromJson(decoded['workspace']);
+    final name = workspaceJson?['name'] ?? decoded['name'];
+    return name is String ? name : null;
+  }
+
+  List<Project> _parseProjects(Map<String, dynamic> decoded) {
+    final raw = decoded['projects'];
+    if (raw is! List) return [];
+    final projects = <Project>[];
+    for (final entry in raw) {
+      final jsonMap = _mapFromJson(entry);
+      if (jsonMap == null) continue;
+      final parsed = _projectFromJson(jsonMap);
+      if (parsed != null) {
+        projects.add(parsed);
+      }
+    }
+    return projects;
+  }
+
+  Map<String, dynamic>? _mapFromJson(dynamic value) {
+    if (value is Map<String, dynamic>) return value;
+    if (value is Map) {
+      return Map<String, dynamic>.from(value);
+    }
+    return null;
+  }
+
+  Project? _projectFromJson(Map<String, dynamic> json) {
+    final name = json['name'];
+    final path = json['path'];
+    if (name is! String || name.trim().isEmpty) return null;
+    if (path is! String || path.trim().isEmpty) return null;
+
+    final now = DateTime.now();
+    final createdAt = _parseDate(
+      json['createdAt'],
+      fallback: _parseDate(json['lastOpened'], fallback: now),
+    );
+    final lastOpened = _parseDate(json['lastOpened'], fallback: createdAt);
+
+    final idValue = json['id'];
+    final id = idValue is String && idValue.isNotEmpty
+        ? idValue
+        : now.millisecondsSinceEpoch.toString();
+
+    ToolId? lastUsedToolId;
+    final toolValue = json['lastUsedToolId'];
+    if (toolValue is String && toolValue.isNotEmpty) {
+      try {
+        lastUsedToolId =
+            ToolId.values.firstWhere((tool) => tool.name == toolValue);
+      } catch (_) {}
+    }
+
+    return Project(
+      id: id,
+      name: name.trim(),
+      path: path.trim(),
+      workspaceId: json['workspaceId'] is String
+          ? json['workspaceId'] as String
+          : null,
+      isStarred: json['isStarred'] == true,
+      lastOpened: lastOpened,
+      createdAt: createdAt,
+      lastUsedToolId: lastUsedToolId,
+    );
+  }
+
+  DateTime _parseDate(dynamic value, {required DateTime fallback}) {
+    if (value is String && value.isNotEmpty) {
+      try {
+        return DateTime.parse(value);
+      } catch (_) {}
+    }
+    return fallback;
   }
 
   void _showMessage(String message) {
@@ -332,6 +529,7 @@ class _WorkspacesScreenState extends State<WorkspacesScreen>
                     return _WorkspaceRow(
                       workspace: workspace,
                       isSelected: workspace.id == selectedId,
+                      onExport: _exportWorkspace,
                       onRename: _renameWorkspace,
                       onDelete: _deleteWorkspace,
                       onSelect: _selectWorkspace,
@@ -364,7 +562,41 @@ class _WorkspacesScreenState extends State<WorkspacesScreen>
       margin: EdgeInsets.zero,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.end,
-        children: [_buildCreateButton(context)],
+        children: [_buildActionGroup(context)],
+      ),
+    );
+  }
+
+  Widget _buildActionGroup(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _buildImportButton(context),
+        SizedBox(width: CompactLayout.value(context, 10)),
+        _buildCreateButton(context),
+      ],
+    );
+  }
+
+  Widget _buildImportButton(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final accentColor = ThemeProvider.instance.accentColor;
+    final foreground = isDark ? Colors.white : accentColor;
+
+    return OutlinedButton.icon(
+      onPressed: _importWorkspace,
+      icon: const Icon(Icons.upload_file_rounded),
+      label: const Text('Import'),
+      style: OutlinedButton.styleFrom(
+        foregroundColor: foreground,
+        side: BorderSide(color: foreground),
+        padding: EdgeInsets.symmetric(
+          horizontal: CompactLayout.value(context, 16),
+          vertical: CompactLayout.value(context, 10),
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(CompactLayout.value(context, 12)),
+        ),
       ),
     );
   }
@@ -375,7 +607,7 @@ class _WorkspacesScreenState extends State<WorkspacesScreen>
     return ElevatedButton.icon(
       onPressed: _createWorkspace,
       icon: const Icon(Icons.add_rounded),
-      label: const Text('Add workspace'),
+      label: const Text('Create'),
       style: ElevatedButton.styleFrom(
         backgroundColor: accentColor,
         foregroundColor: Colors.white,
@@ -394,6 +626,7 @@ class _WorkspacesScreenState extends State<WorkspacesScreen>
 class _WorkspaceRow extends StatefulWidget {
   final Workspace workspace;
   final bool isSelected;
+  final Future<void> Function(Workspace) onExport;
   final Future<void> Function(Workspace) onRename;
   final Future<void> Function(Workspace) onDelete;
   final Future<void> Function(Workspace) onSelect;
@@ -401,6 +634,7 @@ class _WorkspaceRow extends StatefulWidget {
   const _WorkspaceRow({
     required this.workspace,
     required this.isSelected,
+    required this.onExport,
     required this.onRename,
     required this.onDelete,
     required this.onSelect,
@@ -489,10 +723,10 @@ class _WorkspaceRowState extends State<_WorkspaceRow> {
                     ],
                   ),
                 ),
-                if (!workspace.isDefault)
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (!workspace.isDefault)
                       GlassButton(
                         icon: Icons.edit_rounded,
                         tooltip: 'Rename workspace',
@@ -501,7 +735,19 @@ class _WorkspaceRowState extends State<_WorkspaceRow> {
                           widget.onRename(workspace);
                         },
                       ),
+                    if (!workspace.isDefault)
                       SizedBox(width: CompactLayout.value(context, 8)),
+                    GlassButton(
+                      icon: Icons.download_rounded,
+                      tooltip: 'Export workspace',
+                      tintColor: ThemeProvider.instance.accentColor,
+                      onPressed: () {
+                        widget.onExport(workspace);
+                      },
+                    ),
+                    if (!workspace.isDefault)
+                      SizedBox(width: CompactLayout.value(context, 8)),
+                    if (!workspace.isDefault)
                       GlassButton(
                         icon: Icons.delete_outline_rounded,
                         tooltip: 'Remove workspace',
@@ -510,8 +756,8 @@ class _WorkspaceRowState extends State<_WorkspaceRow> {
                           widget.onDelete(workspace);
                         },
                       ),
-                    ],
-                  ),
+                  ],
+                ),
               ],
             ),
           ),

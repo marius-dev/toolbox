@@ -25,6 +25,13 @@ class ProjectRepository {
     await saveProjects(projects);
   }
 
+  Future<void> addProjects(List<Project> projects) async {
+    if (projects.isEmpty) return;
+    final existing = await loadProjects();
+    existing.addAll(projects);
+    await saveProjects(existing);
+  }
+
   Future<void> updateProject(Project project) async {
     final projects = await loadProjects();
     final index = projects.indexWhere((p) => p.id == project.id);

@@ -23,6 +23,7 @@ class ProjectProvider extends ChangeNotifier {
 
   // Getters
   List<Project> get projects => _filteredProjects;
+  List<Project> get allProjects => List.unmodifiable(_projects);
   SortOption get sortOption => _sortOption;
   bool get isLoading => _isLoading;
   bool get hasProjects => _filteredProjects.isNotEmpty;
@@ -83,6 +84,35 @@ class ProjectProvider extends ChangeNotifier {
       workspaceId: resolvedWorkspaceId,
     );
     await loadProjects(fallbackWorkspaceId: resolvedWorkspaceId);
+  }
+
+  Future<int> importProjects({
+    required String workspaceId,
+    required List<Project> projects,
+  }) async {
+    if (projects.isEmpty) {
+      await loadProjects();
+      return 0;
+    }
+
+    final existing = await _useCases.getAllProjects();
+    final existingIds = existing.map((project) => project.id).toSet();
+    var seed = DateTime.now().millisecondsSinceEpoch;
+    final imported = <Project>[];
+
+    for (final project in projects) {
+      var id = project.id;
+      while (id.isEmpty || existingIds.contains(id)) {
+        seed += 1;
+        id = seed.toString();
+      }
+      existingIds.add(id);
+      imported.add(project.copyWith(id: id, workspaceId: workspaceId));
+    }
+
+    await _useCases.addProjects(imported);
+    await loadProjects();
+    return imported.length;
   }
 
   Future<void> updateProject(Project project) async {

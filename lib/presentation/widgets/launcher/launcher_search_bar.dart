@@ -14,7 +14,6 @@ class LauncherSearchBar extends StatelessWidget {
   final VoidCallback? onSearchFocus;
   final VoidCallback? onAddProject;
   final VoidCallback? onImportFromGit;
-  final VoidCallback? onCreateWorkspace;
 
   const LauncherSearchBar({
     super.key,
@@ -25,7 +24,6 @@ class LauncherSearchBar extends StatelessWidget {
     this.onSearchFocus,
     this.onAddProject,
     this.onImportFromGit,
-    this.onCreateWorkspace,
   });
 
   @override
@@ -35,10 +33,7 @@ class LauncherSearchBar extends StatelessWidget {
       horizontal: 10,
       vertical: 12,
     );
-    final hasActions =
-        onAddProject != null ||
-        onImportFromGit != null ||
-        onCreateWorkspace != null;
+    final hasActions = onAddProject != null || onImportFromGit != null;
 
     return Padding(
       padding: padding,
@@ -93,7 +88,7 @@ class LauncherSearchBar extends StatelessWidget {
             decoration: InputDecoration(
               filled: true,
               fillColor: fillColor,
-              hintText: 'Type to search projects (⌘K)',
+              hintText: 'Type to search ...',
               hintStyle: TextStyle(color: baseColor.withOpacity(0.5)),
               prefixIcon: Icon(
                 Icons.search_rounded,
@@ -114,7 +109,6 @@ class LauncherSearchBar extends StatelessWidget {
                       showActions: hasActions,
                       onAddProject: onAddProject,
                       onImportFromGit: onImportFromGit,
-                      onCreateWorkspace: onCreateWorkspace,
                     )
                   : null,
               suffixIconConstraints: const BoxConstraints(

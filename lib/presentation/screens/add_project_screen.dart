@@ -482,7 +482,7 @@ class _AddProjectScreenState extends State<AddProjectScreen>
         suffix: Tooltip(
           message: 'Browse for a folder',
           child: IconButton(
-            icon: const Icon(Icons.search_rounded),
+            icon: const Icon(Icons.manage_search),
             onPressed: _pickFolder,
           ),
         ),

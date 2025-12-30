@@ -1,6 +1,6 @@
 part of 'launcher_search_bar.dart';
 
-enum _ActionMenuOption { addProject, importFromGit, createWorkspace }
+enum _ActionMenuOption { addProject, importFromGit }
 
 class _SearchFieldSuffix extends StatelessWidget {
   final bool hasQuery;
@@ -8,7 +8,6 @@ class _SearchFieldSuffix extends StatelessWidget {
   final bool showActions;
   final VoidCallback? onAddProject;
   final VoidCallback? onImportFromGit;
-  final VoidCallback? onCreateWorkspace;
 
   const _SearchFieldSuffix({
     required this.hasQuery,
@@ -16,14 +15,10 @@ class _SearchFieldSuffix extends StatelessWidget {
     required this.showActions,
     this.onAddProject,
     this.onImportFromGit,
-    this.onCreateWorkspace,
   });
 
   bool get _hasActions =>
-      showActions &&
-      (onAddProject != null ||
-          onImportFromGit != null ||
-          onCreateWorkspace != null);
+      showActions && (onAddProject != null || onImportFromGit != null);
 
   @override
   Widget build(BuildContext context) {
@@ -52,7 +47,6 @@ class _SearchFieldSuffix extends StatelessWidget {
             _InlineActionMenuButton(
               onAddProject: onAddProject,
               onImportFromGit: onImportFromGit,
-              onCreateWorkspace: onCreateWorkspace,
             ),
         ],
       ),
@@ -63,13 +57,8 @@ class _SearchFieldSuffix extends StatelessWidget {
 class _InlineActionMenuButton extends StatelessWidget {
   final VoidCallback? onAddProject;
   final VoidCallback? onImportFromGit;
-  final VoidCallback? onCreateWorkspace;
 
-  const _InlineActionMenuButton({
-    this.onAddProject,
-    this.onImportFromGit,
-    this.onCreateWorkspace,
-  });
+  const _InlineActionMenuButton({this.onAddProject, this.onImportFromGit});
 
   @override
   Widget build(BuildContext context) {
@@ -78,7 +67,7 @@ class _InlineActionMenuButton extends StatelessWidget {
         theme.iconTheme.color?.withOpacity(0.85) ?? Colors.grey.shade700;
 
     return PopupMenuButton<_ActionMenuOption>(
-      tooltip: 'Create or import a workspace',
+      tooltip: 'Add new items',
       padding: EdgeInsets.zero,
       offset: const Offset(0, 10),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
@@ -89,9 +78,6 @@ class _InlineActionMenuButton extends StatelessWidget {
             break;
           case _ActionMenuOption.importFromGit:
             onImportFromGit?.call();
-            break;
-          case _ActionMenuOption.createWorkspace:
-            onCreateWorkspace?.call();
             break;
         }
       },
@@ -105,7 +91,6 @@ class _InlineActionMenuButton extends StatelessWidget {
         return [
           _ActionMenuOption.addProject,
           _ActionMenuOption.importFromGit,
-          _ActionMenuOption.createWorkspace,
         ].map((option) {
           bool enabled;
           IconData icon;
@@ -120,11 +105,6 @@ class _InlineActionMenuButton extends StatelessWidget {
               enabled = onImportFromGit != null;
               icon = Icons.download_rounded;
               label = 'Import from Git';
-              break;
-            case _ActionMenuOption.createWorkspace:
-              enabled = onCreateWorkspace != null;
-              icon = Icons.layers_rounded;
-              label = 'Create workspace';
               break;
           }
 
@@ -146,7 +126,7 @@ class _InlineActionMenuButton extends StatelessWidget {
       },
       child: Padding(
         padding: const EdgeInsets.only(left: 6, right: 12, top: 6, bottom: 6),
-        child: Icon(Icons.menu_rounded, size: 20, color: iconColor),
+        child: Icon(Icons.drive_folder_upload, size: 20, color: iconColor),
       ),
     );
   }

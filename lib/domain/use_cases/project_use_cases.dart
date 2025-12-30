@@ -26,6 +26,11 @@ class ProjectUseCases {
     await _repository.addProject(project);
   }
 
+  Future<void> addProjects(List<Project> projects) async {
+    if (projects.isEmpty) return;
+    await _repository.addProjects(projects);
+  }
+
   Future<void> updateProject(Project project) async {
     await _repository.updateProject(project);
   }

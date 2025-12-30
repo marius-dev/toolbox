@@ -259,9 +259,11 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
 
   Widget _buildMainView() {
     return AnimatedBuilder(
-      animation: Listenable.merge(
-        [_projectProvider, _toolsProvider, _workspaceProvider],
-      ),
+      animation: Listenable.merge([
+        _projectProvider,
+        _toolsProvider,
+        _workspaceProvider,
+      ]),
       builder: (context, _) {
         final hasMissingPaths = _projectProvider.projects.any(
           (project) => !project.pathExists,
@@ -371,17 +373,6 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
     _showUnavailableAction('Import from Git');
   }
 
-  Future<void> _handleCreateWorkspace() async {
-    if (!mounted) return;
-    final name = await showDialog<String>(
-      context: context,
-      builder: (context) => const WorkspaceDialog(),
-    );
-    final trimmed = name?.trim();
-    if (trimmed == null || trimmed.isEmpty) return;
-    await _workspaceProvider.createWorkspace(trimmed);
-  }
-
   Future<void> _openWorkspacesScreen() async {
     _dismissPopupMenus();
     await Navigator.of(context).push<bool>(_buildWorkspacesRoute());
@@ -430,10 +421,7 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
     messenger
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        SnackBar(
-          content: Text(message),
-          duration: const Duration(seconds: 2),
-        ),
+        SnackBar(content: Text(message), duration: const Duration(seconds: 2)),
       );
   }
 
@@ -464,7 +452,6 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
           onSearchChanged: _projectProvider.setSearchQuery,
           onAddProject: _openAddProjectScreen,
           onImportFromGit: _handleImportFromGit,
-          onCreateWorkspace: _handleCreateWorkspace,
         );
       },
     );
