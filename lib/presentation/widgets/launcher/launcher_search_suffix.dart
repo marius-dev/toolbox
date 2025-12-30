@@ -63,14 +63,13 @@ class _InlineActionMenuButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final menuStyle = AppMenuStyle.of(context);
     final iconColor =
         theme.iconTheme.color?.withOpacity(0.85) ?? Colors.grey.shade700;
 
-    return PopupMenuButton<_ActionMenuOption>(
+    return AppMenuButton<_ActionMenuOption>(
       tooltip: 'Add new items',
       padding: EdgeInsets.zero,
-      offset: const Offset(0, 10),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       onSelected: (option) {
         switch (option) {
           case _ActionMenuOption.addProject:
@@ -82,11 +81,8 @@ class _InlineActionMenuButton extends StatelessWidget {
         }
       },
       itemBuilder: (context) {
-        final textStyle = Theme.of(context).textTheme.bodyMedium!;
-        final baseColor =
-            textStyle.color ?? Theme.of(context).colorScheme.onSurface;
-        Color resolveColor(bool enabled) =>
-            enabled ? baseColor : baseColor.withOpacity(0.4);
+        final textStyle = menuStyle.textStyle;
+        Color resolveColor(bool enabled) => menuStyle.resolveTextColor(enabled);
 
         return [
           _ActionMenuOption.addProject,

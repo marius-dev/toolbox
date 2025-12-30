@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 
 import '../../../core/theme/theme_provider.dart';
 import '../../../core/utils/compact_layout.dart';
+import '../app_menu.dart';
 
 part 'launcher_search_suffix.dart';
 

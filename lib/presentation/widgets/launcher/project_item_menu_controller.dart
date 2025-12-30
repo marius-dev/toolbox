@@ -138,8 +138,8 @@ class _CustomMenuOverlay extends StatelessWidget {
                 width: menuWidth,
                 height: menuHeight,
                 child: Material(
-                  elevation: 12,
-                  color: menuBuilder.menuColor(Theme.of(context)),
+                  elevation: menuBuilder.menuElevation(context),
+                  color: menuBuilder.menuColor(context),
                   shape: menuBuilder.menuShape(context),
                   clipBehavior: Clip.antiAlias,
                   child: menuBuilder.buildMenuContent(

@@ -4,6 +4,7 @@ import '../../core/theme/theme_provider.dart';
 import '../../core/utils/compact_layout.dart';
 import '../../core/utils/string_utils.dart';
 import '../../domain/models/tool.dart';
+import 'app_menu.dart';
 import 'launcher/project_list_scroll_behavior.dart';
 import 'tool_icon.dart';
 
@@ -416,27 +417,18 @@ class _ToolActionsMenu extends StatelessWidget {
     }
 
     final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final isDark = theme.brightness == Brightness.dark;
-    final bgColor = isDark
-        ? Colors.black.withOpacity(0.76)
-        : colorScheme.surface;
-    final borderColor = colorScheme.onSurface.withOpacity(isDark ? 0.08 : 0.06);
-    final textColor = theme.textTheme.bodyMedium!.color!;
+    final menuStyle = AppMenuStyle.of(context);
+    final textStyle = menuStyle.textStyle;
+    final textColor = textStyle.color!;
 
-    return PopupMenuButton<_ToolMenuAction>(
+    return AppMenuButton<_ToolMenuAction>(
       tooltip: 'Tool actions',
       icon: Icon(
         Icons.more_horiz,
         color: theme.iconTheme.color,
         size: CompactLayout.value(context, 18),
       ),
-      color: bgColor,
       position: PopupMenuPosition.under,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: borderColor),
-      ),
       onSelected: (action) {
         switch (action) {
           case _ToolMenuAction.open:
@@ -459,7 +451,7 @@ class _ToolActionsMenu extends StatelessWidget {
                   color: textColor,
                 ),
                 SizedBox(width: CompactLayout.value(context, 8)),
-                Text('Open', style: TextStyle(color: textColor)),
+                Text('Open', style: textStyle),
               ],
             ),
           ),
@@ -474,7 +466,7 @@ class _ToolActionsMenu extends StatelessWidget {
                   color: textColor,
                 ),
                 SizedBox(width: CompactLayout.value(context, 8)),
-                Text('Set as default', style: TextStyle(color: textColor)),
+                Text('Set as default', style: textStyle),
               ],
             ),
           ),

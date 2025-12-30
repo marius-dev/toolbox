@@ -7,6 +7,7 @@ import '../../../core/utils/compact_layout.dart';
 import '../../../core/utils/string_utils.dart';
 import '../../../domain/models/project.dart';
 import '../../../domain/models/tool.dart';
+import '../app_menu.dart';
 import '../tool_icon.dart';
 
 part 'project_item_details.dart';

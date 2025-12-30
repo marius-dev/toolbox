@@ -2,7 +2,6 @@ part of 'project_item.dart';
 
 const double _kProjectMenuActionTileBaseHeight = 42.0;
 const double _kProjectMenuIconBaseSize = 18.0;
-const double _kProjectMenuTextBaseSize = 13.0;
 
 class _ProjectMenuBuilder {
   const _ProjectMenuBuilder({
@@ -179,17 +178,15 @@ class _ProjectMenuBuilder {
       (_dividerSectionHeight(context) * 2) +
       _bottomActionsHeight(context);
 
-  Color menuColor(ThemeData theme) {
-    if (theme.brightness == Brightness.dark) {
-      return Colors.grey.shade900.withOpacity(0.95);
-    }
-    return theme.cardColor;
+  Color menuColor(BuildContext context) {
+    return AppMenuStyle.of(context).backgroundColor;
   }
 
   ShapeBorder menuShape(BuildContext context) {
-    return RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(14),
-      side: BorderSide(color: Theme.of(context).dividerColor.withOpacity(0.3)),
-    );
+    return AppMenuStyle.of(context).shape;
+  }
+
+  double menuElevation(BuildContext context) {
+    return AppMenuStyle.of(context).elevation;
   }
 }

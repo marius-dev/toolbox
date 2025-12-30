@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../core/theme/theme_provider.dart';
 import '../../../core/utils/compact_layout.dart';
 import '../../../domain/models/workspace.dart';
+import '../app_menu.dart';
 import 'launcher_tab_bar.dart';
 
 part 'launcher_header_buttons.dart';

@@ -37,23 +37,11 @@ class _WorkspaceSelector extends StatelessWidget {
         ? 'Loading...'
         : selectedWorkspace?.name ?? 'No workspace';
     final labelColor = isLoading ? baseColor.withOpacity(0.6) : baseColor;
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final isDark = theme.brightness == Brightness.dark;
-    final menuColor = isDark
-        ? Colors.black.withOpacity(0.76)
-        : colorScheme.surface;
-    final borderColor = colorScheme.onSurface.withOpacity(isDark ? 0.08 : 0.06);
+    final menuStyle = AppMenuStyle.of(context);
 
-    return PopupMenuButton<_WorkspaceMenuAction>(
+    return AppMenuButton<_WorkspaceMenuAction>(
       tooltip: 'Switch workspace',
       padding: EdgeInsets.zero,
-      offset: const Offset(0, 10),
-      color: menuColor,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: borderColor),
-      ),
       onSelected: (action) {
         switch (action.type) {
           case _WorkspaceMenuActionType.select:
@@ -67,13 +55,9 @@ class _WorkspaceSelector extends StatelessWidget {
         }
       },
       itemBuilder: (context) {
-        final textStyle = Theme.of(context).textTheme.bodyMedium!;
-        final baseTextColor =
-            textStyle.color ?? Theme.of(context).colorScheme.onSurface;
-        Color resolveColor(bool enabled) {
-          if (!enabled) return baseTextColor.withOpacity(0.4);
-          return baseTextColor;
-        }
+        final textStyle = menuStyle.textStyle;
+        final baseTextColor = textStyle.color!;
+        Color resolveColor(bool enabled) => menuStyle.resolveTextColor(enabled);
 
         final items = <PopupMenuEntry<_WorkspaceMenuAction>>[];
 

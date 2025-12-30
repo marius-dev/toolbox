@@ -8,13 +8,12 @@ class _MenuSectionHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final baseStyle = theme.textTheme.labelSmall ?? theme.textTheme.bodySmall;
-    final headerStyle = baseStyle?.copyWith(
-      color:
-          (theme.textTheme.bodySmall?.color ??
-                  theme.textTheme.bodyMedium?.color ??
-                  Colors.white)
-              .withOpacity(0.7),
+    final menuStyle = AppMenuStyle.of(context);
+    final baseStyle = theme.textTheme.labelSmall ??
+        theme.textTheme.bodySmall ??
+        menuStyle.textStyle;
+    final headerStyle = baseStyle.copyWith(
+      color: menuStyle.textStyle.color!.withOpacity(0.7),
       letterSpacing: 0.8,
       fontWeight: FontWeight.w700,
     );
@@ -126,18 +125,19 @@ class _MenuActionTileState extends State<_MenuActionTile> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final menuStyle = AppMenuStyle.of(context);
     final accent = ThemeProvider.instance.accentColor;
     final baseColor = widget.action.isDestructive
         ? Colors.redAccent
-        : theme.textTheme.bodyMedium?.color ??
-              theme.textTheme.bodyLarge?.color ??
-              Colors.white;
+        : menuStyle.textStyle.color!;
+    final disabledColor = widget.action.isDestructive
+        ? baseColor.withOpacity(0.5)
+        : menuStyle.mutedTextStyle.color!;
     final textColor = widget.isMuted
         ? baseColor.withOpacity(0.6)
         : widget.action.enabled
         ? baseColor
-        : baseColor.withOpacity(0.5);
+        : disabledColor;
 
     return Semantics(
       label: widget.action.semanticsLabel,
@@ -184,13 +184,9 @@ class _MenuActionTileState extends State<_MenuActionTile> {
                 Expanded(
                   child: Text(
                     widget.action.label,
-                    style: TextStyle(
+                    style: menuStyle.textStyle.copyWith(
                       color: textColor,
                       fontWeight: FontWeight.w600,
-                      fontSize: CompactLayout.value(
-                        context,
-                        _kProjectMenuTextBaseSize,
-                      ),
                     ),
                   ),
                 ),
