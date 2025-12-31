@@ -13,6 +13,8 @@ class LauncherHeader extends StatelessWidget {
   final ValueChanged<LauncherTab> onTabSelected;
   final VoidCallback onSettingsPressed;
   final bool hasSyncErrors;
+  final bool isSyncing;
+  final VoidCallback onSyncMetadata;
   final List<Workspace> workspaces;
   final Workspace? selectedWorkspace;
   final bool isWorkspaceLoading;
@@ -25,6 +27,8 @@ class LauncherHeader extends StatelessWidget {
     required this.onTabSelected,
     required this.onSettingsPressed,
     this.hasSyncErrors = false,
+    this.isSyncing = false,
+    required this.onSyncMetadata,
     required this.workspaces,
     required this.selectedWorkspace,
     required this.isWorkspaceLoading,
@@ -70,14 +74,10 @@ class LauncherHeader extends StatelessWidget {
                     onManage: onManageWorkspaces,
                   ),
                   SizedBox(width: CompactLayout.value(context, 6)),
-                  _StatusIcon(
-                    tooltip: hasSyncErrors
-                        ? 'Some project paths are missing'
-                        : 'No blocking issues',
-                    icon: hasSyncErrors
-                        ? Icons.warning_amber_rounded
-                        : Icons.verified_rounded,
-                    isActive: hasSyncErrors,
+                  _SyncButton(
+                    onPressed: onSyncMetadata,
+                    isSyncing: isSyncing,
+                    hasSyncErrors: hasSyncErrors,
                   ),
                   SizedBox(width: CompactLayout.value(context, 8)),
                   _SettingsButton(onPressed: onSettingsPressed),

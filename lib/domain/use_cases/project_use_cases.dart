@@ -1,4 +1,5 @@
 import 'dart:io';
+import '../../core/services/project_metadata_service.dart';
 import '../../core/services/tool_discovery_service.dart';
 import '../models/project.dart';
 import '../models/tool.dart';
@@ -10,6 +11,26 @@ class ProjectUseCases {
   ProjectUseCases(this._repository);
 
   Future<List<Project>> getAllProjects() => _repository.loadProjects();
+
+  Future<List<Project>> syncProjectMetadata(List<Project> projects) async {
+    if (projects.isEmpty) return projects;
+
+    final metadataService = ProjectMetadataService.instance;
+    final updated = <Project>[];
+
+    for (final project in projects) {
+      if (!project.pathExists) {
+        updated.add(project.copyWith(gitInfo: const ProjectGitInfo()));
+        continue;
+      }
+
+      final gitInfo = await metadataService.fetchGitInfo(project.path);
+      updated.add(project.copyWith(gitInfo: gitInfo));
+    }
+
+    await _repository.saveProjects(updated);
+    return updated;
+  }
 
   Future<void> addProject({
     required String name,

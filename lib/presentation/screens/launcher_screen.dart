@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:project_launcher/domain/models/project.dart';
@@ -36,6 +38,7 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
   final FocusNode _projectListFocusNode = FocusNode();
   bool _showSettings = false;
   LauncherTab _selectedTab = LauncherTab.projects;
+  bool _wasHidden = false;
 
   @override
   void initState() {
@@ -74,12 +77,35 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
   void onWindowBlur() {
     Future.delayed(const Duration(milliseconds: 100), () {
       if (!WindowService.instance.shouldAutoHideOnBlur) return;
+      _wasHidden = true;
       WindowService.instance.hide();
     });
   }
 
   @override
-  void onWindowFocus() {}
+  void onWindowFocus() {
+    _handleWindowVisible();
+  }
+
+  @override
+  void onWindowEvent(String eventName) {
+    if (eventName == 'hide') {
+      _wasHidden = true;
+      return;
+    }
+    if (eventName == 'show') {
+      _handleWindowVisible();
+    }
+  }
+
+  void _handleWindowVisible() {
+    if (!_wasHidden) return;
+    _wasHidden = false;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      unawaited(_projectProvider.syncMetadataIfNeeded());
+    });
+  }
 
   void _toggleSettings() {
     setState(() => _showSettings = !_showSettings);
@@ -221,6 +247,8 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
               },
               onSettingsPressed: _toggleSettings,
               hasSyncErrors: hasMissingPaths,
+              isSyncing: _projectProvider.isSyncing,
+              onSyncMetadata: _projectProvider.syncMetadata,
               workspaces: _workspaceProvider.workspaces,
               selectedWorkspace: _workspaceProvider.selectedWorkspace,
               isWorkspaceLoading: _workspaceProvider.isLoading,

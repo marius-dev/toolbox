@@ -79,6 +79,7 @@ class ProjectItemState extends State<ProjectItem> {
   }
 
   void openContextMenuFromSelection() {
+    if (!project.pathExists) return;
     final renderBox = context.findRenderObject();
     if (renderBox is! RenderBox) return;
     final offset = renderBox.localToGlobal(Offset.zero);
@@ -112,8 +113,8 @@ class ProjectItemState extends State<ProjectItem> {
 
     final row = GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onTap: _handleTap,
-      onSecondaryTapDown: _openContextMenu,
+      onTap: isDisabled ? null : _handleTap,
+      onSecondaryTapDown: isDisabled ? null : _openContextMenu,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         curve: Curves.easeOutCubic,
@@ -151,7 +152,7 @@ class ProjectItemState extends State<ProjectItem> {
                 ),
               ),
               SizedBox(width: CompactLayout.value(context, 12)),
-              if (isHighlighted) ...[
+              if (isHighlighted && !isDisabled) ...[
                 _StarButton(
                   isStarred: project.isStarred,
                   onPressed: widget.onStarToggle,
@@ -159,14 +160,17 @@ class ProjectItemState extends State<ProjectItem> {
                 ),
                 SizedBox(width: CompactLayout.value(context, 6)),
               ],
-              _ProjectActionsMenu(
-                installedTools: installedTools,
-                onShowInFinder: widget.onShowInFinder,
-                onOpenInTerminal: widget.onOpenInTerminal,
-                onOpenWith: widget.onOpenWith,
-                onDelete: widget.onDelete,
-                menuController: _menuController,
-              ),
+              if (isDisabled)
+                _RemoveProjectButton(onPressed: widget.onDelete)
+              else
+                _ProjectActionsMenu(
+                  installedTools: installedTools,
+                  onShowInFinder: widget.onShowInFinder,
+                  onOpenInTerminal: widget.onOpenInTerminal,
+                  onOpenWith: widget.onOpenWith,
+                  onDelete: widget.onDelete,
+                  menuController: _menuController,
+                ),
             ],
           ),
         ),

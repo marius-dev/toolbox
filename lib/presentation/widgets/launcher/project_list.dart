@@ -249,12 +249,6 @@ class _ProjectListState extends State<ProjectList> {
     );
   }
 
-  void _openContextMenuForIndex(int index) {
-    if (index < 0 || index >= _itemKeys.length) return;
-    final state = _itemKeys[index].currentState;
-    state?.openContextMenuFromSelection();
-  }
-
   Future<void> _handleProjectTap(Project project, int globalIndex) async {
     final ordered = _orderedProjects();
     if (globalIndex < 0 || globalIndex >= ordered.length) return;
@@ -270,14 +264,10 @@ class _ProjectListState extends State<ProjectList> {
     _scrollToSelected();
 
     if (!project.pathExists) {
-      _openContextMenuForIndex(globalIndex);
       return;
     }
 
-    await _runOpeningAction(
-      project,
-      () => widget.onProjectTap(project),
-    );
+    await _runOpeningAction(project, () => widget.onProjectTap(project));
   }
 
   void _startOpening(String projectId) {
@@ -430,41 +420,47 @@ class _ProjectListState extends State<ProjectList> {
     final isFocused =
         widget.focusNode.hasFocus && globalIndex == _selectedIndex;
     final isOpening = _openingProjectId == project.id;
+    final topPadding = globalIndex == 0
+        ? CompactLayout.value(context, 10)
+        : 0.0;
 
     final key = _itemKeys[globalIndex];
 
-    return MouseRegion(
-      cursor: project.pathExists
-          ? SystemMouseCursors.click
-          : SystemMouseCursors.basic,
-      onEnter: (_) => _setHoverHighlight(globalIndex),
-      onExit: (_) => _clearHoverHighlight(),
-      child: ProjectItem(
-        key: key,
-        project: project,
-        installedTools: widget.installedTools,
-        defaultToolId: widget.defaultToolId,
-        isFocused: isFocused,
-        isHovering: isHovering,
-        searchQuery: widget.searchQuery,
-        showDivider: globalIndex < _itemKeys.length - 1,
-        revealFullPath: _revealFullPath,
-        isOpening: isOpening,
-        openingDots: _openingDot,
-        onTap: () {
-          _handleProjectTap(project, globalIndex);
-        },
-        onStarToggle: () => widget.onStarToggle(project),
-        onShowInFinder: () {
-          _handleShowInFinder(project);
-        },
-        onOpenInTerminal: () {
-          _handleOpenInTerminal(project);
-        },
-        onOpenWith: (toolId) {
-          _handleOpenWith(project, toolId);
-        },
-        onDelete: () => widget.onDelete(project),
+    return Padding(
+      padding: EdgeInsets.only(top: topPadding),
+      child: MouseRegion(
+        cursor: project.pathExists
+            ? SystemMouseCursors.click
+            : SystemMouseCursors.basic,
+        onEnter: (_) => _setHoverHighlight(globalIndex),
+        onExit: (_) => _clearHoverHighlight(),
+        child: ProjectItem(
+          key: key,
+          project: project,
+          installedTools: widget.installedTools,
+          defaultToolId: widget.defaultToolId,
+          isFocused: isFocused,
+          isHovering: isHovering,
+          searchQuery: widget.searchQuery,
+          showDivider: globalIndex < _itemKeys.length - 1,
+          revealFullPath: _revealFullPath,
+          isOpening: isOpening,
+          openingDots: _openingDot,
+          onTap: () {
+            _handleProjectTap(project, globalIndex);
+          },
+          onStarToggle: () => widget.onStarToggle(project),
+          onShowInFinder: () {
+            _handleShowInFinder(project);
+          },
+          onOpenInTerminal: () {
+            _handleOpenInTerminal(project);
+          },
+          onOpenWith: (toolId) {
+            _handleOpenWith(project, toolId);
+          },
+          onDelete: () => widget.onDelete(project),
+        ),
       ),
     );
   }

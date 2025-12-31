@@ -95,3 +95,59 @@ class _ProjectActionsMenuState extends State<_ProjectActionsMenu> {
     );
   }
 }
+
+class _RemoveProjectButton extends StatefulWidget {
+  final VoidCallback onPressed;
+
+  const _RemoveProjectButton({required this.onPressed});
+
+  @override
+  State<_RemoveProjectButton> createState() => _RemoveProjectButtonState();
+}
+
+class _RemoveProjectButtonState extends State<_RemoveProjectButton> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final iconColor = Theme.of(context).iconTheme.color;
+    final accentColor = _softAccentColor(
+      ThemeProvider.instance.accentColor,
+      Theme.of(context).brightness == Brightness.dark,
+    );
+
+    return Semantics(
+      label: 'Remove from workspace',
+      button: true,
+      child: MouseRegion(
+        cursor: SystemMouseCursors.click,
+        onEnter: (_) => setState(() => _isHovered = true),
+        onExit: (_) => setState(() => _isHovered = false),
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: widget.onPressed,
+          child: Tooltip(
+            message: 'Remove from workspace',
+            waitDuration: const Duration(milliseconds: 120),
+            child: Container(
+              padding: EdgeInsets.all(CompactLayout.value(context, 8)),
+              decoration: BoxDecoration(
+                color: _isHovered
+                    ? accentColor.withOpacity(0.12)
+                    : Colors.transparent,
+                borderRadius: BorderRadius.circular(
+                  CompactLayout.value(context, 10),
+                ),
+              ),
+              child: Icon(
+                Icons.close_rounded,
+                size: CompactLayout.value(context, 16),
+                color: _isHovered ? accentColor : iconColor,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}

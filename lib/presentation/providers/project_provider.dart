@@ -8,11 +8,15 @@ import '../../domain/use_cases/project_use_cases.dart';
 class ProjectProvider extends ChangeNotifier {
   final ProjectUseCases _useCases;
 
+  static const Duration _metadataSyncCooldown = Duration(seconds: 30);
+
   List<Project> _projects = [];
   List<Project> _filteredProjects = [];
   String _searchQuery = '';
   SortOption _sortOption = SortOption.recent;
   bool _isLoading = false;
+  bool _isSyncing = false;
+  DateTime? _lastMetadataSyncAt;
   String? _selectedWorkspaceId;
 
   ProjectProvider(this._useCases);
@@ -26,6 +30,7 @@ class ProjectProvider extends ChangeNotifier {
   List<Project> get allProjects => List.unmodifiable(_projects);
   SortOption get sortOption => _sortOption;
   bool get isLoading => _isLoading;
+  bool get isSyncing => _isSyncing;
   bool get hasProjects => _filteredProjects.isNotEmpty;
   String get searchQuery => _searchQuery;
   String? get selectedWorkspaceId => _selectedWorkspaceId;
@@ -128,6 +133,41 @@ class ProjectProvider extends ChangeNotifier {
   Future<void> toggleStar(Project project) async {
     await _useCases.toggleStar(project);
     await loadProjects();
+  }
+
+  Future<void> syncMetadata() async {
+    await _syncMetadata(force: true);
+  }
+
+  Future<void> syncMetadataIfNeeded({
+    Duration minInterval = _metadataSyncCooldown,
+  }) async {
+    await _syncMetadata(force: false, minInterval: minInterval);
+  }
+
+  Future<void> _syncMetadata({
+    required bool force,
+    Duration minInterval = Duration.zero,
+  }) async {
+    if (_isSyncing) return;
+    if (!force) {
+      final lastSync = _lastMetadataSyncAt;
+      if (lastSync != null) {
+        final elapsed = DateTime.now().difference(lastSync);
+        if (elapsed <= minInterval) return;
+      }
+    }
+
+    _isSyncing = true;
+    notifyListeners();
+
+    try {
+      _projects = await _useCases.syncProjectMetadata(_projects);
+      _lastMetadataSyncAt = DateTime.now();
+    } finally {
+      _isSyncing = false;
+      _applyFiltersAndSort();
+    }
   }
 
   Future<void> openProject(

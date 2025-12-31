@@ -11,6 +11,7 @@ class Project {
   final DateTime lastOpened;
   final DateTime createdAt;
   final ToolId? lastUsedToolId;
+  final ProjectGitInfo gitInfo;
 
   Project({
     required this.id,
@@ -21,6 +22,7 @@ class Project {
     required this.lastOpened,
     required this.createdAt,
     this.lastUsedToolId,
+    this.gitInfo = const ProjectGitInfo(),
   });
 
   bool get pathExists => Directory(path).existsSync();
@@ -34,6 +36,7 @@ class Project {
     DateTime? lastOpened,
     DateTime? createdAt,
     ToolId? lastUsedToolId,
+    ProjectGitInfo? gitInfo,
   }) {
     return Project(
       id: id ?? this.id,
@@ -44,6 +47,7 @@ class Project {
       lastOpened: lastOpened ?? this.lastOpened,
       createdAt: createdAt ?? this.createdAt,
       lastUsedToolId: lastUsedToolId ?? this.lastUsedToolId,
+      gitInfo: gitInfo ?? this.gitInfo,
     );
   }
 
@@ -56,6 +60,7 @@ class Project {
     'lastOpened': lastOpened.toIso8601String(),
     'createdAt': createdAt.toIso8601String(),
     'lastUsedToolId': lastUsedToolId?.name,
+    if (gitInfo.hasData) 'gitInfo': gitInfo.toJson(),
   };
 
   factory Project.fromJson(Map<String, dynamic> json) {
@@ -91,6 +96,13 @@ class Project {
               orElse: () => ToolId.values.first,
             )
           : null,
+      gitInfo: ProjectGitInfo.fromJson(
+        json['gitInfo'] is Map<String, dynamic>
+            ? json['gitInfo'] as Map<String, dynamic>
+            : json['gitInfo'] is Map
+            ? Map<String, dynamic>.from(json['gitInfo'] as Map)
+            : null,
+      ),
     );
   }
 
@@ -109,6 +121,112 @@ class Project {
       lastOpened: now,
       createdAt: now,
       lastUsedToolId: preferredToolId,
+      gitInfo: const ProjectGitInfo(),
+    );
+  }
+}
+
+class ProjectGitInfo {
+  final bool isGitRepo;
+  final String? rootPath;
+  final String? branch;
+  final String? origin;
+  final int stagedChanges;
+  final int unstagedChanges;
+  final int untrackedChanges;
+  final int? ahead;
+  final int? behind;
+  final String? lastCommitHash;
+  final String? lastCommitMessage;
+  final DateTime? lastCommitDate;
+
+  const ProjectGitInfo({
+    this.isGitRepo = false,
+    this.rootPath,
+    this.branch,
+    this.origin,
+    this.stagedChanges = 0,
+    this.unstagedChanges = 0,
+    this.untrackedChanges = 0,
+    this.ahead,
+    this.behind,
+    this.lastCommitHash,
+    this.lastCommitMessage,
+    this.lastCommitDate,
+  });
+
+  bool get hasData =>
+      isGitRepo ||
+      rootPath != null ||
+      branch != null ||
+      origin != null ||
+      stagedChanges != 0 ||
+      unstagedChanges != 0 ||
+      untrackedChanges != 0 ||
+      ahead != null ||
+      behind != null ||
+      lastCommitHash != null ||
+      lastCommitMessage != null ||
+      lastCommitDate != null;
+
+  int get totalChanges => stagedChanges + unstagedChanges + untrackedChanges;
+  bool get isClean => totalChanges == 0;
+
+  Map<String, dynamic> toJson() => {
+    'isGitRepo': isGitRepo,
+    'rootPath': rootPath,
+    'branch': branch,
+    'origin': origin,
+    'stagedChanges': stagedChanges,
+    'unstagedChanges': unstagedChanges,
+    'untrackedChanges': untrackedChanges,
+    'ahead': ahead,
+    'behind': behind,
+    'lastCommitHash': lastCommitHash,
+    'lastCommitMessage': lastCommitMessage,
+    'lastCommitDate': lastCommitDate?.toIso8601String(),
+  };
+
+  factory ProjectGitInfo.fromJson(Map<String, dynamic>? json) {
+    if (json == null) {
+      return const ProjectGitInfo();
+    }
+
+    DateTime? parseDate(dynamic value) {
+      if (value is String && value.isNotEmpty) {
+        try {
+          return DateTime.parse(value);
+        } catch (_) {}
+      }
+      return null;
+    }
+
+    int? parseOptionalInt(dynamic value) {
+      if (value is int) return value;
+      if (value is num) return value.toInt();
+      return null;
+    }
+
+    int parseInt(dynamic value) => parseOptionalInt(value) ?? 0;
+
+    String? readString(dynamic value) {
+      if (value is String && value.isNotEmpty) return value;
+      return null;
+    }
+
+    return ProjectGitInfo(
+      isGitRepo: json['isGitRepo'] == true,
+      rootPath: readString(json['rootPath']),
+      branch: readString(json['branch']),
+      origin: readString(json['origin']),
+      stagedChanges: parseInt(json['stagedChanges']),
+      unstagedChanges: parseInt(json['unstagedChanges']),
+      untrackedChanges: parseInt(json['untrackedChanges']),
+      ahead: parseOptionalInt(json['ahead']),
+      behind: parseOptionalInt(json['behind']),
+      lastCommitHash: readString(json['lastCommitHash']),
+      lastCommitMessage: readString(json['lastCommitMessage']),
+      lastCommitDate: parseDate(json['lastCommitDate']),
     );
   }
 }

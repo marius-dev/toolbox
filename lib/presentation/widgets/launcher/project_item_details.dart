@@ -58,10 +58,6 @@ class _ProjectDetails extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
           ),
         ),
-        if (isDisabled) ...[
-          SizedBox(width: CompactLayout.value(context, 6)),
-          _MissingPathBadge(),
-        ],
       ],
     );
   }
@@ -71,6 +67,7 @@ class _ProjectDetails extends StatelessWidget {
     final textColor = theme.textTheme.bodyMedium!.color!;
     final displayPath = StringUtils.replaceHomeWithTilde(project.path);
     final openingText = 'Opening${'.' * ((openingDots % 3) + 1)}';
+    final gitInfo = project.gitInfo;
 
     return AnimatedSize(
       duration: const Duration(milliseconds: 150),
@@ -113,6 +110,13 @@ class _ProjectDetails extends StatelessWidget {
                     softWrap: revealFullPath,
                   ),
           ),
+          if (!isOpening && !isDisabled && gitInfo.isGitRepo) ...[
+            SizedBox(width: CompactLayout.value(context, 8)),
+            _GitInfoBadges(
+              gitInfo: gitInfo,
+              accentColor: accentColor,
+            ),
+          ],
         ],
       ),
     );
@@ -138,38 +142,193 @@ class _ProjectDetails extends StatelessWidget {
   }
 }
 
-class _MissingPathBadge extends StatelessWidget {
+class _GitInfoBadges extends StatelessWidget {
+  final ProjectGitInfo gitInfo;
+  final Color accentColor;
+
+  const _GitInfoBadges({
+    required this.gitInfo,
+    required this.accentColor,
+  });
+
   @override
   Widget build(BuildContext context) {
-    return Container(
+    final branch = gitInfo.branch ?? 'detached';
+    final statusLabel = _buildStatusLabel();
+
+    final branchTooltip = _buildBranchTooltip();
+    final statusTooltip = _buildStatusTooltip();
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _GitBadge(
+          label: branch,
+          icon: Icons.call_split_rounded,
+          color: accentColor,
+          tooltip: branchTooltip,
+          maxWidth: CompactLayout.value(context, 120),
+        ),
+        SizedBox(width: CompactLayout.value(context, 6)),
+        _GitBadge(
+          label: statusLabel,
+          icon: gitInfo.isClean
+              ? Icons.check_circle_outline
+              : Icons.circle,
+          color: gitInfo.isClean ? Colors.green : Colors.orange,
+          tooltip: statusTooltip,
+          maxWidth: CompactLayout.value(context, 110),
+        ),
+      ],
+    );
+  }
+
+  String? _buildBranchTooltip() {
+    final parts = <String>[];
+    if (gitInfo.origin != null) {
+      parts.add('Origin: ${gitInfo.origin}');
+    }
+    if (gitInfo.rootPath != null) {
+      parts.add('Root: ${gitInfo.rootPath}');
+    }
+    if (parts.isEmpty) return null;
+    return parts.join('\n');
+  }
+
+  String? _buildStatusTooltip() {
+    final parts = <String>[];
+
+    if (gitInfo.isClean) {
+      parts.add('Working tree clean');
+    } else {
+      parts.add(
+        'Changes: ${gitInfo.stagedChanges} staged, '
+        '${gitInfo.unstagedChanges} unstaged, '
+        '${gitInfo.untrackedChanges} untracked',
+      );
+    }
+
+    if (gitInfo.ahead != null || gitInfo.behind != null) {
+      parts.add(
+        'Ahead/behind: ${gitInfo.ahead ?? 0}/${gitInfo.behind ?? 0}',
+      );
+    }
+
+    if (gitInfo.lastCommitMessage != null) {
+      final shortHash = gitInfo.lastCommitHash == null
+          ? ''
+          : gitInfo.lastCommitHash!.substring(0, 7);
+      final summary = shortHash.isEmpty
+          ? gitInfo.lastCommitMessage!
+          : '$shortHash - ${gitInfo.lastCommitMessage}';
+      parts.add('Last commit: $summary');
+    }
+
+    if (parts.isEmpty) return null;
+    return parts.join('\n');
+  }
+
+  String _buildStatusLabel() {
+    if (gitInfo.isClean) {
+      return 'Clean';
+    }
+
+    final changeWord = gitInfo.totalChanges == 1 ? 'change' : 'changes';
+    return '${_formatChangeCount(gitInfo.totalChanges)} $changeWord';
+  }
+
+  static String _formatChangeCount(int value) {
+    if (value >= _million) {
+      return _formatApproximateLabel(value, _million, 'M');
+    }
+
+    if (value >= _thousand) {
+      final approxLabel = _formatApproximateLabel(value, _thousand, 'k');
+      if (approxLabel == '~1000k') {
+        return _formatApproximateLabel(value, _million, 'M');
+      }
+      return approxLabel;
+    }
+
+    return value.toString();
+  }
+
+  static String _formatApproximateLabel(int value, int divisor, String suffix) {
+    final approx = value / divisor;
+    final rounded = (approx * 10).round() / 10;
+    final roundedInt = rounded.toInt();
+    final isWhole = (rounded - roundedInt).abs() < 0.001;
+    final formattedNumber =
+        isWhole ? roundedInt.toString() : rounded.toStringAsFixed(1);
+    return '~$formattedNumber$suffix';
+  }
+
+  static const int _thousand = 1000;
+  static const int _million = 1000000;
+}
+
+class _GitBadge extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final Color color;
+  final String? tooltip;
+  final double maxWidth;
+
+  const _GitBadge({
+    required this.label,
+    required this.icon,
+    required this.color,
+    this.tooltip,
+    required this.maxWidth,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final textStyle = Theme.of(context).textTheme.bodySmall!;
+    final content = Container(
       padding: EdgeInsets.symmetric(
         horizontal: CompactLayout.value(context, 6),
         vertical: CompactLayout.value(context, 2),
       ),
       decoration: BoxDecoration(
-        color: Colors.red.withOpacity(0.15),
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: Colors.red.withOpacity(0.4)),
+        color: color.withOpacity(0.12),
+        borderRadius: BorderRadius.circular(CompactLayout.value(context, 6)),
+        border: Border.all(color: color.withOpacity(0.4)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(
-            Icons.error_outline_rounded,
+            icon,
             size: CompactLayout.value(context, 12),
-            color: Colors.red,
+            color: color,
           ),
           SizedBox(width: CompactLayout.value(context, 4)),
-          Text(
-            'Path missing',
-            style: TextStyle(
-              color: Colors.red,
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
+          ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: maxWidth),
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: textStyle.copyWith(
+                color: color,
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
         ],
       ),
+    );
+
+    if (tooltip == null || tooltip!.isEmpty) {
+      return content;
+    }
+
+    return Tooltip(
+      message: tooltip!,
+      waitDuration: const Duration(milliseconds: 120),
+      child: content,
     );
   }
 }

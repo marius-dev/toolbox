@@ -290,6 +290,14 @@ class _WorkspacesScreenState extends State<WorkspacesScreen>
       } catch (_) {}
     }
 
+    final gitInfo = ProjectGitInfo.fromJson(
+      json['gitInfo'] is Map<String, dynamic>
+          ? json['gitInfo'] as Map<String, dynamic>
+          : json['gitInfo'] is Map
+          ? Map<String, dynamic>.from(json['gitInfo'] as Map)
+          : null,
+    );
+
     return Project(
       id: id,
       name: name.trim(),
@@ -301,6 +309,7 @@ class _WorkspacesScreenState extends State<WorkspacesScreen>
       lastOpened: lastOpened,
       createdAt: createdAt,
       lastUsedToolId: lastUsedToolId,
+      gitInfo: gitInfo,
     );
   }
 
