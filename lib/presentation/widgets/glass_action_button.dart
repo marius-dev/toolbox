@@ -10,6 +10,7 @@ class GlassActionButton extends StatelessWidget {
   final VoidCallback? onPressed;
   final bool primary;
   final bool danger;
+  final Color? foregroundColor;
 
   const GlassActionButton({
     super.key,
@@ -18,6 +19,7 @@ class GlassActionButton extends StatelessWidget {
     this.onPressed,
     this.primary = false,
     this.danger = false,
+    this.foregroundColor,
   });
 
   bool get _enabled => onPressed != null;
@@ -69,11 +71,13 @@ class GlassActionButton extends StatelessWidget {
             ),
           ];
 
-    final iconColor = primary
+    final defaultIconColor = primary
         ? Colors.white
         : theme.iconTheme.color?.withOpacity(_enabled ? 0.9 : 0.5) ??
             Colors.white;
-    final textColor = primary ? Colors.white : iconColor;
+    final iconColor = foregroundColor ?? defaultIconColor;
+    final textColor = foregroundColor ??
+        (primary ? Colors.white : defaultIconColor);
     final radius = BorderRadius.circular(10);
     final height = CompactLayout.value(context, 46);
 

@@ -85,7 +85,7 @@ class LauncherSearchBar extends StatelessWidget {
             onChanged: onSearchChanged,
             style: Theme.of(
               context,
-            ).textTheme.bodyLarge?.copyWith(fontSize: 15, height: 1.3),
+            ).textTheme.bodyLarge?.copyWith(fontSize: 13, height: 1.2),
             decoration: InputDecoration(
               filled: true,
               fillColor: fillColor,

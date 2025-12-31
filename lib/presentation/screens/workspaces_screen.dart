@@ -536,6 +536,7 @@ class _WorkspacesScreenState extends State<WorkspacesScreen>
       icon: Icons.upload_file_rounded,
       onPressed: _importWorkspace,
       primary: false,
+      foregroundColor: Colors.white,
     );
   }
 

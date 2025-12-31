@@ -372,9 +372,7 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
     final messenger = ScaffoldMessenger.of(context);
     messenger
       ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(content: Text(message), duration: duration),
-      );
+      ..showSnackBar(SnackBar(content: Text(message), duration: duration));
   }
 
   void _showEditProjectDialog(BuildContext context, Project project) {
@@ -410,7 +408,7 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
 
     return [
       searchBar,
-      SizedBox(height: CompactLayout.value(context, 20)),
+      SizedBox(height: CompactLayout.value(context, 5)),
       Expanded(
         child: AnimatedBuilder(
           animation: Listenable.merge([_projectProvider, _toolsProvider]),

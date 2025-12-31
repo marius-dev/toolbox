@@ -154,10 +154,11 @@ class _GitInfoBadges extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final branch = gitInfo.branch ?? 'detached';
-    final statusLabel = _buildStatusLabel();
+    final statusLabel = gitInfo.isClean ? null : _buildStatusLabel();
 
     final branchTooltip = _buildBranchTooltip();
-    final statusTooltip = _buildStatusTooltip();
+    final statusTooltip =
+        statusLabel == null ? null : _buildStatusTooltip();
 
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -169,16 +170,16 @@ class _GitInfoBadges extends StatelessWidget {
           tooltip: branchTooltip,
           maxWidth: CompactLayout.value(context, 120),
         ),
-        SizedBox(width: CompactLayout.value(context, 6)),
-        _GitBadge(
-          label: statusLabel,
-          icon: gitInfo.isClean
-              ? Icons.check_circle_outline
-              : Icons.circle,
-          color: gitInfo.isClean ? Colors.green : Colors.orange,
-          tooltip: statusTooltip,
-          maxWidth: CompactLayout.value(context, 110),
-        ),
+        if (statusLabel != null) ...[
+          SizedBox(width: CompactLayout.value(context, 6)),
+          _GitBadge(
+            label: statusLabel,
+            icon: Icons.circle,
+            color: Colors.orange,
+            tooltip: statusTooltip,
+            maxWidth: CompactLayout.value(context, 110),
+          ),
+        ],
       ],
     );
   }
