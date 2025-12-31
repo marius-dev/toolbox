@@ -81,10 +81,7 @@ class _ProjectDetails extends StatelessWidget {
             child: isOpening
                 ? Text(
                     openingText,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 13,
-                    ),
+                    style: TextStyle(color: Colors.white, fontSize: 13),
                   )
                 : Text.rich(
                     TextSpan(
@@ -112,10 +109,7 @@ class _ProjectDetails extends StatelessWidget {
           ),
           if (!isOpening && !isDisabled && gitInfo.isGitRepo) ...[
             SizedBox(width: CompactLayout.value(context, 8)),
-            _GitInfoBadges(
-              gitInfo: gitInfo,
-              accentColor: accentColor,
-            ),
+            _GitInfoBadges(gitInfo: gitInfo, accentColor: accentColor),
           ],
         ],
       ),
@@ -146,10 +140,7 @@ class _GitInfoBadges extends StatelessWidget {
   final ProjectGitInfo gitInfo;
   final Color accentColor;
 
-  const _GitInfoBadges({
-    required this.gitInfo,
-    required this.accentColor,
-  });
+  const _GitInfoBadges({required this.gitInfo, required this.accentColor});
 
   @override
   Widget build(BuildContext context) {
@@ -157,8 +148,7 @@ class _GitInfoBadges extends StatelessWidget {
     final statusLabel = gitInfo.isClean ? null : _buildStatusLabel();
 
     final branchTooltip = _buildBranchTooltip();
-    final statusTooltip =
-        statusLabel == null ? null : _buildStatusTooltip();
+    final statusTooltip = statusLabel == null ? null : _buildStatusTooltip();
 
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -210,9 +200,7 @@ class _GitInfoBadges extends StatelessWidget {
     }
 
     if (gitInfo.ahead != null || gitInfo.behind != null) {
-      parts.add(
-        'Ahead/behind: ${gitInfo.ahead ?? 0}/${gitInfo.behind ?? 0}',
-      );
+      parts.add('Ahead/behind: ${gitInfo.ahead ?? 0}/${gitInfo.behind ?? 0}');
     }
 
     if (gitInfo.lastCommitMessage != null) {
@@ -259,8 +247,9 @@ class _GitInfoBadges extends StatelessWidget {
     final rounded = (approx * 10).round() / 10;
     final roundedInt = rounded.toInt();
     final isWhole = (rounded - roundedInt).abs() < 0.001;
-    final formattedNumber =
-        isWhole ? roundedInt.toString() : rounded.toStringAsFixed(1);
+    final formattedNumber = isWhole
+        ? roundedInt.toString()
+        : rounded.toStringAsFixed(1);
     return '~$formattedNumber$suffix';
   }
 
@@ -299,11 +288,7 @@ class _GitBadge extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            icon,
-            size: CompactLayout.value(context, 12),
-            color: color,
-          ),
+          Icon(icon, size: CompactLayout.value(context, 12), color: color),
           SizedBox(width: CompactLayout.value(context, 4)),
           ConstrainedBox(
             constraints: BoxConstraints(maxWidth: maxWidth),

@@ -45,10 +45,7 @@ class GlassActionButton extends StatelessWidget {
           ]
         : [
             base,
-            Color.alphaBlend(
-              accent.withOpacity(_enabled ? 0.12 : 0.08),
-              base,
-            ),
+            Color.alphaBlend(accent.withOpacity(_enabled ? 0.12 : 0.08), base),
           ];
 
     final borderColor = primary
@@ -74,10 +71,10 @@ class GlassActionButton extends StatelessWidget {
     final defaultIconColor = primary
         ? Colors.white
         : theme.iconTheme.color?.withOpacity(_enabled ? 0.9 : 0.5) ??
-            Colors.white;
+              Colors.white;
     final iconColor = foregroundColor ?? defaultIconColor;
-    final textColor = foregroundColor ??
-        (primary ? Colors.white : defaultIconColor);
+    final textColor =
+        foregroundColor ?? (primary ? Colors.white : defaultIconColor);
     final radius = BorderRadius.circular(10);
     final height = CompactLayout.value(context, 46);
 

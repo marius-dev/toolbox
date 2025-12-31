@@ -13,11 +13,7 @@ import 'tool_icon.dart';
 class ProjectDialog extends StatefulWidget {
   final Project? project;
   final ToolId? defaultToolId;
-  final Function(
-    String name,
-    String path,
-    ToolId? preferredToolId,
-  ) onSave;
+  final Function(String name, String path, ToolId? preferredToolId) onSave;
 
   const ProjectDialog({
     super.key,
@@ -224,8 +220,9 @@ class _ProjectDialogState extends State<ProjectDialog> {
         style: ElevatedButton.styleFrom(
           backgroundColor: accentColor,
           shape: RoundedRectangleBorder(
-            borderRadius:
-                BorderRadius.circular(CompactLayout.value(context, 8)),
+            borderRadius: BorderRadius.circular(
+              CompactLayout.value(context, 8),
+            ),
           ),
         ),
         child: const Text(
@@ -318,10 +315,7 @@ class _ProjectDialogState extends State<ProjectDialog> {
                 : baseBorderColor;
 
             return Container(
-              margin: CompactLayout.only(
-                context,
-                bottom: 6,
-              ),
+              margin: CompactLayout.only(context, bottom: 6),
               child: Material(
                 color: Colors.transparent,
                 child: InkWell(
@@ -338,7 +332,8 @@ class _ProjectDialogState extends State<ProjectDialog> {
                     decoration: BoxDecoration(
                       color: panelColor,
                       borderRadius: BorderRadius.circular(
-                          CompactLayout.value(context, 12)),
+                        CompactLayout.value(context, 12),
+                      ),
                       border: Border.all(color: borderColor, width: 1),
                     ),
                     child: Row(
@@ -409,9 +404,7 @@ class _ProjectDialogState extends State<ProjectDialog> {
       padding: EdgeInsets.all(CompactLayout.value(context, 14)),
       decoration: BoxDecoration(
         color: background,
-        borderRadius: BorderRadius.circular(
-          CompactLayout.value(context, 16),
-        ),
+        borderRadius: BorderRadius.circular(CompactLayout.value(context, 16)),
         border: Border.all(color: borderColor),
       ),
       child: Column(
@@ -478,8 +471,9 @@ class _ProjectDialogState extends State<ProjectDialog> {
           disabledBackgroundColor: accentColor.withOpacity(0.3),
           disabledForegroundColor: Colors.white.withOpacity(0.7),
           shape: RoundedRectangleBorder(
-            borderRadius:
-                BorderRadius.circular(CompactLayout.value(context, 8)),
+            borderRadius: BorderRadius.circular(
+              CompactLayout.value(context, 8),
+            ),
           ),
         ),
         child: Text(
@@ -549,18 +543,15 @@ class _ProjectDialogState extends State<ProjectDialog> {
         filled: true,
         fillColor: panelColor,
         border: OutlineInputBorder(
-          borderRadius:
-              BorderRadius.circular(CompactLayout.value(context, 10)),
+          borderRadius: BorderRadius.circular(CompactLayout.value(context, 10)),
           borderSide: BorderSide(color: borderColor),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius:
-              BorderRadius.circular(CompactLayout.value(context, 10)),
+          borderRadius: BorderRadius.circular(CompactLayout.value(context, 10)),
           borderSide: BorderSide(color: borderColor),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius:
-              BorderRadius.circular(CompactLayout.value(context, 10)),
+          borderRadius: BorderRadius.circular(CompactLayout.value(context, 10)),
           borderSide: BorderSide(color: accentColor, width: 1.5),
         ),
       ),

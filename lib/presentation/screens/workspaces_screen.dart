@@ -189,8 +189,9 @@ class _WorkspacesScreenState extends State<WorkspacesScreen>
       return;
     }
 
-    final createdWorkspace =
-        await widget.workspaceProvider.createWorkspace(workspaceName.trim());
+    final createdWorkspace = await widget.workspaceProvider.createWorkspace(
+      workspaceName.trim(),
+    );
 
     final projects = _parseProjects(decoded);
     final importedCount = await widget.projectProvider.importProjects(
@@ -202,8 +203,7 @@ class _WorkspacesScreenState extends State<WorkspacesScreen>
     await widget.workspaceProvider.setSelectedWorkspace(createdWorkspace.id);
     widget.projectProvider.setWorkspaceId(createdWorkspace.id);
 
-    final suffix =
-        importedCount == 1 ? '1 project' : '$importedCount projects';
+    final suffix = importedCount == 1 ? '1 project' : '$importedCount projects';
     final message = importedCount > 0
         ? 'Imported ${createdWorkspace.name} ($suffix)'
         : 'Imported ${createdWorkspace.name}';
@@ -285,8 +285,9 @@ class _WorkspacesScreenState extends State<WorkspacesScreen>
     final toolValue = json['lastUsedToolId'];
     if (toolValue is String && toolValue.isNotEmpty) {
       try {
-        lastUsedToolId =
-            ToolId.values.firstWhere((tool) => tool.name == toolValue);
+        lastUsedToolId = ToolId.values.firstWhere(
+          (tool) => tool.name == toolValue,
+        );
       } catch (_) {}
     }
 
@@ -328,10 +329,7 @@ class _WorkspacesScreenState extends State<WorkspacesScreen>
     messenger
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        SnackBar(
-          content: Text(message),
-          duration: const Duration(seconds: 2),
-        ),
+        SnackBar(content: Text(message), duration: const Duration(seconds: 2)),
       );
   }
 
@@ -344,21 +342,14 @@ class _WorkspacesScreenState extends State<WorkspacesScreen>
       blurSigma: 40,
       builder: (context, _) {
         return FadeTransition(
-          opacity: CurvedAnimation(
-            parent: _introController,
-            curve: curve,
-          ),
+          opacity: CurvedAnimation(parent: _introController, curve: curve),
           child: _buildContent(context, duration, curve),
         );
       },
     );
   }
 
-  Widget _buildContent(
-    BuildContext context,
-    Duration duration,
-    Curve curve,
-  ) {
+  Widget _buildContent(BuildContext context, Duration duration, Curve curve) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -493,11 +484,7 @@ class _WorkspacesScreenState extends State<WorkspacesScreen>
     );
   }
 
-  Widget _buildBottomBar(
-    BuildContext context,
-    Duration duration,
-    Curve curve,
-  ) {
+  Widget _buildBottomBar(BuildContext context, Duration duration, Curve curve) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bottomColor = isDark ? Colors.black.withOpacity(0.42) : null;
 
@@ -579,15 +566,15 @@ class _WorkspaceRowState extends State<_WorkspaceRow> {
     final workspace = widget.workspace;
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final accent =
-        _softAccentColor(ThemeProvider.instance.accentColor, isDark);
+    final accent = _softAccentColor(ThemeProvider.instance.accentColor, isDark);
     final background = widget.isSelected
         ? accent.withOpacity(isDark ? 0.24 : 0.12)
         : _isHovering
         ? theme.dividerColor.withOpacity(isDark ? 0.12 : 0.08)
         : Colors.transparent;
-    final borderColor =
-        widget.isSelected ? accent.withOpacity(0.85) : Colors.transparent;
+    final borderColor = widget.isSelected
+        ? accent.withOpacity(0.85)
+        : Colors.transparent;
     final muted = theme.textTheme.bodySmall!.color!.withOpacity(0.7);
 
     return MouseRegion(
@@ -645,7 +632,9 @@ class _WorkspaceRowState extends State<_WorkspaceRow> {
                       SizedBox(height: CompactLayout.value(context, 4)),
                       Text(
                         'Workspace',
-                        style: theme.textTheme.bodySmall!.copyWith(color: muted),
+                        style: theme.textTheme.bodySmall!.copyWith(
+                          color: muted,
+                        ),
                       ),
                     ],
                   ),

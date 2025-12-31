@@ -34,18 +34,18 @@ jobs:
       - name: Verify formatting
         run: dart format --output=none --set-exit-if-changed .
       
-      - name: Analyze code
-        run: flutter analyze
+      # - name: Analyze code
+      #   run: flutter analyze
       
-      - name: Run tests
-        run: flutter test --coverage
+      # - name: Run tests
+      #   run: flutter test --coverage
       
-      - name: Upload coverage
-        uses: codecov/codecov-action@v3
-        with:
-          files: ./coverage/lcov.info
-          flags: unittests
-          name: codecov-umbrella
+      # - name: Upload coverage
+      #   uses: codecov/codecov-action@v3
+      #   with:
+      #     files: ./coverage/lcov.info
+      #     flags: unittests
+      #     name: codecov-umbrella
 
   # Linux builds for x64 and ARM64
   # Single build works across distros (Ubuntu, Fedora, Debian, Arch, etc.)

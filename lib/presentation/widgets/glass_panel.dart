@@ -36,8 +36,9 @@ class GlassPanel extends StatelessWidget {
       style: ThemeProvider.instance.glassStyle,
       accentColor: ThemeProvider.instance.accentColor,
     );
-    final effectiveColor =
-        isTransparent ? Colors.transparent : (backgroundColor ?? palette.innerColor);
+    final effectiveColor = isTransparent
+        ? Colors.transparent
+        : (backgroundColor ?? palette.innerColor);
     final gradient = isTransparent ? null : palette.gradient;
     final border = isTransparent
         ? Border.all(color: Colors.transparent, width: 0)

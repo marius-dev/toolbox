@@ -9,7 +9,8 @@ class _MenuSectionHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final menuStyle = AppMenuStyle.of(context);
-    final baseStyle = theme.textTheme.labelSmall ??
+    final baseStyle =
+        theme.textTheme.labelSmall ??
         theme.textTheme.bodySmall ??
         menuStyle.textStyle;
     final headerStyle = baseStyle.copyWith(

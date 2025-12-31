@@ -320,7 +320,11 @@ class ProjectScanner {
 
               // Top large files (keep top 15)
               if (stat != null) {
-                _trackLargeFile(largeFiles, _SizedPath(rel, stat.size), keep: 15);
+                _trackLargeFile(
+                  largeFiles,
+                  _SizedPath(rel, stat.size),
+                  keep: 15,
+                );
               }
 
               // Hygiene markers
@@ -425,7 +429,10 @@ class ProjectScanner {
         return _emptyGit(isRepo: false);
       }
 
-      final repoRoot = await _runGit(rootPath, ['rev-parse', '--show-toplevel']);
+      final repoRoot = await _runGit(rootPath, [
+        'rev-parse',
+        '--show-toplevel',
+      ]);
       final headCommit = await _runGit(rootPath, ['rev-parse', 'HEAD']);
       final branch = await _runGit(rootPath, [
         'rev-parse',

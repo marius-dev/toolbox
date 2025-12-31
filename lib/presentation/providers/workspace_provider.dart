@@ -77,8 +77,7 @@ class WorkspaceProvider extends ChangeNotifier {
 
   Future<Workspace> createWorkspace(String name) async {
     final sanitized = _sanitizeName(name);
-    final resolvedName =
-        sanitized.isEmpty ? _defaultWorkspaceName : sanitized;
+    final resolvedName = sanitized.isEmpty ? _defaultWorkspaceName : sanitized;
     final workspace = await _useCases.addWorkspace(name: resolvedName);
     _workspaces = await _useCases.getAllWorkspaces();
     notifyListeners();
@@ -92,8 +91,9 @@ class WorkspaceProvider extends ChangeNotifier {
     if (sanitized == workspace.name) return;
     final updated = workspace.copyWith(name: sanitized);
     await _useCases.updateWorkspace(updated);
-    final index =
-        _workspaces.indexWhere((element) => element.id == workspace.id);
+    final index = _workspaces.indexWhere(
+      (element) => element.id == workspace.id,
+    );
     if (index != -1) {
       _workspaces[index] = updated;
       notifyListeners();
@@ -185,8 +185,8 @@ class WorkspaceProvider extends ChangeNotifier {
     if (_workspaces.isEmpty) return;
     for (var i = 0; i < _workspaces.length; i++) {
       final workspace = _workspaces[i];
-      final sanitized = workspace.isDefault &&
-              workspace.name.length > Workspace.maxNameLength
+      final sanitized =
+          workspace.isDefault && workspace.name.length > Workspace.maxNameLength
           ? _defaultWorkspaceName
           : _sanitizeName(workspace.name);
       if (sanitized.isEmpty || sanitized == workspace.name) {

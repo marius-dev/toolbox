@@ -76,8 +76,7 @@ class _ColorPickerDialogState extends State<ColorPickerDialog> {
                   color: isDark ? const Color(0xFF161B24) : Colors.white,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
                 child: BlockPicker(
                   pickerColor: _selectedColor,
                   availableColors: AppColors.accentPresets,

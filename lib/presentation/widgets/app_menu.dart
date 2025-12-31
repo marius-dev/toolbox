@@ -29,12 +29,14 @@ class AppMenuStyle {
     final borderColor = colorScheme.onSurface.withOpacity(isDark ? 0.08 : 0.06);
 
     return AppMenuStyle._(
-      backgroundColor:
-          isDark ? Colors.black.withOpacity(0.84) : colorScheme.surface,
+      backgroundColor: isDark
+          ? Colors.black.withOpacity(0.84)
+          : colorScheme.surface,
       borderColor: borderColor,
       textStyle: baseTextStyle.copyWith(color: baseTextColor),
-      mutedTextStyle:
-          baseTextStyle.copyWith(color: baseTextColor.withOpacity(0.4)),
+      mutedTextStyle: baseTextStyle.copyWith(
+        color: baseTextColor.withOpacity(0.4),
+      ),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
         side: BorderSide(color: borderColor),

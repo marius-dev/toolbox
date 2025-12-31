@@ -106,8 +106,9 @@ class ProjectItemState extends State<ProjectItem> {
     );
     final isHighlighted =
         widget.isFocused || widget.isHovering || widget.isOpening;
-    final highlightColor =
-        theme.dividerColor.withOpacity(isDarkMode ? 0.12 : 0.08);
+    final highlightColor = theme.dividerColor.withOpacity(
+      isDarkMode ? 0.12 : 0.08,
+    );
     final background = isHighlighted ? highlightColor : Colors.transparent;
     const borderColor = Colors.transparent;
 
@@ -125,10 +126,7 @@ class ProjectItemState extends State<ProjectItem> {
         decoration: BoxDecoration(
           color: background,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: borderColor,
-            width: 1,
-          ),
+          border: Border.all(color: borderColor, width: 1),
         ),
         child: SizedBox(
           height: CompactLayout.value(context, 56),

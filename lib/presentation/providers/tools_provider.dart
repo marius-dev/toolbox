@@ -71,8 +71,7 @@ class ToolsProvider extends ChangeNotifier {
     final savedId = await _storage.getDefaultToolId();
     if (savedId != null) {
       try {
-        _defaultToolId =
-            ToolId.values.firstWhere((id) => id.name == savedId);
+        _defaultToolId = ToolId.values.firstWhere((id) => id.name == savedId);
       } catch (_) {
         _defaultToolId = null;
       }

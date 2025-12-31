@@ -24,7 +24,8 @@ class GlowSpec {
 }
 
 class AppShell extends StatelessWidget {
-  final Widget Function(BuildContext context, GlassStylePalette palette) builder;
+  final Widget Function(BuildContext context, GlassStylePalette palette)
+  builder;
   final bool useSafeArea;
   final List<GlowSpec>? glows;
   final EdgeInsetsGeometry? padding;
@@ -51,7 +52,8 @@ class AppShell extends StatelessWidget {
         );
         final borderRadius = BorderRadius.circular(26);
         final sigma = blurSigma ?? palette.blurSigma;
-        final glowSpecs = glows ??
+        final glowSpecs =
+            glows ??
             const [
               GlowSpec(
                 alignment: Alignment.topLeft,

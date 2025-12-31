@@ -43,7 +43,8 @@ class GlassButton extends StatelessWidget {
     final defaultIconColor = isDark
         ? Colors.white.withOpacity(0.9)
         : Colors.black.withOpacity(0.65);
-    final resolvedIconColor = iconColor ??
+    final resolvedIconColor =
+        iconColor ??
         (tintColor == null
             ? defaultIconColor
             : accent.withOpacity(isDark ? 0.95 : 0.85));
@@ -58,8 +59,9 @@ class GlassButton extends StatelessWidget {
           width: resolvedSize,
           height: resolvedSize,
           decoration: BoxDecoration(
-            borderRadius:
-                BorderRadius.circular(CompactLayout.value(context, 10)),
+            borderRadius: BorderRadius.circular(
+              CompactLayout.value(context, 10),
+            ),
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,

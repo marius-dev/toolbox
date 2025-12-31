@@ -41,27 +41,28 @@ class ProjectMetadataService {
     final status = _parseStatus(statusOutput ?? '');
 
     final upstream = _cleanOutput(
-      await _runGit(
-        path,
-        ['rev-parse', '--abbrev-ref', '--symbolic-full-name', '@{upstream}'],
-      ),
+      await _runGit(path, [
+        'rev-parse',
+        '--abbrev-ref',
+        '--symbolic-full-name',
+        '@{upstream}',
+      ]),
     );
 
     _AheadBehindCounts? upstreamCounts;
     if (upstream != null) {
       upstreamCounts = _parseAheadBehind(
-        await _runGit(
-          path,
-          ['rev-list', '--left-right', '--count', '@{upstream}...HEAD'],
-        ),
+        await _runGit(path, [
+          'rev-list',
+          '--left-right',
+          '--count',
+          '@{upstream}...HEAD',
+        ]),
       );
     }
 
     final lastCommit = _parseLastCommit(
-      await _runGit(
-        path,
-        const ['log', '-1', '--pretty=%H%x1f%s%x1f%ct'],
-      ),
+      await _runGit(path, const ['log', '-1', '--pretty=%H%x1f%s%x1f%ct']),
     );
 
     return ProjectGitInfo(
@@ -89,11 +90,7 @@ class ProjectMetadataService {
 
   Future<String?> _runGit(String path, List<String> args) async {
     try {
-      final result = await Process.run(
-        'git',
-        args,
-        workingDirectory: path,
-      );
+      final result = await Process.run('git', args, workingDirectory: path);
       if (result.exitCode != 0) return null;
       final stdout = result.stdout;
       if (stdout is String) return stdout.trimRight();

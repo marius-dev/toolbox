@@ -3,8 +3,8 @@ import 'dart:io';
 import 'package:path/path.dart' as path;
 
 class StringUtils {
-  static final String? _homeDirectory = Platform.environment['HOME'] ??
-      Platform.environment['USERPROFILE'];
+  static final String? _homeDirectory =
+      Platform.environment['HOME'] ?? Platform.environment['USERPROFILE'];
 
   static final String? _normalizedHomeDirectory = _homeDirectory == null
       ? null

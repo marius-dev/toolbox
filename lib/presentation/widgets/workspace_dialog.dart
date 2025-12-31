@@ -21,8 +21,9 @@ class _WorkspaceDialogState extends State<WorkspaceDialog> {
   @override
   void initState() {
     super.initState();
-    _nameController =
-        TextEditingController(text: _limitName(widget.workspace?.name ?? ''));
+    _nameController = TextEditingController(
+      text: _limitName(widget.workspace?.name ?? ''),
+    );
   }
 
   @override
@@ -125,18 +126,21 @@ class _WorkspaceDialogState extends State<WorkspaceDialog> {
               color: theme.colorScheme.error,
             ),
             border: OutlineInputBorder(
-              borderRadius:
-                  BorderRadius.circular(CompactLayout.value(context, 10)),
+              borderRadius: BorderRadius.circular(
+                CompactLayout.value(context, 10),
+              ),
               borderSide: BorderSide(color: borderColor),
             ),
             enabledBorder: OutlineInputBorder(
-              borderRadius:
-                  BorderRadius.circular(CompactLayout.value(context, 10)),
+              borderRadius: BorderRadius.circular(
+                CompactLayout.value(context, 10),
+              ),
               borderSide: BorderSide(color: borderColor),
             ),
             focusedBorder: OutlineInputBorder(
-              borderRadius:
-                  BorderRadius.circular(CompactLayout.value(context, 10)),
+              borderRadius: BorderRadius.circular(
+                CompactLayout.value(context, 10),
+              ),
               borderSide: BorderSide(color: accentColor, width: 1.5),
             ),
           ),
@@ -147,9 +151,7 @@ class _WorkspaceDialogState extends State<WorkspaceDialog> {
           onPressed: () => Navigator.pop(context),
           child: Text(
             'Cancel',
-            style: TextStyle(
-              color: theme.textTheme.bodyMedium!.color,
-            ),
+            style: TextStyle(color: theme.textTheme.bodyMedium!.color),
           ),
         ),
         ElevatedButton(
@@ -160,8 +162,9 @@ class _WorkspaceDialogState extends State<WorkspaceDialog> {
             disabledBackgroundColor: accentColor.withOpacity(0.3),
             disabledForegroundColor: Colors.white.withOpacity(0.7),
             shape: RoundedRectangleBorder(
-              borderRadius:
-                  BorderRadius.circular(CompactLayout.value(context, 8)),
+              borderRadius: BorderRadius.circular(
+                CompactLayout.value(context, 8),
+              ),
             ),
           ),
           child: Text(
@@ -229,10 +232,7 @@ class WorkspaceDeleteDialog extends StatelessWidget {
         CompactLayout.value(context, 18),
         CompactLayout.value(context, 12),
       ),
-      title: Text(
-        'Remove workspace?',
-        style: theme.textTheme.titleLarge,
-      ),
+      title: Text('Remove workspace?', style: theme.textTheme.titleLarge),
       content: Text(
         'Projects in "$workspaceName" will be moved to another workspace.',
         style: theme.textTheme.bodySmall!.copyWith(
@@ -244,9 +244,7 @@ class WorkspaceDeleteDialog extends StatelessWidget {
           onPressed: () => Navigator.pop(context, false),
           child: Text(
             'Cancel',
-            style: TextStyle(
-              color: theme.textTheme.bodyMedium!.color,
-            ),
+            style: TextStyle(color: theme.textTheme.bodyMedium!.color),
           ),
         ),
         ElevatedButton(
@@ -255,8 +253,9 @@ class WorkspaceDeleteDialog extends StatelessWidget {
             backgroundColor: Colors.redAccent,
             foregroundColor: Colors.white,
             shape: RoundedRectangleBorder(
-              borderRadius:
-                  BorderRadius.circular(CompactLayout.value(context, 8)),
+              borderRadius: BorderRadius.circular(
+                CompactLayout.value(context, 8),
+              ),
             ),
           ),
           child: const Text(

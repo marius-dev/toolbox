@@ -226,8 +226,8 @@ class _SyncButtonState extends State<_SyncButton>
     final tooltip = isBusy
         ? 'Syncing projects metadata...'
         : hasIssues
-            ? 'Sync projects metadata (missing paths)'
-            : 'Sync projects metadata';
+        ? 'Sync projects metadata (missing paths)'
+        : 'Sync projects metadata';
 
     return Tooltip(
       message: tooltip,
@@ -240,9 +240,7 @@ class _SyncButtonState extends State<_SyncButton>
           height: CompactLayout.value(context, 28),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(12),
-            color: isBusy
-                ? accent.withOpacity(0.16)
-                : background,
+            color: isBusy ? accent.withOpacity(0.16) : background,
             border: Border.all(color: borderColor),
           ),
           alignment: Alignment.center,

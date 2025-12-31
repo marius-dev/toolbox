@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 
-enum GlassStyle {
-  clear,
-  tinted,
-}
+enum GlassStyle { clear, tinted }
 
 extension GlassStyleExtension on GlassStyle {
   String get storageKey {
@@ -58,9 +55,8 @@ class GlassStylePalette {
 
   Color get baseColor => Colors.white.withOpacity(_surfaceOpacity);
 
-  double get accentOpacity => style == GlassStyle.tinted
-      ? (isDark ? 0.2 : 0.15)
-      : 0.0;
+  double get accentOpacity =>
+      style == GlassStyle.tinted ? (isDark ? 0.2 : 0.15) : 0.0;
 
   Color get innerColor {
     final base = baseColor;
@@ -84,10 +80,7 @@ class GlassStylePalette {
       : LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            innerColor,
-            innerColor,
-          ],
+          colors: [innerColor, innerColor],
         );
 
   List<Color> get backgroundGradient {
@@ -99,9 +92,12 @@ class GlassStylePalette {
         : Colors.white.withOpacity(style == GlassStyle.clear ? 0.5 : 0.8);
     final end = isDark
         ? Color(0xFF0E1324).withOpacity(style == GlassStyle.clear ? 0.42 : 0.6)
-        : Color(0xFFF5F6FB).withOpacity(style == GlassStyle.clear ? 0.38 : 0.65);
-    final overlayOpacity =
-        style == GlassStyle.tinted ? (isDark ? 0.18 : 0.08) : 0.0;
+        : Color(
+            0xFFF5F6FB,
+          ).withOpacity(style == GlassStyle.clear ? 0.38 : 0.65);
+    final overlayOpacity = style == GlassStyle.tinted
+        ? (isDark ? 0.18 : 0.08)
+        : 0.0;
     final middle = Color.alphaBlend(
       accentColor.withOpacity(overlayOpacity),
       middleBase,
@@ -114,14 +110,14 @@ class GlassStylePalette {
       accentColor.withOpacity(style == GlassStyle.tinted ? 0.6 : 0.25);
 
   List<BoxShadow>? get shadow => [
-        BoxShadow(
-          color: Colors.black.withOpacity(
-            isDark
-                ? (style == GlassStyle.tinted ? 0.55 : 0.25)
-                : (style == GlassStyle.tinted ? 0.18 : 0.08),
-          ),
-          blurRadius: style == GlassStyle.tinted ? 30 : 18,
-          offset: Offset(0, style == GlassStyle.tinted ? 16 : 10),
-        ),
-      ];
+    BoxShadow(
+      color: Colors.black.withOpacity(
+        isDark
+            ? (style == GlassStyle.tinted ? 0.55 : 0.25)
+            : (style == GlassStyle.tinted ? 0.18 : 0.08),
+      ),
+      blurRadius: style == GlassStyle.tinted ? 30 : 18,
+      offset: Offset(0, style == GlassStyle.tinted ? 16 : 10),
+    ),
+  ];
 }

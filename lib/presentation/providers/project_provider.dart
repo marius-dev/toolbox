@@ -242,8 +242,10 @@ class ProjectProvider extends ChangeNotifier {
   Future<void> _assignMissingWorkspaces(String? workspaceId) async {
     if (workspaceId == null || workspaceId.isEmpty) return;
     final updates = _projects
-        .where((project) =>
-            project.workspaceId == null || project.workspaceId!.isEmpty)
+        .where(
+          (project) =>
+              project.workspaceId == null || project.workspaceId!.isEmpty,
+        )
         .map((project) => project.copyWith(workspaceId: workspaceId))
         .toList();
     for (final project in updates) {

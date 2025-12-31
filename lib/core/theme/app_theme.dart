@@ -63,10 +63,7 @@ class AppTheme {
           color: isDark ? Colors.white70 : Colors.black54,
           fontSize: 12,
         ),
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 10,
-          vertical: 8,
-        ),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
           borderSide: BorderSide(color: outlineColor),

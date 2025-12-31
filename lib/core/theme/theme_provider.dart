@@ -41,9 +41,7 @@ class ThemeProvider extends ChangeNotifier with WidgetsBindingObserver {
     if (_themeMode == ThemeMode.system) {
       return _platformBrightness;
     }
-    return _themeMode == ThemeMode.dark
-        ? Brightness.dark
-        : Brightness.light;
+    return _themeMode == ThemeMode.dark ? Brightness.dark : Brightness.light;
   }
 
   void setThemeMode(ThemeMode mode) {
@@ -95,10 +93,11 @@ class ThemeProvider extends ChangeNotifier with WidgetsBindingObserver {
     final prefs = await StorageService.instance.getThemePreferences();
     _themeMode = _themeModeFromString(prefs['themeMode'] as String?);
     _accentColor = Color(prefs['accentColor'] ?? 0xFF6366F1);
-    _glassStyle = GlassStyleExtension.fromString(prefs['glassStyle'] as String?);
+    _glassStyle = GlassStyleExtension.fromString(
+      prefs['glassStyle'] as String?,
+    );
     final storedScale = prefs['scale'];
-    final scaleValue =
-        storedScale is num ? storedScale.toDouble() : 1.0;
+    final scaleValue = storedScale is num ? storedScale.toDouble() : 1.0;
     _scaleFactor = _normalizeScale(scaleValue);
     notifyListeners();
   }

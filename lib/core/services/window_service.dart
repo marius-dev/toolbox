@@ -62,10 +62,7 @@ class WindowService {
   }
 
   Size _scaledWindowSize(double scale) {
-    return Size(
-      _baseWindowSize.width * scale,
-      _baseWindowSize.height * scale,
-    );
+    return Size(_baseWindowSize.width * scale, _baseWindowSize.height * scale);
   }
 
   Future<void> _applyWindowBounds(Size size) async {
