@@ -1,9 +1,9 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:project_launcher/domain/models/project.dart';
-import 'package:project_launcher/presentation/screens/add_project_screen.dart';
 import 'package:project_launcher/presentation/screens/settings_screen.dart';
 import 'package:project_launcher/presentation/screens/workspaces_screen.dart';
 import 'package:project_launcher/presentation/widgets/project_dialog.dart';
@@ -39,6 +39,8 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
   bool _showSettings = false;
   LauncherTab _selectedTab = LauncherTab.projects;
   bool _wasHidden = false;
+  bool _isSearchFocusScheduled = false;
+  String? _pendingSearchInitialInput;
 
   @override
   void initState() {
@@ -157,7 +159,13 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
     final route = ModalRoute.of(context);
     if (route == null || !route.isCurrent) return;
     if (event is! RawKeyDownEvent) return;
-    if (_showSettings || _selectedTab != LauncherTab.projects) return;
+    if (_showSettings) {
+      if (event.logicalKey == LogicalKeyboardKey.escape) {
+        _toggleSettings();
+      }
+      return;
+    }
+    if (_selectedTab != LauncherTab.projects) return;
     final hasModifiers =
         event.isControlPressed || event.isMetaPressed || event.isAltPressed;
     if (_searchFocusNode.hasFocus) return;
@@ -172,49 +180,86 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
     final isAlphanumeric =
         character != null && RegExp(r'^[a-zA-Z0-9]$').hasMatch(character);
     if (!isAlphanumeric) return;
+    if (_isSearchFocusScheduled) return;
 
-    _focusSearchField(initialInput: character);
+    _pendingSearchInitialInput = character;
+    _isSearchFocusScheduled = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _isSearchFocusScheduled = false;
+      final initialInput = _pendingSearchInitialInput;
+      _pendingSearchInitialInput = null;
+      if (!mounted || initialInput == null || initialInput.isEmpty) return;
+      _focusSearchField(initialInput: initialInput);
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      behavior: HitTestBehavior.deferToChild,
-      onTap: () => FocusScope.of(context).unfocus(),
-      child: AppShell(
-        blurSigma: 40,
-        glows: const [
-          GlowSpec(
-            alignment: Alignment.topRight,
-            offset: Offset(20, -120),
-            size: 280,
-            angle: 0.5,
-            thickness: 0.34,
+    final isMac = defaultTargetPlatform == TargetPlatform.macOS;
+    final shortcuts = <ShortcutActivator, Intent>{
+      SingleActivator(
+        LogicalKeyboardKey.keyN,
+        control: !isMac,
+        meta: isMac,
+      ): const AddProjectIntent(),
+    };
+
+    return Shortcuts(
+      shortcuts: shortcuts,
+      child: Actions(
+        actions: {
+          AddProjectIntent: CallbackAction<AddProjectIntent>(
+            onInvoke: (_intent) {
+              if (_showSettings || _selectedTab != LauncherTab.projects) {
+                return null;
+              }
+              _showAddProjectDialog();
+              return null;
+            },
           ),
-          GlowSpec(
-            alignment: Alignment.bottomLeft,
-            offset: Offset(-30, 140),
-            size: 360,
-            opacity: 0.84,
-            angle: -0.28,
-            thickness: 0.46,
-          ),
-        ],
-        builder: (context, _) {
-          return Stack(
-            fit: StackFit.expand,
-            children: [
-              Positioned.fill(
-                child: _showSettings
-                    ? SettingsScreen(
-                        onBack: _toggleSettings,
-                        onRescan: _toolsProvider.refresh,
-                      )
-                    : _buildMainView(),
-              ),
-            ],
-          );
         },
+        child: Focus(
+          autofocus: true,
+          child: GestureDetector(
+            behavior: HitTestBehavior.deferToChild,
+            onTap: () => FocusScope.of(context).unfocus(),
+            child: AppShell(
+              blurSigma: 40,
+              glows: const [
+                GlowSpec(
+                  alignment: Alignment.topRight,
+                  offset: Offset(20, -120),
+                  size: 280,
+                  angle: 0.5,
+                  thickness: 0.34,
+                ),
+                GlowSpec(
+                  alignment: Alignment.bottomLeft,
+                  offset: Offset(-30, 140),
+                  size: 360,
+                  opacity: 0.84,
+                  angle: -0.28,
+                  thickness: 0.46,
+                ),
+              ],
+              builder: (context, _) {
+                return Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    Positioned.fill(
+                      child: _showSettings
+                          ? SettingsScreen(
+                              onBack: _toggleSettings,
+                              onRescan: _toolsProvider.refresh,
+                            )
+                          : _buildMainView(),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -268,54 +313,32 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
     );
   }
 
-  Future<void> _openAddProjectScreen() async {
+  Future<void> _showAddProjectDialog() async {
     _dismissPopupMenus();
     final workspaceId = _workspaceProvider.selectedWorkspaceId;
     if (workspaceId == null || workspaceId.isEmpty) {
       _showMessage('Workspace not ready');
       return;
     }
-    final created = await Navigator.of(
-      context,
-    ).push<bool>(_buildAddProjectRoute(workspaceId));
+    final created = await showDialog<bool>(
+      context: context,
+      barrierColor: Colors.black.withOpacity(0.78),
+      builder: (context) => ProjectDialog(
+        defaultToolId: _toolsProvider.defaultToolId,
+        onSave: (name, path, preferredToolId) async {
+          await _projectProvider.addProject(
+            name: name,
+            path: path,
+            preferredToolId: preferredToolId,
+            workspaceId: workspaceId,
+          );
+        },
+      ),
+    );
     if (!mounted) return;
     if (created == true) {
       WidgetsBinding.instance.addPostFrameCallback((_) => _focusSearchField());
     }
-  }
-
-  PageRouteBuilder<bool> _buildAddProjectRoute(String workspaceId) {
-    return PageRouteBuilder<bool>(
-      transitionDuration: const Duration(milliseconds: 420),
-      reverseTransitionDuration: const Duration(milliseconds: 320),
-      pageBuilder: (context, animation, secondaryAnimation) {
-        final child = AddProjectScreen(
-          projectProvider: _projectProvider,
-          toolsProvider: _toolsProvider,
-          workspaceId: workspaceId,
-        );
-        final media = MediaQuery.of(context);
-        if (media.disableAnimations || media.accessibleNavigation) {
-          return child;
-        }
-
-        final curved = CurvedAnimation(
-          parent: animation,
-          curve: Curves.easeOutCubic,
-        );
-
-        return FadeTransition(
-          opacity: curved,
-          child: SlideTransition(
-            position: Tween<Offset>(
-              begin: const Offset(0, 0.04),
-              end: Offset.zero,
-            ).animate(curved),
-            child: child,
-          ),
-        );
-      },
-    );
   }
 
   void _handleImportFromGit() {
@@ -378,11 +401,12 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
   void _showEditProjectDialog(BuildContext context, Project project) {
     showDialog(
       context: context,
+      barrierColor: Colors.black.withOpacity(0.78),
       builder: (context) => ProjectDialog(
         project: project,
         defaultToolId: _toolsProvider.defaultToolId,
-        onSave: (name, path, _) {
-          _projectProvider.updateProject(
+        onSave: (name, path, _) async {
+          await _projectProvider.updateProject(
             project.copyWith(name: name, path: path),
           );
         },
@@ -400,7 +424,7 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
           onNavigateNext: _focusProjectList,
           onSearchFocus: _dismissPopupMenus,
           onSearchChanged: _projectProvider.setSearchQuery,
-          onAddProject: _openAddProjectScreen,
+          onAddProject: _showAddProjectDialog,
           onImportFromGit: _handleImportFromGit,
         );
       },
@@ -421,7 +445,7 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
             }
 
             if (!_projectProvider.hasProjects) {
-              return EmptyState(onAddProject: _openAddProjectScreen);
+              return EmptyState(onAddProject: _showAddProjectDialog);
             }
 
             return ProjectList(

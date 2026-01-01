@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../core/services/window_service.dart';
 import '../../core/theme/theme_provider.dart';
@@ -17,6 +18,7 @@ import '../widgets/glass_action_button.dart';
 import '../widgets/glass_button.dart';
 import '../widgets/glass_panel.dart';
 import '../widgets/launcher/project_list_scroll_behavior.dart';
+import '../widgets/section_layout.dart';
 import '../widgets/workspace_dialog.dart';
 
 class WorkspacesScreen extends StatefulWidget {
@@ -338,85 +340,58 @@ class _WorkspacesScreenState extends State<WorkspacesScreen>
     final duration = _animationDuration(context);
     final curve = _animationCurve(context);
 
-    return AppShell(
-      blurSigma: 40,
-      builder: (context, _) {
-        return FadeTransition(
-          opacity: CurvedAnimation(parent: _introController, curve: curve),
-          child: _buildContent(context, duration, curve),
-        );
-      },
+    return Focus(
+      autofocus: true,
+      onKey: _handleEscapeKey,
+      child: AppShell(
+        blurSigma: 40,
+        builder: (context, _) {
+          return FadeTransition(
+            opacity: CurvedAnimation(parent: _introController, curve: curve),
+            child: _buildContent(context, duration, curve),
+          );
+        },
+      ),
     );
   }
 
+  KeyEventResult _handleEscapeKey(FocusNode node, RawKeyEvent event) {
+    if (event is RawKeyDownEvent &&
+        event.logicalKey == LogicalKeyboardKey.escape) {
+      Navigator.of(context).maybePop();
+      return KeyEventResult.handled;
+    }
+    return KeyEventResult.ignored;
+  }
+
   Widget _buildContent(BuildContext context, Duration duration, Curve curve) {
+    final horizontalPadding =
+        CompactLayout.symmetric(context, horizontal: 18);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Expanded(
           child: Padding(
-            padding: CompactLayout.only(context, top: 40, bottom: 0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Padding(
-                  padding: CompactLayout.symmetric(context, horizontal: 18),
-                  child: _buildHeader(context),
-                ),
-                SizedBox(height: CompactLayout.value(context, 12)),
-                Expanded(
-                  child: Padding(
-                    padding: CompactLayout.symmetric(context, horizontal: 18),
-                    child: _buildWorkspaceList(context),
-                  ),
-                ),
-                SizedBox(height: CompactLayout.value(context, 12)),
-              ],
+            padding: CompactLayout.only(context, top: 40),
+            child: SectionLayout(
+              onBack: () => Navigator.of(context).maybePop(),
+              title: 'Manage workspaces',
+              subtitle: 'Create, rename, and organize your workspaces.',
+              padding: horizontalPadding,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Expanded(child: _buildWorkspaceList(context)),
+                  SizedBox(height: CompactLayout.value(context, 12)),
+                ],
+              ),
             ),
           ),
         ),
         Padding(
           padding: CompactLayout.only(context, top: 0, bottom: 0),
           child: _buildBottomBar(context, duration, curve),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildHeader(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-    final muted = textTheme.bodyMedium!.color!.withOpacity(0.8);
-
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Semantics(
-          button: true,
-          label: 'Back to launcher',
-          child: GlassButton(
-            icon: Icons.arrow_back_ios_new_rounded,
-            tooltip: 'Back',
-            onPressed: () => Navigator.of(context).maybePop(),
-          ),
-        ),
-        SizedBox(width: CompactLayout.value(context, 12)),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Manage workspaces',
-                style: textTheme.titleLarge!.copyWith(
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-              SizedBox(height: CompactLayout.value(context, 4)),
-              Text(
-                'Create, rename, and organize your workspaces.',
-                style: textTheme.bodyMedium!.copyWith(color: muted),
-              ),
-            ],
-          ),
         ),
       ],
     );

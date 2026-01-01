@@ -48,7 +48,7 @@ class _WorkspaceDialogState extends State<WorkspaceDialog> {
       accentColor: accentColor,
     );
     final borderColor = palette.borderColor;
-    final background = _solidDialogBackground(palette, theme);
+    final background = solidDialogBackground(palette, theme);
     final fieldFill = _solidFieldFill(theme, background);
     final isEditing = widget.workspace != null;
     final canSave = _nameController.text.trim().isNotEmpty;
@@ -200,7 +200,7 @@ class WorkspaceDeleteDialog extends StatelessWidget {
       accentColor: accentColor,
     );
     final borderColor = palette.borderColor;
-    final background = _solidDialogBackground(palette, theme);
+    final background = solidDialogBackground(palette, theme);
 
     return AlertDialog(
       backgroundColor: background,
@@ -266,10 +266,6 @@ class WorkspaceDeleteDialog extends StatelessWidget {
       ],
     );
   }
-}
-
-Color _solidDialogBackground(GlassStylePalette palette, ThemeData theme) {
-  return Color.alphaBlend(palette.innerColor, theme.colorScheme.surface);
 }
 
 Color _solidFieldFill(ThemeData theme, Color background) {

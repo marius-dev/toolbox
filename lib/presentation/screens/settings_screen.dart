@@ -5,6 +5,7 @@ import '../../core/theme/theme_provider.dart';
 import '../../core/utils/compact_layout.dart';
 import '../widgets/color_picker_dialog.dart';
 import '../widgets/hotkey_picker.dart';
+import '../widgets/section_layout.dart';
 import '../widgets/settings_tile.dart';
 
 class SettingsScreen extends StatelessWidget {
@@ -19,47 +20,33 @@ class SettingsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        _buildHeader(context),
-        Expanded(
-          child: ListView(
-            padding: EdgeInsets.all(CompactLayout.value(context, 16)),
-            children: [
-              const HotkeyPicker(),
-              SizedBox(height: CompactLayout.value(context, 10)),
-              _buildThemeToggle(context),
-              SizedBox(height: CompactLayout.value(context, 10)),
-              _buildGlassStyleTile(context),
-              SizedBox(height: CompactLayout.value(context, 10)),
-              _buildScaleTile(context),
-              SizedBox(height: CompactLayout.value(context, 10)),
-              _buildAccentColorPicker(context),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildHeader(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.all(CompactLayout.value(context, 16)),
-      child: Row(
+    return Padding(
+      padding: CompactLayout.only(context, top: 40),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          IconButton(
-            icon: Icon(
-              Icons.arrow_back,
-              color: Theme.of(context).iconTheme.color,
-              size: CompactLayout.value(context, 20),
-            ),
-            onPressed: onBack,
-          ),
-          Text(
-            'Settings',
-            style: Theme.of(context).textTheme.bodyLarge!.copyWith(
-              fontSize: CompactLayout.value(context, 18),
-              fontWeight: FontWeight.w600,
+          Expanded(
+            child: SectionLayout(
+              onBack: onBack,
+              title: 'Settings',
+              subtitle: 'Customize how the launcher looks and behaves.',
+              padding: CompactLayout.symmetric(context, horizontal: 18),
+              child: ListView(
+                padding: EdgeInsets.only(
+                  bottom: CompactLayout.value(context, 16),
+                ),
+                children: [
+                  const HotkeyPicker(),
+                  SizedBox(height: CompactLayout.value(context, 10)),
+                  _buildThemeToggle(context),
+                  SizedBox(height: CompactLayout.value(context, 10)),
+                  _buildGlassStyleTile(context),
+                  SizedBox(height: CompactLayout.value(context, 10)),
+                  _buildScaleTile(context),
+                  SizedBox(height: CompactLayout.value(context, 10)),
+                  _buildAccentColorPicker(context),
+                ],
+              ),
             ),
           ),
         ],

@@ -13,7 +13,11 @@ import 'tool_icon.dart';
 class ProjectDialog extends StatefulWidget {
   final Project? project;
   final ToolId? defaultToolId;
-  final Function(String name, String path, ToolId? preferredToolId) onSave;
+  final Future<void> Function(
+    String name,
+    String path,
+    ToolId? preferredToolId,
+  ) onSave;
 
   const ProjectDialog({
     super.key,
@@ -29,7 +33,6 @@ class ProjectDialog extends StatefulWidget {
 class _ProjectDialogState extends State<ProjectDialog> {
   late TextEditingController _nameController;
   late TextEditingController _pathController;
-  int _currentStep = 0;
   bool _isLoadingTools = false;
   List<Tool> _installedTools = [];
   ToolId? _selectedToolId;
@@ -39,10 +42,7 @@ class _ProjectDialogState extends State<ProjectDialog> {
     super.initState();
     _nameController = TextEditingController(text: widget.project?.name ?? '');
     _pathController = TextEditingController(text: widget.project?.path ?? '');
-
-    if (widget.project == null) {
-      _loadInstalledTools();
-    }
+    _loadInstalledTools();
   }
 
   @override
@@ -67,27 +67,22 @@ class _ProjectDialogState extends State<ProjectDialog> {
   }
 
   Future<void> _loadInstalledTools() async {
-    setState(() {
-      _isLoadingTools = true;
-    });
+    setState(() => _isLoadingTools = true);
 
     final tools = await ToolDiscoveryService.instance.discoverTools();
     final installed = tools.where((tool) => tool.isInstalled).toList()
       ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
 
     ToolId? initialId;
-    if (widget.project?.lastUsedToolId != null &&
-        installed.any((t) => t.id == widget.project!.lastUsedToolId)) {
-      initialId = widget.project!.lastUsedToolId;
-    } else if (widget.defaultToolId != null &&
-        installed.any((t) => t.id == widget.defaultToolId)) {
-      initialId = widget.defaultToolId;
+    final preferredToolId = widget.project?.lastUsedToolId ?? widget.defaultToolId;
+    if (preferredToolId != null &&
+        installed.any((tool) => tool.id == preferredToolId)) {
+      initialId = preferredToolId;
     } else if (installed.isNotEmpty) {
       initialId = installed.first.id;
     }
 
     if (!mounted) return;
-
     setState(() {
       _installedTools = installed;
       _selectedToolId = initialId;
@@ -104,18 +99,268 @@ class _ProjectDialogState extends State<ProjectDialog> {
         : segments.last;
   }
 
-  void _save() {
-    if (_nameController.text.isNotEmpty && _pathController.text.isNotEmpty) {
-      final preferredToolId = widget.project == null
-          ? _selectedToolId
-          : widget.project?.lastUsedToolId;
-      widget.onSave(
-        _nameController.text,
-        _pathController.text,
-        preferredToolId,
-      );
-      Navigator.pop(context);
+  bool get _canSave {
+    if (_pathController.text.trim().isEmpty ||
+        _nameController.text.trim().isEmpty) {
+      return false;
     }
+    if (_isLoadingTools) return false;
+    if (_installedTools.isNotEmpty && _selectedToolId == null) {
+      return false;
+    }
+    return true;
+  }
+
+  Future<void> _save() async {
+    if (!_canSave) return;
+    final preferredToolId =
+        _selectedToolId ?? widget.project?.lastUsedToolId;
+    await widget.onSave(
+      _nameController.text.trim(),
+      _pathController.text.trim(),
+      preferredToolId,
+    );
+    if (mounted) {
+      Navigator.of(context).pop(true);
+    }
+  }
+
+  void _selectTool(Tool tool) {
+    setState(() => _selectedToolId = tool.id);
+  }
+
+  InputDecoration _buildSearchFieldDecoration(
+    BuildContext context, {
+    required String label,
+    required IconData icon,
+    String? hint,
+  }) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final baseColor = theme.textTheme.bodyLarge!.color!;
+    final fillColor = isDark
+        ? Colors.black.withOpacity(0.45)
+        : Colors.white.withOpacity(0.92);
+    final borderColor = baseColor.withOpacity(isDark ? 0.3 : 0.16);
+    final accentColor = ThemeProvider.instance.accentColor;
+
+    return InputDecoration(
+      labelText: label,
+      hintText: hint,
+      labelStyle: theme.textTheme.bodyMedium,
+      prefixIcon: Icon(icon, color: theme.iconTheme.color, size: 20),
+      filled: true,
+      fillColor: fillColor,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: BorderSide(color: borderColor),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: BorderSide(color: borderColor),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: BorderSide(color: accentColor, width: 1.4),
+      ),
+    );
+  }
+
+  BoxDecoration _cardDecoration(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final background = isDark
+        ? Colors.black.withOpacity(0.5)
+        : Colors.white.withOpacity(0.9);
+    final borderColor = theme.dividerColor.withOpacity(0.24);
+    return BoxDecoration(
+      color: background,
+      borderRadius: BorderRadius.circular(CompactLayout.value(context, 20)),
+      border: Border.all(color: borderColor),
+    );
+  }
+
+  Widget _buildFormCard(BuildContext context) {
+    return Container(
+      decoration: _cardDecoration(context),
+      padding: EdgeInsets.all(CompactLayout.value(context, 16)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _buildPathField(context),
+          SizedBox(height: CompactLayout.value(context, 12)),
+          _buildNameField(context),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildToolsCard(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      decoration: _cardDecoration(context),
+      padding: EdgeInsets.all(CompactLayout.value(context, 16)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Preferred tool',
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          SizedBox(height: CompactLayout.value(context, 12)),
+          _buildToolsList(context),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPathField(BuildContext context) {
+    return TextField(
+      controller: _pathController,
+      readOnly: true,
+      onTap: _pickProjectFolder,
+      decoration: _buildSearchFieldDecoration(
+        context,
+        label: 'Project folder',
+        icon: Icons.folder_open,
+        hint: 'Select a folder',
+      ),
+      style: Theme.of(context).textTheme.bodyLarge,
+    );
+  }
+
+  Widget _buildNameField(BuildContext context) {
+    return TextField(
+      controller: _nameController,
+      textInputAction: TextInputAction.done,
+      onChanged: (_) => setState(() {}),
+      decoration: _buildSearchFieldDecoration(
+        context,
+        label: 'Project name',
+        icon: Icons.edit_note_rounded,
+        hint: 'Name your project',
+      ),
+      style: Theme.of(context).textTheme.bodyLarge,
+    );
+  }
+
+  Widget _buildToolsList(BuildContext context) {
+    if (_isLoadingTools) {
+      return SizedBox(
+        height: CompactLayout.value(context, 100),
+        child: Center(
+          child: CircularProgressIndicator(
+            color: ThemeProvider.instance.accentColor,
+          ),
+        ),
+      );
+    }
+
+    if (_installedTools.isEmpty) {
+      return Text(
+        'No IDEs were detected. You can add one later from the Tools tab.',
+        style: Theme.of(context).textTheme.bodyMedium,
+      );
+    }
+
+    return ConstrainedBox(
+      constraints: BoxConstraints(
+        maxHeight: CompactLayout.value(context, 220),
+      ),
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            for (var i = 0; i < _installedTools.length; i++) ...[
+              _buildToolOption(context, _installedTools[i]),
+              if (i < _installedTools.length - 1)
+                SizedBox(height: CompactLayout.value(context, 8)),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildToolOption(BuildContext context, Tool tool) {
+    final theme = Theme.of(context);
+    final accentColor = ThemeProvider.instance.accentColor;
+    final isSelected = tool.id == _selectedToolId;
+    final background = isSelected
+        ? accentColor.withOpacity(theme.brightness == Brightness.dark ? 0.2 : 0.12)
+        : Colors.transparent;
+    final borderColor = isSelected
+        ? accentColor.withOpacity(0.7)
+        : theme.dividerColor.withOpacity(theme.brightness == Brightness.dark ? 0.4 : 0.2);
+
+    return InkWell(
+      borderRadius: BorderRadius.circular(CompactLayout.value(context, 14)),
+      onTap: () => _selectTool(tool),
+      child: Container(
+        padding: EdgeInsets.symmetric(
+          horizontal: CompactLayout.value(context, 12),
+          vertical: CompactLayout.value(context, 10),
+        ),
+        decoration: BoxDecoration(
+          color: background,
+          borderRadius: BorderRadius.circular(CompactLayout.value(context, 14)),
+          border: Border.all(color: borderColor),
+        ),
+        child: Row(
+          children: [
+            ToolIcon(
+              tool: tool,
+              size: CompactLayout.value(context, 28),
+            ),
+            SizedBox(width: CompactLayout.value(context, 10)),
+            Expanded(
+              child: Text(
+                tool.name,
+                style: theme.textTheme.bodyLarge,
+              ),
+            ),
+            Radio<ToolId>(
+              value: tool.id,
+              groupValue: _selectedToolId,
+              onChanged: (_) => _selectTool(tool),
+              activeColor: accentColor,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  List<Widget> _buildActions(Color accentColor, bool isEditing) {
+    final theme = Theme.of(context);
+    return [
+      TextButton(
+        onPressed: () => Navigator.pop(context),
+        child: Text(
+          'Cancel',
+          style: TextStyle(color: theme.textTheme.bodyMedium!.color),
+        ),
+      ),
+      ElevatedButton(
+        onPressed: _canSave ? _save : null,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: accentColor,
+          foregroundColor: Colors.white,
+          disabledBackgroundColor: accentColor.withOpacity(0.3),
+          disabledForegroundColor: Colors.white.withOpacity(0.7),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(CompactLayout.value(context, 8)),
+          ),
+        ),
+        child: Text(
+          isEditing ? 'Save' : 'Add',
+          style: const TextStyle(fontWeight: FontWeight.w600),
+        ),
+      ),
+    ];
   }
 
   @override
@@ -128,7 +373,7 @@ class _ProjectDialogState extends State<ProjectDialog> {
       accentColor: accentColor,
     );
     final borderColor = palette.borderColor;
-    final background = palette.innerColor;
+    final background = solidDialogBackground(palette, theme);
     final isEditing = widget.project != null;
 
     return AlertDialog(
@@ -182,379 +427,19 @@ class _ProjectDialogState extends State<ProjectDialog> {
         constraints: BoxConstraints(
           minWidth: CompactLayout.value(context, 380),
         ),
-        child: isEditing
-            ? Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  _buildTextField(
-                    controller: _nameController,
-                    label: 'Name',
-                    icon: Icons.edit,
-                  ),
-                  SizedBox(height: CompactLayout.value(context, 12)),
-                  _buildPathField(),
-                  SizedBox(height: CompactLayout.value(context, 12)),
-                ],
-              )
-            : _buildWizardContent(context),
-      ),
-      actions: isEditing
-          ? _buildEditActions(accentColor)
-          : _buildWizardActions(accentColor),
-    );
-  }
-
-  List<Widget> _buildEditActions(Color accentColor) {
-    return [
-      TextButton(
-        onPressed: () => Navigator.pop(context),
-        child: Text(
-          'Cancel',
-          style: TextStyle(
-            color: Theme.of(context).textTheme.bodyMedium!.color,
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildFormCard(context),
+              SizedBox(height: CompactLayout.value(context, 14)),
+              _buildToolsCard(context),
+            ],
           ),
         ),
       ),
-      ElevatedButton(
-        onPressed: _save,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: accentColor,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(
-              CompactLayout.value(context, 8),
-            ),
-          ),
-        ),
-        child: const Text(
-          'Save',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
-        ),
-      ),
-    ];
-  }
-
-  Widget _buildWizardContent(BuildContext context) {
-    return SizedBox(
-      width: CompactLayout.value(context, 430),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // _buildWizardProgress(context),
-          // const SizedBox(height: 18),
-          AnimatedSwitcher(
-            duration: const Duration(milliseconds: 200),
-            child: _currentStep == 0
-                ? _buildFolderStep(context)
-                : _currentStep == 1
-                ? _buildNameStep(context)
-                : _buildIdeStep(context),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFolderStep(BuildContext context) {
-    return _buildPathField();
-  }
-
-  Widget _buildNameStep(BuildContext context) {
-    return _buildTextField(
-      controller: _nameController,
-      label: 'Name',
-      icon: Icons.edit,
-    );
-  }
-
-  Widget _buildIdeStep(BuildContext context) {
-    final mutedText = Theme.of(context).textTheme.bodySmall!.color!;
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final isDark = theme.brightness == Brightness.dark;
-    final accentColor = ThemeProvider.instance.accentColor;
-    final basePanelColor = colorScheme.surface;
-    final baseBorderColor = colorScheme.onSurface.withOpacity(
-      isDark ? 0.08 : 0.06,
-    );
-    final highlightedColor = isDark
-        ? Color.lerp(basePanelColor, Colors.white, 0.07)!
-        : Color.lerp(basePanelColor, Colors.black, 0.07)!;
-
-    final content = () {
-      if (_isLoadingTools) {
-        return SizedBox(
-          height: CompactLayout.value(context, 110),
-          child: Center(
-            child: CircularProgressIndicator(
-              color: ThemeProvider.instance.accentColor,
-            ),
-          ),
-        );
-      }
-
-      if (_installedTools.isEmpty) {
-        return Text(
-          'No installed IDEs were detected. You can change the default tool later from the Tools tab.',
-          style: theme.textTheme.bodySmall!.copyWith(
-            color: mutedText.withOpacity(0.8),
-          ),
-        );
-      }
-
-      return SizedBox(
-        height: CompactLayout.value(context, 200),
-        child: ListView.builder(
-          itemCount: _installedTools.length,
-          itemBuilder: (context, index) {
-            final tool = _installedTools[index];
-            final isSelected = tool.id == _selectedToolId;
-            final panelColor = isSelected ? highlightedColor : basePanelColor;
-            final borderColor = isSelected
-                ? accentColor.withOpacity(0.7)
-                : baseBorderColor;
-
-            return Container(
-              margin: CompactLayout.only(context, bottom: 6),
-              child: Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(
-                    CompactLayout.value(context, 12),
-                  ),
-                  onTap: () {
-                    setState(() {
-                      _selectedToolId = tool.id;
-                    });
-                  },
-                  child: Container(
-                    padding: EdgeInsets.all(CompactLayout.value(context, 10)),
-                    decoration: BoxDecoration(
-                      color: panelColor,
-                      borderRadius: BorderRadius.circular(
-                        CompactLayout.value(context, 12),
-                      ),
-                      border: Border.all(color: borderColor, width: 1),
-                    ),
-                    child: Row(
-                      children: [
-                        ToolIcon(
-                          tool: tool,
-                          size: CompactLayout.value(context, 28),
-                          borderRadius: CompactLayout.value(context, 6),
-                        ),
-                        SizedBox(width: CompactLayout.value(context, 10)),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                tool.name,
-                                style: theme.textTheme.bodyMedium!.copyWith(
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: CompactLayout.value(context, 13),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        SizedBox(width: CompactLayout.value(context, 10)),
-                        Radio<ToolId>(
-                          value: tool.id,
-                          groupValue: _selectedToolId,
-                          activeColor: accentColor,
-                          onChanged: (value) {
-                            setState(() {
-                              _selectedToolId = value;
-                            });
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            );
-          },
-        ),
-      );
-    }();
-
-    return content;
-  }
-
-  Widget _buildStepCard(
-    BuildContext context, {
-    required String title,
-    required String description,
-    required Widget child,
-  }) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final borderColor = theme.colorScheme.onSurface.withOpacity(
-      isDark ? 0.12 : 0.08,
-    );
-    final background = Color.alphaBlend(
-      isDark ? Colors.white.withOpacity(0.02) : Colors.black.withOpacity(0.02),
-      theme.colorScheme.surface,
-    );
-
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.all(CompactLayout.value(context, 14)),
-      decoration: BoxDecoration(
-        color: background,
-        borderRadius: BorderRadius.circular(CompactLayout.value(context, 16)),
-        border: Border.all(color: borderColor),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: theme.textTheme.titleMedium!.copyWith(
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          SizedBox(height: CompactLayout.value(context, 4)),
-          Text(
-            description,
-            style: theme.textTheme.bodySmall!.copyWith(
-              color: theme.textTheme.bodySmall!.color!.withOpacity(0.75),
-            ),
-          ),
-          SizedBox(height: CompactLayout.value(context, 12)),
-          child,
-        ],
-      ),
-    );
-  }
-
-  List<Widget> _buildWizardActions(Color accentColor) {
-    final canContinue = _canContinueFromStep();
-    final isLastStep = _currentStep == 2;
-
-    return [
-      TextButton(
-        onPressed: () => Navigator.pop(context),
-        child: Text(
-          'Cancel',
-          style: TextStyle(
-            color: Theme.of(context).textTheme.bodyMedium!.color,
-          ),
-        ),
-      ),
-      if (_currentStep > 0)
-        TextButton(
-          onPressed: () {
-            setState(() {
-              _currentStep = (_currentStep - 1).clamp(0, 2);
-            });
-          },
-          child: const Text('Back'),
-        ),
-      ElevatedButton(
-        onPressed: canContinue
-            ? () {
-                if (isLastStep) {
-                  _save();
-                } else {
-                  setState(() {
-                    _currentStep = (_currentStep + 1).clamp(0, 2);
-                  });
-                }
-              }
-            : null,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: accentColor,
-          foregroundColor: Colors.white,
-          disabledBackgroundColor: accentColor.withOpacity(0.3),
-          disabledForegroundColor: Colors.white.withOpacity(0.7),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(
-              CompactLayout.value(context, 8),
-            ),
-          ),
-        ),
-        child: Text(
-          isLastStep ? 'Save' : 'Next',
-          style: const TextStyle(fontWeight: FontWeight.w600),
-        ),
-      ),
-    ];
-  }
-
-  bool _canContinueFromStep() {
-    switch (_currentStep) {
-      case 0:
-        return _pathController.text.isNotEmpty;
-      case 1:
-        return _nameController.text.isNotEmpty;
-      case 2:
-        if (_isLoadingTools) return false;
-        if (_installedTools.isEmpty) return true;
-        return _selectedToolId != null;
-      default:
-        return false;
-    }
-  }
-
-  Widget _buildPathField() {
-    return _buildTextField(
-      controller: _pathController,
-      label: 'Path',
-      icon: Icons.folder_open,
-      suffix: IconButton(
-        icon: Icon(
-          Icons.folder_outlined,
-          color: Theme.of(context).iconTheme.color,
-          size: CompactLayout.value(context, 18),
-        ),
-        splashRadius: CompactLayout.value(context, 16),
-        onPressed: _pickProjectFolder,
-        tooltip: 'Pick folder',
-      ),
-    );
-  }
-
-  Widget _buildTextField({
-    required TextEditingController controller,
-    required String label,
-    required IconData icon,
-    Widget? suffix,
-  }) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final panelColor = isDark
-        ? Colors.white.withOpacity(0.05)
-        : Colors.white.withOpacity(0.96);
-    final borderColor = isDark
-        ? Colors.white.withOpacity(0.12)
-        : Colors.black.withOpacity(0.08);
-    final accentColor = ThemeProvider.instance.accentColor;
-
-    return TextField(
-      controller: controller,
-      style: Theme.of(context).textTheme.bodyLarge,
-      decoration: InputDecoration(
-        labelText: label,
-        labelStyle: Theme.of(context).textTheme.bodyMedium,
-        prefixIcon: Icon(icon, color: Theme.of(context).iconTheme.color),
-        suffixIcon: suffix,
-        filled: true,
-        fillColor: panelColor,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(CompactLayout.value(context, 10)),
-          borderSide: BorderSide(color: borderColor),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(CompactLayout.value(context, 10)),
-          borderSide: BorderSide(color: borderColor),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(CompactLayout.value(context, 10)),
-          borderSide: BorderSide(color: accentColor, width: 1.5),
-        ),
-      ),
+      actions: _buildActions(accentColor, isEditing),
     );
   }
 }

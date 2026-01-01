@@ -121,3 +121,7 @@ class GlassStylePalette {
     ),
   ];
 }
+
+Color solidDialogBackground(GlassStylePalette palette, ThemeData theme) {
+  return Color.alphaBlend(palette.innerColor, theme.colorScheme.surface);
+}

@@ -2,6 +2,10 @@ part of 'launcher_search_bar.dart';
 
 enum _ActionMenuOption { addProject, importFromGit }
 
+String _getAddProjectShortcutLabel() {
+  return defaultTargetPlatform == TargetPlatform.macOS ? '⌘N' : 'Ctrl+N';
+}
+
 class _SearchFieldSuffix extends StatelessWidget {
   final bool hasQuery;
   final VoidCallback onClear;
@@ -95,7 +99,7 @@ class _InlineActionMenuButton extends StatelessWidget {
             case _ActionMenuOption.addProject:
               enabled = onAddProject != null;
               icon = Icons.add_rounded;
-              label = 'Add project';
+              label = 'Add project (${_getAddProjectShortcutLabel()})';
               break;
             case _ActionMenuOption.importFromGit:
               enabled = onImportFromGit != null;
