@@ -1,40 +1,24 @@
-import 'dart:io';
-import '../../core/services/project_metadata_service.dart';
-import '../../core/services/tool_discovery_service.dart';
 import '../models/project.dart';
 import '../models/tool.dart';
 import '../repositories/project_repository.dart';
+import '../services/project_launch_service.dart';
+import '../services/project_metadata_sync_service.dart';
 
 class ProjectUseCases {
   final ProjectRepository _repository;
-  final ProjectMetadataService _metadataService;
-  final ToolDiscoveryService _discoveryService;
+  final ProjectMetadataSyncService _metadataSyncService;
+  final ProjectLaunchService _launchService;
 
   ProjectUseCases(
     this._repository,
-    this._metadataService,
-    this._discoveryService,
+    this._metadataSyncService,
+    this._launchService,
   );
 
   Future<List<Project>> getAllProjects() => _repository.loadProjects();
 
-  Future<List<Project>> syncProjectMetadata(List<Project> projects) async {
-    if (projects.isEmpty) return projects;
-
-    final updated = <Project>[];
-
-    for (final project in projects) {
-      if (!project.pathExists) {
-        updated.add(project.copyWith(gitInfo: const ProjectGitInfo()));
-        continue;
-      }
-
-      final gitInfo = await _metadataService.fetchGitInfo(project.path);
-      updated.add(project.copyWith(gitInfo: gitInfo));
-    }
-
-    await _repository.saveProjects(updated);
-    return updated;
+  Future<List<Project>> syncProjectMetadata(List<Project> projects) {
+    return _metadataSyncService.syncMetadata(projects);
   }
 
   Future<void> addProject({
@@ -74,80 +58,23 @@ class ProjectUseCases {
     Project project, {
     ToolId? defaultToolId,
     List<Tool> installedTools = const [],
-  }) async {
-    if (!project.pathExists) return;
-
-    final resolved = await _pickToolForProject(
+  }) {
+    return _launchService.openProject(
       project,
       defaultToolId: defaultToolId,
       installedTools: installedTools,
     );
-
-    if (resolved != null) {
-      await _discoveryService.launchTool(resolved.tool, targetPath: project.path);
-      final updated = project.copyWith(
-        lastOpened: DateTime.now(),
-        lastUsedToolId: resolved.tool.id,
-      );
-      await _repository.updateProject(updated);
-      return;
-    }
-
-    await _fallbackOpen(project.path, null);
-    final updated = project.copyWith(lastOpened: DateTime.now());
-    await _repository.updateProject(updated);
   }
 
-  Future<void> showInFinder(String path) async {
-    try {
-      // macOS
-      if (Platform.isMacOS) {
-        await Process.run('open', ['-R', path]);
-      }
-      // Windows
-      else if (Platform.isWindows) {
-        await Process.run('explorer', ['/select,', path]);
-      }
-      // Linux
-      else if (Platform.isLinux) {
-        await Process.run('xdg-open', [path]);
-      }
-    } catch (e) {
-      print('Error showing in finder: $e');
-    }
+  Future<void> showInFinder(String path) {
+    return _launchService.showInFinder(path);
   }
 
-  Future<void> openInTerminal(String path) async {
-    if (!Directory(path).existsSync()) return;
-
-    try {
-      if (Platform.isMacOS) {
-        await Process.run('open', ['-a', 'Terminal', path]);
-      } else if (Platform.isWindows) {
-        final sanitized = path.replaceAll('"', r'\"');
-        await Process.run('cmd', [
-          '/c',
-          'start',
-          'cmd',
-          '/k',
-          'cd',
-          '/d',
-          '"$sanitized"',
-        ]);
-      } else if (Platform.isLinux) {
-        final terminal = await _findLinuxTerminal();
-        if (terminal != null) {
-          final args = _linuxTerminalArguments(terminal, path);
-          await Process.start(terminal, args);
-        } else {
-          await _fallbackOpen(path, null);
-        }
-      } else {
-        await _fallbackOpen(path, null);
-      }
-    } catch (e) {
-      print('Error opening terminal: $e');
+  Future<void> openInTerminal(Project project) {
+    if (!project.pathExists) {
+      return Future.value();
     }
+    return _launchService.openInTerminal(project.path);
   }
 
   Future<void> openWith(
@@ -155,149 +82,13 @@ class ProjectUseCases {
     ToolId toolId, {
     ToolId? defaultToolId,
     List<Tool> installedTools = const [],
-  }) async {
-    try {
-      Tool? tool;
-      try {
-        tool = installedTools.firstWhere((t) => t.id == toolId);
-      } catch (_) {
-        tool = await _discoveryService.discoverTool(toolId);
-      }
-
-      if (tool.isInstalled && tool.path != null) {
-        await _discoveryService.launchTool(tool, targetPath: project.path);
-        final updated = project.copyWith(
-          lastOpened: DateTime.now(),
-          lastUsedToolId: tool.id,
-        );
-        await _repository.updateProject(updated);
-        return;
-      }
-
-      await _fallbackOpen(project.path, toolId);
-      final updated = project.copyWith(
-        lastOpened: DateTime.now(),
-        lastUsedToolId: toolId,
-      );
-      await _repository.updateProject(updated);
-    } catch (e) {
-      print('Error opening with $toolId: $e');
-    }
-  }
-
-  Future<_ResolvedTool?> _pickToolForProject(
-    Project project, {
-    ToolId? defaultToolId,
-    List<Tool> installedTools = const [],
-  }) async {
-    Tool? candidate;
-
-    if (project.lastUsedToolId != null) {
-      try {
-        candidate = installedTools.firstWhere(
-          (t) => t.id == project.lastUsedToolId,
-        );
-      } catch (_) {
-        candidate = await _discoveryService.discoverTool(project.lastUsedToolId!);
-      }
-
-      if ((!candidate.isInstalled || candidate.path == null)) {
-        candidate = null;
-      }
-    }
-
-    if (candidate == null && defaultToolId != null) {
-      final fallback = await _discoveryService.discoverTool(defaultToolId);
-      if (fallback.isInstalled && fallback.path != null) {
-        candidate = fallback;
-      }
-    }
-
-    if (candidate == null && installedTools.isNotEmpty) {
-      candidate = installedTools.first;
-    }
-
-    if (candidate != null && candidate.path != null) {
-      return _ResolvedTool(candidate);
-    }
-
-    return null;
-  }
-
-  Future<void> _fallbackOpen(String path, ToolId? toolId) async {
-    String command = toolId?.name ?? 'open';
-    List<String> args = [path];
-
-    switch (toolId) {
-      case ToolId.vscode:
-        command = 'code';
-        break;
-      case ToolId.antigravity:
-        command = 'antigravity';
-        break;
-      case ToolId.cursor:
-        command = 'cursor';
-        break;
-      case ToolId.intellij:
-        command = 'idea';
-        break;
-      case null:
-        if (Platform.isMacOS) {
-          command = 'open';
-          args = [path];
-        } else if (Platform.isWindows) {
-          command = 'cmd';
-          args = ['/c', 'start', ''];
-          args.add(path);
-        } else {
-          command = 'xdg-open';
-          args = [path];
-        }
-        break;
-      default:
-        break;
-    }
-
-    await Process.run(command, args);
-  }
-
-  Future<String?> _findLinuxTerminal() async {
-    final envTerminal = Platform.environment['TERMINAL'];
-    if (envTerminal != null && await _isCommandAvailable(envTerminal)) {
-      return envTerminal;
-    }
-
-    for (final candidate in _linuxTerminalCandidates) {
-      if (await _isCommandAvailable(candidate)) {
-        return candidate;
-      }
-    }
-
-    return null;
-  }
-
-  List<String> _linuxTerminalArguments(String terminal, String path) {
-    final escapedPath = path.replaceAll('"', r'\"');
-    switch (terminal) {
-      case 'konsole':
-        return ['--workdir', path];
-      case 'kitty':
-        return ['--directory', path];
-      case 'xterm':
-      case 'urxvt':
-        return ['-e', 'bash', '-lc', 'cd "$escapedPath" && exec bash'];
-      default:
-        return ['--working-directory', path];
-    }
-  }
-
-  Future<bool> _isCommandAvailable(String command) async {
-    try {
-      final result = await Process.run('which', [command]);
-      return result.exitCode == 0;
-    } catch (_) {
-      return false;
-    }
+  }) {
+    return _launchService.openWith(
+      project,
+      toolId,
+      defaultToolId: defaultToolId,
+      installedTools: installedTools,
+    );
   }
 
   List<Project> sortProjects(List<Project> projects, SortOption sortOption) {
@@ -332,22 +123,3 @@ class ProjectUseCases {
     }).toList();
   }
 }
-
-class _ResolvedTool {
-  final Tool tool;
-
-  _ResolvedTool(this.tool);
-}
-
-const _linuxTerminalCandidates = [
-  'gnome-terminal',
-  'konsole',
-  'xfce4-terminal',
-  'tilix',
-  'lxterminal',
-  'terminator',
-  'alacritty',
-  'kitty',
-  'xterm',
-  'urxvt',
-];

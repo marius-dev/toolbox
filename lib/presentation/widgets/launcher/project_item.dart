@@ -17,35 +17,36 @@ part 'project_item_menu_builder.dart';
 part 'project_item_menu_components.dart';
 part 'project_item_menu_positioner.dart';
 
-class ProjectItem extends StatefulWidget {
-  final Project project;
-  final List<Tool> installedTools;
-  final ToolId? defaultToolId;
+@immutable
+class ProjectItemActions {
   final VoidCallback onTap;
   final VoidCallback onStarToggle;
   final VoidCallback onShowInFinder;
+  final VoidCallback onOpenInTerminal;
   final void Function(ToolId toolId) onOpenWith;
   final VoidCallback onDelete;
+
+  const ProjectItemActions({
+    required this.onTap,
+    required this.onStarToggle,
+    required this.onShowInFinder,
+    required this.onOpenInTerminal,
+    required this.onOpenWith,
+    required this.onDelete,
+  });
+}
+
+@immutable
+class ProjectItemStatus {
   final bool isFocused;
   final bool isHovering;
-  final VoidCallback onOpenInTerminal;
   final String searchQuery;
   final bool showDivider;
   final bool revealFullPath;
   final bool isOpening;
   final int openingDots;
 
-  const ProjectItem({
-    super.key,
-    required this.project,
-    required this.installedTools,
-    required this.defaultToolId,
-    required this.onTap,
-    required this.onStarToggle,
-    required this.onShowInFinder,
-    required this.onOpenWith,
-    required this.onOpenInTerminal,
-    required this.onDelete,
+  const ProjectItemStatus({
     this.isFocused = false,
     this.isHovering = false,
     this.searchQuery = '',
@@ -54,6 +55,23 @@ class ProjectItem extends StatefulWidget {
     this.isOpening = false,
     this.openingDots = 0,
   });
+}
+
+class ProjectItem extends StatefulWidget {
+  final Project project;
+  final List<Tool> installedTools;
+  final ToolId? defaultToolId;
+  final ProjectItemActions actions;
+  final ProjectItemStatus status;
+
+  const ProjectItem({
+    super.key,
+    required this.project,
+    required this.installedTools,
+    required this.defaultToolId,
+    required this.actions,
+    this.status = const ProjectItemStatus(),
+  });
 
   @override
   State<ProjectItem> createState() => ProjectItemState();
@@ -61,6 +79,8 @@ class ProjectItem extends StatefulWidget {
 
 class ProjectItemState extends State<ProjectItem> {
   late final _ProjectMenuController _menuController;
+  ProjectItemActions get actions => widget.actions;
+  ProjectItemStatus get status => widget.status;
 
   Project get project => widget.project;
   List<Tool> get installedTools => widget.installedTools;
@@ -88,10 +108,7 @@ class ProjectItemState extends State<ProjectItem> {
       context: context,
       anchorRect: rect,
       installedTools: installedTools,
-      onShowInFinder: widget.onShowInFinder,
-      onOpenInTerminal: widget.onOpenInTerminal,
-      onOpenWith: widget.onOpenWith,
-      onDelete: widget.onDelete,
+      actions: actions,
     );
   }
 
@@ -99,12 +116,9 @@ class ProjectItemState extends State<ProjectItem> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDisabled = !project.pathExists;
-    final accent = _softAccentColor(
-      context.accentColor,
-      context.isDark,
-    );
+    final accent = _softAccentColor(context.accentColor, context.isDark);
     final isHighlighted =
-        widget.isFocused || widget.isHovering || widget.isOpening;
+        status.isFocused || status.isHovering || status.isOpening;
     final highlightColor = theme.dividerColor.withOpacity(
       context.isDark ? 0.12 : 0.08,
     );
@@ -119,9 +133,7 @@ class ProjectItemState extends State<ProjectItem> {
         duration: const Duration(milliseconds: 200),
         curve: Curves.easeOutCubic,
         margin: EdgeInsets.only(bottom: context.compactValue(6)),
-        padding: EdgeInsets.symmetric(
-          horizontal: context.compactValue(12),
-        ),
+        padding: EdgeInsets.symmetric(horizontal: context.compactValue(12)),
         decoration: BoxDecoration(
           color: background,
           borderRadius: BorderRadius.circular(16),
@@ -140,10 +152,10 @@ class ProjectItemState extends State<ProjectItem> {
                 child: _ProjectDetails(
                   project: project,
                   preferredTool: _resolvePreferredTool(),
-                  searchQuery: widget.searchQuery,
-                  revealFullPath: widget.revealFullPath,
-                  isOpening: widget.isOpening,
-                  openingDots: widget.openingDots,
+                  searchQuery: status.searchQuery,
+                  revealFullPath: status.revealFullPath,
+                  isOpening: status.isOpening,
+                  openingDots: status.openingDots,
                   isDisabled: isDisabled,
                   accentColor: accent,
                 ),
@@ -152,20 +164,17 @@ class ProjectItemState extends State<ProjectItem> {
               if (isHighlighted && !isDisabled) ...[
                 _StarButton(
                   isStarred: project.isStarred,
-                  onPressed: widget.onStarToggle,
+                  onPressed: widget.actions.onStarToggle,
                   accentColor: accent,
                 ),
                 SizedBox(width: context.compactValue(6)),
               ],
               if (isDisabled)
-                _RemoveProjectButton(onPressed: widget.onDelete)
+                _RemoveProjectButton(onPressed: widget.actions.onDelete)
               else
                 _ProjectActionsMenu(
                   installedTools: installedTools,
-                  onShowInFinder: widget.onShowInFinder,
-                  onOpenInTerminal: widget.onOpenInTerminal,
-                  onOpenWith: widget.onOpenWith,
-                  onDelete: widget.onDelete,
+                  actions: widget.actions,
                   menuController: _menuController,
                 ),
             ],
@@ -205,16 +214,13 @@ class ProjectItemState extends State<ProjectItem> {
       context: context,
       anchorRect: anchorRect,
       installedTools: installedTools,
-      onShowInFinder: widget.onShowInFinder,
-      onOpenInTerminal: widget.onOpenInTerminal,
-      onOpenWith: widget.onOpenWith,
-      onDelete: widget.onDelete,
+      actions: actions,
     );
   }
 
   void _handleTap() {
     Focus.maybeOf(context)?.requestFocus();
-    widget.onTap();
+    widget.actions.onTap();
   }
 
   bool get _isRecent {

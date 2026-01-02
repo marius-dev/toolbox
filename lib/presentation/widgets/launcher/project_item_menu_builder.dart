@@ -20,17 +20,11 @@ const double _kProjectMenuIconBaseSize = 18.0;
 class _ProjectMenuBuilder {
   const _ProjectMenuBuilder({
     required this.installedTools,
-    required this.onShowInFinder,
-    required this.onOpenInTerminal,
-    required this.onOpenWith,
-    required this.onDelete,
+    required this.actions,
   });
 
   final List<Tool> installedTools;
-  final VoidCallback onShowInFinder;
-  final VoidCallback onOpenInTerminal;
-  final void Function(ToolId toolId) onOpenWith;
-  final VoidCallback onDelete;
+  final ProjectItemActions actions;
 
   static const double _baseActionTileHeight = _kProjectMenuActionTileBaseHeight;
   static const double _baseMenuWidth = 260.0;
@@ -65,21 +59,21 @@ class _ProjectMenuBuilder {
     final revealAction = _MenuAction(
       label: _revealActionLabel(),
       icon: Icons.folder_open,
-      onSelected: onShowInFinder,
+      onSelected: actions.onShowInFinder,
       semanticsLabel: _revealActionSemanticsLabel(),
     );
 
     final terminalAction = _MenuAction(
       label: 'Open in Terminal',
       icon: Icons.terminal,
-      onSelected: onOpenInTerminal,
+      onSelected: actions.onOpenInTerminal,
       semanticsLabel: 'Open project in terminal',
     );
 
     final deleteAction = _MenuAction(
       label: 'Hide project',
       icon: Icons.delete_outline,
-      onSelected: onDelete,
+      onSelected: actions.onDelete,
       isDestructive: true,
     );
 
@@ -126,7 +120,7 @@ class _ProjectMenuBuilder {
               size: context.compactValue(18),
               borderRadius: context.compactValue(4),
             ),
-            onSelected: () => onOpenWith(tool.id),
+            onSelected: () => actions.onOpenWith(tool.id),
             semanticsLabel: 'Open project with ${tool.name}',
           ),
         )

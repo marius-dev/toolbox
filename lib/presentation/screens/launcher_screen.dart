@@ -6,8 +6,6 @@ import 'package:flutter/services.dart';
 import 'package:project_launcher/domain/models/project.dart';
 import 'package:project_launcher/presentation/screens/preferences_screen.dart';
 import 'package:project_launcher/presentation/screens/workspaces_screen.dart';
-import 'package:project_launcher/presentation/widgets/project_dialog.dart';
-import 'package:window_manager/window_manager.dart';
 import '../../core/theme/theme_extensions.dart';
 
 import '../providers/project_provider.dart';
@@ -23,7 +21,11 @@ import '../widgets/tools_section.dart';
 import '../../core/di/service_locator.dart';
 import '../../core/services/window_service.dart';
 import '../../core/utils/compact_layout.dart';
-import '../utils/dialog_utils.dart';
+import 'launcher/controllers/launcher_window_controller.dart';
+import 'launcher/controllers/launcher_keyboard_controller.dart';
+import 'launcher/controllers/launcher_search_controller.dart';
+import 'launcher/controllers/launcher_project_actions.dart';
+import 'launcher/launcher_intents.dart';
 
 class LauncherScreen extends StatefulWidget {
   const LauncherScreen({super.key});
@@ -32,44 +34,75 @@ class LauncherScreen extends StatefulWidget {
   State<LauncherScreen> createState() => _LauncherScreenState();
 }
 
-class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
+class _LauncherScreenState extends State<LauncherScreen> {
+  // Providers
   late final ProjectProvider _projectProvider;
   late final ToolsProvider _toolsProvider;
   late final WorkspaceProvider _workspaceProvider;
-  late final WindowService _windowService;
-  final TextEditingController _searchController = TextEditingController();
-  final FocusNode _searchFocusNode = FocusNode();
+
+  // Controllers
+  late final LauncherWindowController _windowController;
+  late final LauncherKeyboardController _keyboardController;
+  late final LauncherSearchController _searchController;
+  late final LauncherProjectActions _projectActions;
+
+  // UI State
   final FocusNode _projectListFocusNode = FocusNode();
   bool _showPreferences = false;
   LauncherTab _selectedTab = LauncherTab.projects;
-  bool _wasHidden = false;
-  bool _isSearchFocusScheduled = false;
-  String? _pendingSearchInitialInput;
 
   @override
   void initState() {
     super.initState();
+    _initializeProviders();
+    _initializeControllers();
+    _initializeData();
+  }
+
+  void _initializeProviders() {
     _projectProvider = ProjectProvider.create();
     _toolsProvider = ToolsProvider.create();
     _workspaceProvider = WorkspaceProvider.create();
-    _windowService = getIt<WindowService>();
-    _initializeData();
     _toolsProvider.loadTools();
-    windowManager.addListener(this);
-    RawKeyboard.instance.addListener(_handleRawKeyEvent);
   }
 
-  @override
-  void dispose() {
-    windowManager.removeListener(this);
-    RawKeyboard.instance.removeListener(_handleRawKeyEvent);
-    _searchController.dispose();
-    _searchFocusNode.dispose();
-    _projectListFocusNode.dispose();
-    _projectProvider.dispose();
-    _toolsProvider.dispose();
-    _workspaceProvider.dispose();
-    super.dispose();
+  void _initializeControllers() {
+    // Window controller
+    _windowController = LauncherWindowController(
+      windowService: getIt<WindowService>(),
+      onMetadataSync: _handleMetadataSync,
+    );
+    _windowController.initialize();
+
+    // Search controller
+    _searchController = LauncherSearchController(
+      projectProvider: _projectProvider,
+      getCurrentContext: () => context,
+      isProjectsTabSelected: () => _selectedTab == LauncherTab.projects,
+      isPreferencesShown: () => _showPreferences,
+    );
+
+    // Keyboard controller
+    _keyboardController = LauncherKeyboardController(
+      onFocusSearchWithInput: ({String? initialInput}) =>
+          _searchController.focusSearchField(initialInput: initialInput),
+      getCurrentContext: () => context,
+      isPreferencesShown: () => _showPreferences,
+      isProjectsTabSelected: () => _selectedTab == LauncherTab.projects,
+      isSearchFocused: () => _searchController.searchFocusNode.hasFocus,
+    );
+    _keyboardController.initialize();
+
+    // Project actions controller
+    _projectActions = LauncherProjectActions(
+      projectProvider: _projectProvider,
+      toolsProvider: _toolsProvider,
+      workspaceProvider: _workspaceProvider,
+      getCurrentContext: () => context,
+      onSearchFieldFocus: () => _searchController.focusSearchField(),
+      dismissPopupMenus: _searchController.dismissPopupMenus,
+      showMessage: _showMessage,
+    );
   }
 
   Future<void> _initializeData() async {
@@ -80,55 +113,30 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
     await _projectProvider.loadProjects(fallbackWorkspaceId: workspaceId);
   }
 
-  @override
-  void onWindowBlur() {
-    Future.delayed(const Duration(milliseconds: 100), () {
-      if (!_windowService.shouldAutoHideOnBlur) return;
-      _wasHidden = true;
-      _windowService.hide();
-    });
+  void _handleMetadataSync() {
+    if (!mounted) return;
+    unawaited(_projectProvider.syncMetadataIfNeeded());
   }
 
   @override
-  void onWindowFocus() {
-    _handleWindowVisible();
-  }
-
-  @override
-  void onWindowEvent(String eventName) {
-    if (eventName == 'hide') {
-      _wasHidden = true;
-      return;
-    }
-    if (eventName == 'show') {
-      _handleWindowVisible();
-    }
-  }
-
-  void _handleWindowVisible() {
-    if (!_wasHidden) return;
-    _wasHidden = false;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      unawaited(_projectProvider.syncMetadataIfNeeded());
-    });
+  void dispose() {
+    _windowController.dispose();
+    _keyboardController.dispose();
+    _searchController.dispose();
+    _projectListFocusNode.dispose();
+    _projectProvider.dispose();
+    _toolsProvider.dispose();
+    _workspaceProvider.dispose();
+    super.dispose();
   }
 
   void _togglePreferences() {
     setState(() => _showPreferences = !_showPreferences);
     if (!_showPreferences) {
-      WidgetsBinding.instance.addPostFrameCallback((_) => _focusSearchField());
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => _searchController.focusSearchField(),
+      );
     }
-  }
-
-  void _focusSearchField({String? initialInput}) {
-    if (!mounted || _selectedTab != LauncherTab.projects || _showPreferences)
-      return;
-    _dismissPopupMenus();
-    if (initialInput != null && initialInput.isNotEmpty) {
-      _insertInitialSearchInput(initialInput);
-    }
-    FocusScope.of(context).requestFocus(_searchFocusNode);
   }
 
   void _focusProjectList() {
@@ -136,66 +144,53 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
     FocusScope.of(context).requestFocus(_projectListFocusNode);
   }
 
-  void _dismissPopupMenus() {
-    final navigator = Navigator.of(context);
-    navigator.popUntil((route) => route is! PopupRoute);
+  void _showMessage(
+    String message, {
+    Duration duration = const Duration(seconds: 2),
+  }) {
+    if (!mounted) return;
+    final messenger = ScaffoldMessenger.of(context);
+    messenger
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(message), duration: duration));
   }
 
-  void _insertInitialSearchInput(String input) {
-    final text = _searchController.text;
-    final selection = _searchController.selection;
-    final hasSelection =
-        selection.isValid &&
-        selection.start >= 0 &&
-        selection.end <= text.length;
-    final start = hasSelection ? selection.start : text.length;
-    final end = hasSelection ? selection.end : text.length;
-    final newText = text.replaceRange(start, end, input);
-    final newSelection = TextSelection.collapsed(offset: start + input.length);
+  Future<void> _openWorkspacesScreen() async {
+    _searchController.dismissPopupMenus();
+    await Navigator.of(context).push<bool>(_buildWorkspacesRoute());
+  }
 
-    _searchController.value = TextEditingValue(
-      text: newText,
-      selection: newSelection,
+  PageRouteBuilder<bool> _buildWorkspacesRoute() {
+    return PageRouteBuilder<bool>(
+      transitionDuration: const Duration(milliseconds: 420),
+      reverseTransitionDuration: const Duration(milliseconds: 320),
+      pageBuilder: (context, animation, secondaryAnimation) {
+        final child = WorkspacesScreen(
+          workspaceProvider: _workspaceProvider,
+          projectProvider: _projectProvider,
+        );
+        final media = MediaQuery.of(context);
+        if (media.disableAnimations || media.accessibleNavigation) {
+          return child;
+        }
+
+        final curved = CurvedAnimation(
+          parent: animation,
+          curve: Curves.easeOutCubic,
+        );
+
+        return FadeTransition(
+          opacity: curved,
+          child: SlideTransition(
+            position: Tween<Offset>(
+              begin: const Offset(0, 0.04),
+              end: Offset.zero,
+            ).animate(curved),
+            child: child,
+          ),
+        );
+      },
     );
-    _projectProvider.setSearchQuery(newText);
-  }
-
-  void _handleRawKeyEvent(RawKeyEvent event) {
-    final route = ModalRoute.of(context);
-    if (route == null || !route.isCurrent) return;
-    if (event is! RawKeyDownEvent) return;
-    if (_showPreferences) {
-      if (event.logicalKey == LogicalKeyboardKey.escape) {
-        _togglePreferences();
-      }
-      return;
-    }
-    if (_selectedTab != LauncherTab.projects) return;
-    final hasModifiers =
-        event.isControlPressed || event.isMetaPressed || event.isAltPressed;
-    if (_searchFocusNode.hasFocus) return;
-    if (hasModifiers) {
-      return;
-    }
-
-    final focusedWidget = FocusManager.instance.primaryFocus?.context?.widget;
-    if (focusedWidget is EditableText) return;
-
-    final character = event.character;
-    final isAlphanumeric =
-        character != null && RegExp(r'^[a-zA-Z0-9]$').hasMatch(character);
-    if (!isAlphanumeric) return;
-    if (_isSearchFocusScheduled) return;
-
-    _pendingSearchInitialInput = character;
-    _isSearchFocusScheduled = true;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _isSearchFocusScheduled = false;
-      final initialInput = _pendingSearchInitialInput;
-      _pendingSearchInitialInput = null;
-      if (!mounted || initialInput == null || initialInput.isEmpty) return;
-      _focusSearchField(initialInput: initialInput);
-    });
   }
 
   @override
@@ -223,7 +218,7 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
               if (_showPreferences || _selectedTab != LauncherTab.projects) {
                 return null;
               }
-              _showAddProjectDialog();
+              _projectActions.showAddProjectDialog();
               return null;
             },
           ),
@@ -303,7 +298,7 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
                   _toolsProvider.loadTools();
                 } else {
                   WidgetsBinding.instance.addPostFrameCallback(
-                    (_) => _focusSearchField(),
+                    (_) => _searchController.focusSearchField(),
                   );
                 }
               },
@@ -330,117 +325,18 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
     );
   }
 
-  Future<void> _showAddProjectDialog() async {
-    _dismissPopupMenus();
-    final workspaceId = _workspaceProvider.selectedWorkspaceId;
-    if (workspaceId == null || workspaceId.isEmpty) {
-      _showMessage('Workspace not ready');
-      return;
-    }
-    final created = await DialogUtils.showAppDialog<bool>(
-      context: context,
-      builder: (context) => ProjectDialog(
-        defaultToolId: _toolsProvider.defaultToolId,
-        onSave: (name, path, preferredToolId) async {
-          await _projectProvider.addProject(
-            name: name,
-            path: path,
-            preferredToolId: preferredToolId,
-            workspaceId: workspaceId,
-          );
-        },
-      ),
-    );
-    if (!mounted) return;
-    if (created == true) {
-      WidgetsBinding.instance.addPostFrameCallback((_) => _focusSearchField());
-    }
-  }
-
-  void _handleImportFromGit() {
-    _showUnavailableAction('Import from Git');
-  }
-
-  Future<void> _openWorkspacesScreen() async {
-    _dismissPopupMenus();
-    await Navigator.of(context).push<bool>(_buildWorkspacesRoute());
-  }
-
-  PageRouteBuilder<bool> _buildWorkspacesRoute() {
-    return PageRouteBuilder<bool>(
-      transitionDuration: const Duration(milliseconds: 420),
-      reverseTransitionDuration: const Duration(milliseconds: 320),
-      pageBuilder: (context, animation, secondaryAnimation) {
-        final child = WorkspacesScreen(
-          workspaceProvider: _workspaceProvider,
-          projectProvider: _projectProvider,
-        );
-        final media = MediaQuery.of(context);
-        if (media.disableAnimations || media.accessibleNavigation) {
-          return child;
-        }
-
-        final curved = CurvedAnimation(
-          parent: animation,
-          curve: Curves.easeOutCubic,
-        );
-
-        return FadeTransition(
-          opacity: curved,
-          child: SlideTransition(
-            position: Tween<Offset>(
-              begin: const Offset(0, 0.04),
-              end: Offset.zero,
-            ).animate(curved),
-            child: child,
-          ),
-        );
-      },
-    );
-  }
-
-  void _showUnavailableAction(String label) {
-    _showMessage('$label is not available yet');
-  }
-
-  void _showMessage(
-    String message, {
-    Duration duration = const Duration(seconds: 2),
-  }) {
-    if (!mounted) return;
-    final messenger = ScaffoldMessenger.of(context);
-    messenger
-      ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text(message), duration: duration));
-  }
-
-  void _showEditProjectDialog(BuildContext context, Project project) {
-    DialogUtils.showAppDialog(
-      context: context,
-      builder: (context) => ProjectDialog(
-        project: project,
-        defaultToolId: _toolsProvider.defaultToolId,
-        onSave: (name, path, _) async {
-          await _projectProvider.updateProject(
-            project.copyWith(name: name, path: path),
-          );
-        },
-      ),
-    );
-  }
-
   List<Widget> _buildProjectsArea(BuildContext context) {
     final searchBar = AnimatedBuilder(
       animation: _projectProvider,
       builder: (context, _) {
         return LauncherSearchBar(
-          controller: _searchController,
-          focusNode: _searchFocusNode,
+          controller: _searchController.searchController,
+          focusNode: _searchController.searchFocusNode,
           onNavigateNext: _focusProjectList,
-          onSearchFocus: _dismissPopupMenus,
-          onSearchChanged: _projectProvider.setSearchQuery,
-          onAddProject: _showAddProjectDialog,
-          onImportFromGit: _handleImportFromGit,
+          onSearchFocus: _searchController.dismissPopupMenus,
+          onSearchChanged: _searchController.setSearchQuery,
+          onAddProject: _projectActions.showAddProjectDialog,
+          onImportFromGit: _projectActions.handleImportFromGit,
         );
       },
     );
@@ -460,7 +356,9 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
             }
 
             if (!_projectProvider.hasProjects) {
-              return EmptyState(onAddProject: _showAddProjectDialog);
+              return EmptyState(
+                onAddProject: _projectActions.showAddProjectDialog,
+              );
             }
 
             return ProjectList(
@@ -469,20 +367,14 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
               defaultToolId: _toolsProvider.defaultToolId,
               searchQuery: _projectProvider.searchQuery,
               focusNode: _projectListFocusNode,
-              onProjectTap: _handleProjectOpen,
-              onStarToggle: _projectProvider.toggleStar,
+              onProjectTap: _projectActions.handleOpenProject,
+              onStarToggle: _projectActions.handleToggleStar,
               onShowInFinder: (project) =>
-                  _projectProvider.showInFinder(project.path),
-              onOpenInTerminal: (project) =>
-                  _projectProvider.openInTerminal(project),
-              onOpenWith: (project, toolId) => _projectProvider.openWith(
-                project,
-                toolId,
-                defaultToolId: _toolsProvider.defaultToolId,
-                installedTools: _toolsProvider.installed,
-              ),
-              onDelete: (project) => _projectProvider.deleteProject(project.id),
-              onFocusSearch: _focusSearchField,
+                  _projectActions.handleShowInFinder(project.path),
+              onOpenInTerminal: _projectActions.handleOpenInTerminal,
+              onOpenWith: _projectActions.handleOpenWith,
+              onDelete: _projectActions.handleDeleteProject,
+              onFocusSearch: () => _searchController.focusSearchField(),
             );
           },
         ),
@@ -506,17 +398,4 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
       ),
     );
   }
-
-  Future<void> _handleProjectOpen(Project project) async {
-    await _projectProvider.openProject(
-      project,
-      defaultToolId: _toolsProvider.defaultToolId,
-      installedTools: _toolsProvider.installed,
-      refreshDelay: const Duration(seconds: 1),
-    );
-  }
-}
-
-class TogglePreferencesIntent extends Intent {
-  const TogglePreferencesIntent();
 }

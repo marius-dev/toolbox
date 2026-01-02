@@ -17,6 +17,11 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'project_profile/gitignore.dart';
+import 'project_profile/scan_options.dart';
+import 'project_profile/states.dart';
+import 'project_profile/utils.dart';
+
 void main(List<String> args) async {
   if (args.isEmpty || args.first.startsWith('-')) {
     stderr.writeln(
@@ -27,7 +32,7 @@ void main(List<String> args) async {
   }
 
   final targetPath = args.first;
-  final opts = _parseArgs(args.skip(1).toList());
+  final opts = parseScanOptions(args.skip(1).toList());
 
   final root = Directory(targetPath);
   if (!await root.exists()) {
@@ -65,36 +70,6 @@ class ScanOptions {
     required this.followLinks,
     required this.respectGitignore,
   });
-}
-
-ScanOptions _parseArgs(List<String> args) {
-  var maxDepth = 25;
-  var pretty = false;
-  var noGit = false;
-  var followLinks = false;
-  var respectGitignore = false;
-
-  for (final a in args) {
-    if (a == '--pretty')
-      pretty = true;
-    else if (a == '--no-git')
-      noGit = true;
-    else if (a == '--follow-links')
-      followLinks = true;
-    else if (a == '--respect-gitignore')
-      respectGitignore = true;
-    else if (a.startsWith('--max-depth=')) {
-      maxDepth = int.tryParse(a.split('=').last) ?? maxDepth;
-    }
-  }
-
-  return ScanOptions(
-    maxDepth: maxDepth,
-    pretty: pretty,
-    noGit: noGit,
-    followLinks: followLinks,
-    respectGitignore: respectGitignore,
-  );
 }
 
 class ProjectScanner {
@@ -232,14 +207,14 @@ class ProjectScanner {
         'absolute': rootPath,
         'basename': basename,
         'depth': depth,
-        'derived_name': _slugify(basename),
+        'derived_name': slugify(basename),
       },
       'timestamps': {'modified_at': await _modifiedAtIso(rootDir)},
     };
 
     final gitignore = respectGitignore
-        ? await _loadGitignore(rootDir)
-        : const _Gitignore.empty();
+        ? await loadGitignore(rootDir)
+        : const Gitignore.empty();
 
     // Inventory collectors
     var totalFiles = 0;
@@ -247,7 +222,7 @@ class ProjectScanner {
     var totalSizeBytes = 0;
     final extCounts = <String, int>{};
     final topLevelEntries = <String>[];
-    final largeFiles = <_SizedPath>[];
+    final largeFiles = <SizedPath>[];
     var hiddenEntriesCount = 0;
 
     final dependencyDirsPresent = <String>{};
@@ -255,16 +230,16 @@ class ProjectScanner {
     final lockfilesPresent = <String>{};
 
     // Marker detection / fingerprints
-    final docs = _DocsState();
-    final process = _ProcessState();
-    final stack = _StackState();
+    final docs = DocsState();
+    final process = ProcessState();
+    final stack = StackState();
 
     List<FileSystemEntity> rootList = const [];
     try {
       rootList = await rootDir.list(followLinks: followLinks).toList();
     } catch (_) {}
     for (final e in rootList) {
-      final name = _nameOf(e.path);
+      final name = nameOf(e.path);
       topLevelEntries.add(name);
     }
 
@@ -281,8 +256,8 @@ class ProjectScanner {
       try {
         await for (final entity in entries) {
           try {
-            final rel = _relPath(rootPath, entity.path);
-            final name = _nameOf(entity.path);
+            final rel = relPath(rootPath, entity.path);
+            final name = nameOf(entity.path);
 
             // Count hidden entries
             if (name.startsWith('.')) hiddenEntriesCount++;
@@ -315,16 +290,12 @@ class ProjectScanner {
               } catch (_) {}
 
               // Extension histogram
-              final ext = _extOf(name);
+              final ext = extOf(name);
               extCounts[ext] = (extCounts[ext] ?? 0) + 1;
 
               // Top large files (keep top 15)
               if (stat != null) {
-                _trackLargeFile(
-                  largeFiles,
-                  _SizedPath(rel, stat.size),
-                  keep: 15,
-                );
+                trackLargeFile(largeFiles, SizedPath(rel, stat.size), keep: 15);
               }
 
               // Hygiene markers
@@ -360,7 +331,7 @@ class ProjectScanner {
       'total_files': totalFiles,
       'total_dirs': totalDirs,
       'total_size_bytes': totalSizeBytes,
-      'file_extensions': _sortedMapByValueDesc(extCounts),
+      'file_extensions': sortedMapByValueDesc(extCounts),
       'top_level_entries': topLevelEntries..sort(),
       'large_files': largeFiles
           .map((e) => {'path': e.path, 'size_bytes': e.sizeBytes})
@@ -605,9 +576,9 @@ class ProjectScanner {
 
   void _updateMarkersForDir(
     String name,
-    _DocsState docs,
-    _ProcessState process,
-    _StackState stack,
+    DocsState docs,
+    ProcessState process,
+    StackState stack,
   ) {
     // Docs / ADR / CI dirs
     if (name.toLowerCase() == 'docs') docs.hasArchitectureDocs = true;
@@ -633,9 +604,9 @@ class ProjectScanner {
   void _updateMarkersForFile(
     String name,
     String rel,
-    _DocsState docs,
-    _ProcessState process,
-    _StackState stack,
+    DocsState docs,
+    ProcessState process,
+    StackState stack,
   ) {
     final lower = name.toLowerCase();
 
@@ -769,9 +740,9 @@ class ProjectScanner {
   Map<String, dynamic> _classify({
     required String rootBasename,
     required List<String> topLevelEntries,
-    required _StackState stack,
-    required _DocsState docs,
-    required _ProcessState process,
+    required StackState stack,
+    required DocsState docs,
+    required ProcessState process,
     required Map<String, dynamic> inventory,
   }) {
     // Type heuristics
@@ -866,255 +837,4 @@ class ProjectScanner {
     }
     return null;
   }
-}
-
-/* ----------------------------- State structs ----------------------------- */
-
-class _DocsState {
-  bool hasReadme = false;
-  final List<String> readmePaths = [];
-  bool hasChangelog = false;
-  bool hasContributing = false;
-  bool hasLicense = false;
-  bool hasArchitectureDocs = false;
-
-  Map<String, dynamic> toJson() => {
-    'has_readme': hasReadme,
-    'readme_paths': readmePaths..sort(),
-    'has_changelog': hasChangelog,
-    'has_contributing': hasContributing,
-    'has_license': hasLicense,
-    'has_architecture_docs': hasArchitectureDocs,
-  };
-}
-
-class _ProcessState {
-  bool hasCi = false;
-  final Set<String> ciSystems = {};
-  bool hasTests = false;
-  final Set<String> testMarkers = {};
-  bool hasLinting = false;
-  final Set<String> lintMarkers = {};
-
-  Map<String, dynamic> toJson() => {
-    'has_ci': hasCi,
-    'ci_systems': (ciSystems.toList()..sort()),
-    'has_tests': hasTests,
-    'test_markers': (testMarkers.toList()..sort()),
-    'has_linting': hasLinting,
-    'lint_markers': (lintMarkers.toList()..sort()),
-  };
-}
-
-class _StackState {
-  final Set<String> languages = {};
-  final Set<String> frameworks = {};
-  final Set<String> packageManagers = {};
-  final Set<String> buildTools = {};
-  final Set<String> runtime = {};
-  bool containerDockerfile = false;
-  bool containerCompose = false;
-  bool kubernetesHelm = false;
-  bool kubernetesKustomize = false;
-  bool kubernetesManifests = false;
-
-  String? primaryLanguage;
-
-  void inferFromInventory(Map<String, int> extCounts) {
-    // Rough weighted guess (extensions + known signals)
-    final weights = <String, int>{};
-    void add(String lang, int w) => weights[lang] = (weights[lang] ?? 0) + w;
-
-    // extension-based weights
-    add('php', (extCounts['.php'] ?? 0));
-    add('javascript', (extCounts['.js'] ?? 0));
-    add('typescript', (extCounts['.ts'] ?? 0));
-    add('python', (extCounts['.py'] ?? 0));
-    add('go', (extCounts['.go'] ?? 0));
-    add('java', (extCounts['.java'] ?? 0));
-    add('csharp', (extCounts['.cs'] ?? 0));
-    add('ruby', (extCounts['.rb'] ?? 0));
-    add('kotlin', (extCounts['.kt'] ?? 0));
-    add('swift', (extCounts['.swift'] ?? 0));
-
-    // boost for marker-inferred languages
-    for (final l in languages) add(l, 50);
-
-    if (weights.isNotEmpty) {
-      final best = weights.entries.toList()
-        ..sort((a, b) => b.value.compareTo(a.value));
-      primaryLanguage = best.first.value > 0 ? best.first.key : null;
-    }
-
-    // Ensure primary language appears in languages set if known
-    if (primaryLanguage != null) languages.add(primaryLanguage!);
-  }
-
-  Map<String, dynamic> toJson() => {
-    'languages': (languages.toList()..sort()),
-    'primary_language': primaryLanguage,
-    'frameworks': (frameworks.toList()..sort()),
-    'package_managers': (packageManagers.toList()..sort()),
-    'build_tools': (buildTools.toList()..sort()),
-    'runtime': (runtime.toList()..sort()),
-    'containerization': {
-      'dockerfile': containerDockerfile,
-      'compose': containerCompose,
-    },
-    'kubernetes': {
-      'helm': kubernetesHelm,
-      'kustomize': kubernetesKustomize,
-      'manifests': kubernetesManifests,
-    },
-  };
-}
-
-class _SizedPath {
-  final String path;
-  final int sizeBytes;
-  _SizedPath(this.path, this.sizeBytes);
-}
-
-/* ----------------------------- Lightweight gitignore ----------------------------- */
-
-class _Gitignore {
-  final List<_GlobRule> rules;
-
-  const _Gitignore(this.rules);
-
-  const _Gitignore.empty() : rules = const [];
-
-  bool isIgnored(String relPath, {required bool isDir}) {
-    // Very lightweight: supports:
-    // - comments
-    // - blank lines
-    // - trailing / means dir
-    // - simple globs: *, ?, and ** via regex conversion
-    // - leading / anchors at repo root
-    // Not a full .gitignore spec (no negation precedence, etc. is minimal but useful).
-    for (final r in rules) {
-      if (r.matches(relPath, isDir: isDir)) return true;
-    }
-    return false;
-  }
-}
-
-class _GlobRule {
-  final RegExp re;
-  final bool dirOnly;
-
-  _GlobRule(this.re, {required this.dirOnly});
-
-  bool matches(String relPath, {required bool isDir}) {
-    if (dirOnly && !isDir) return false;
-    return re.hasMatch(relPath);
-  }
-}
-
-Future<_Gitignore> _loadGitignore(Directory root) async {
-  final f = File('${root.absolute.path}${Platform.pathSeparator}.gitignore');
-  try {
-    if (!await f.exists()) return const _Gitignore.empty();
-
-    final lines = await f.readAsLines();
-    final rules = <_GlobRule>[];
-
-    for (var line in lines) {
-      line = line.trim();
-      if (line.isEmpty) continue;
-      if (line.startsWith('#')) continue;
-
-      // Ignore negations for simplicity (you can extend later)
-      if (line.startsWith('!')) continue;
-
-      var dirOnly = false;
-      if (line.endsWith('/')) {
-        dirOnly = true;
-        line = line.substring(0, line.length - 1);
-      }
-
-      final anchored = line.startsWith('/');
-      if (anchored) line = line.substring(1);
-
-      // Convert glob -> regex
-      final re = _globToRegex(line, anchored: anchored);
-      rules.add(_GlobRule(re, dirOnly: dirOnly));
-    }
-
-    return _Gitignore(rules);
-  } catch (_) {
-    return const _Gitignore.empty();
-  }
-}
-
-RegExp _globToRegex(String glob, {required bool anchored}) {
-  // Support ** (match across dirs), * (no slash), ? (single char)
-  var pattern = RegExp.escape(glob);
-
-  // Reintroduce glob tokens
-  pattern = pattern.replaceAll(r'\*\*', '§§DOUBLESTAR§§');
-  pattern = pattern.replaceAll(r'\*', '§§STAR§§');
-  pattern = pattern.replaceAll(r'\?', '§§QMARK§§');
-
-  // ** => .*
-  pattern = pattern.replaceAll('§§DOUBLESTAR§§', '.*');
-  // * => [^/]* (no slash)
-  pattern = pattern.replaceAll('§§STAR§§', r'[^/]*');
-  // ? => [^/]
-  pattern = pattern.replaceAll('§§QMARK§§', r'[^/]');
-
-  // If not anchored, allow match anywhere in path segments
-  final prefix = anchored ? '^' : r'(^|.*/)'; // segment boundary-ish
-  final suffix = r'($|/.*$)'; // allow path continuation
-  return RegExp('$prefix$pattern$suffix');
-}
-
-/* ----------------------------- Helpers ----------------------------- */
-
-String _nameOf(String path) =>
-    path.split(Platform.pathSeparator).where((s) => s.isNotEmpty).last;
-
-String _extOf(String name) {
-  final i = name.lastIndexOf('.');
-  if (i <= 0 || i == name.length - 1) return '';
-  return name.substring(i).toLowerCase();
-}
-
-void _trackLargeFile(
-  List<_SizedPath> list,
-  _SizedPath item, {
-  required int keep,
-}) {
-  list.add(item);
-  list.sort((a, b) => b.sizeBytes.compareTo(a.sizeBytes));
-  if (list.length > keep) {
-    list.removeRange(keep, list.length);
-  }
-}
-
-Map<String, int> _sortedMapByValueDesc(Map<String, int> m) {
-  final entries = m.entries.toList()
-    ..sort((a, b) => b.value.compareTo(a.value));
-  final out = <String, int>{};
-  for (final e in entries) {
-    out[e.key] = e.value;
-  }
-  return out;
-}
-
-String _slugify(String s) {
-  final lower = s.toLowerCase();
-  final cleaned = lower.replaceAll(RegExp(r'[^a-z0-9]+'), '-');
-  return cleaned
-      .replaceAll(RegExp(r'-+'), '-')
-      .replaceAll(RegExp(r'^-|-$'), '');
-}
-
-String _relPath(String root, String full) {
-  final rp = root.endsWith(Platform.pathSeparator)
-      ? root
-      : '$root${Platform.pathSeparator}';
-  if (full.startsWith(rp))
-    return full.substring(rp.length).replaceAll('\\', '/');
-  return full.replaceAll('\\', '/');
 }

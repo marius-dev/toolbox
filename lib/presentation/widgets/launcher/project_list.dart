@@ -420,9 +420,7 @@ class _ProjectListState extends State<ProjectList> {
     final isFocused =
         widget.focusNode.hasFocus && globalIndex == _selectedIndex;
     final isOpening = _openingProjectId == project.id;
-    final topPadding = globalIndex == 0
-        ? context.compactValue(10)
-        : 0.0;
+    final topPadding = globalIndex == 0 ? context.compactValue(10) : 0.0;
 
     final key = _itemKeys[globalIndex];
 
@@ -439,27 +437,23 @@ class _ProjectListState extends State<ProjectList> {
           project: project,
           installedTools: widget.installedTools,
           defaultToolId: widget.defaultToolId,
-          isFocused: isFocused,
-          isHovering: isHovering,
-          searchQuery: widget.searchQuery,
-          showDivider: globalIndex < _itemKeys.length - 1,
-          revealFullPath: _revealFullPath,
-          isOpening: isOpening,
-          openingDots: _openingDot,
-          onTap: () {
-            _handleProjectTap(project, globalIndex);
-          },
-          onStarToggle: () => widget.onStarToggle(project),
-          onShowInFinder: () {
-            _handleShowInFinder(project);
-          },
-          onOpenInTerminal: () {
-            _handleOpenInTerminal(project);
-          },
-          onOpenWith: (toolId) {
-            _handleOpenWith(project, toolId);
-          },
-          onDelete: () => widget.onDelete(project),
+          actions: ProjectItemActions(
+            onTap: () => _handleProjectTap(project, globalIndex),
+            onStarToggle: () => widget.onStarToggle(project),
+            onShowInFinder: () => _handleShowInFinder(project),
+            onOpenInTerminal: () => _handleOpenInTerminal(project),
+            onOpenWith: (toolId) => _handleOpenWith(project, toolId),
+            onDelete: () => widget.onDelete(project),
+          ),
+          status: ProjectItemStatus(
+            isFocused: isFocused,
+            isHovering: isHovering,
+            searchQuery: widget.searchQuery,
+            showDivider: globalIndex < _itemKeys.length - 1,
+            revealFullPath: _revealFullPath,
+            isOpening: isOpening,
+            openingDots: _openingDot,
+          ),
         ),
       ),
     );

@@ -193,7 +193,7 @@ class ProjectProvider extends ChangeNotifier {
 
   Future<void> openInTerminal(Project project) async {
     if (!project.pathExists) return;
-    await _useCases.openInTerminal(project.path);
+    await _useCases.openInTerminal(project);
   }
 
   Future<void> openWith(

@@ -2,18 +2,12 @@ part of 'project_item.dart';
 
 class _ProjectActionsMenu extends StatefulWidget {
   final List<Tool> installedTools;
-  final VoidCallback onShowInFinder;
-  final VoidCallback onOpenInTerminal;
-  final void Function(ToolId toolId) onOpenWith;
-  final VoidCallback onDelete;
+  final ProjectItemActions actions;
   final _ProjectMenuController menuController;
 
   const _ProjectActionsMenu({
     required this.installedTools,
-    required this.onShowInFinder,
-    required this.onOpenInTerminal,
-    required this.onOpenWith,
-    required this.onDelete,
+    required this.actions,
     required this.menuController,
   });
 
@@ -28,10 +22,7 @@ class _ProjectActionsMenuState extends State<_ProjectActionsMenu> {
   @override
   Widget build(BuildContext context) {
     final iconColor = Theme.of(context).iconTheme.color;
-    final accentColor = _softAccentColor(
-      context.accentColor,
-      context.isDark,
-    );
+    final accentColor = _softAccentColor(context.accentColor, context.isDark);
 
     return Semantics(
       label: 'Project options menu',
@@ -88,10 +79,7 @@ class _ProjectActionsMenuState extends State<_ProjectActionsMenu> {
       context: context,
       anchorRect: buttonRect,
       installedTools: widget.installedTools,
-      onShowInFinder: widget.onShowInFinder,
-      onOpenInTerminal: widget.onOpenInTerminal,
-      onOpenWith: widget.onOpenWith,
-      onDelete: widget.onDelete,
+      actions: widget.actions,
     );
   }
 }
@@ -111,10 +99,7 @@ class _RemoveProjectButtonState extends State<_RemoveProjectButton> {
   @override
   Widget build(BuildContext context) {
     final iconColor = Theme.of(context).iconTheme.color;
-    final accentColor = _softAccentColor(
-      context.accentColor,
-      context.isDark,
-    );
+    final accentColor = _softAccentColor(context.accentColor, context.isDark);
 
     return Semantics(
       label: 'Remove from workspace',
@@ -135,9 +120,7 @@ class _RemoveProjectButtonState extends State<_RemoveProjectButton> {
                 color: _isHovered
                     ? accentColor.withOpacity(0.12)
                     : Colors.transparent,
-                borderRadius: BorderRadius.circular(
-                  context.compactValue(10),
-                ),
+                borderRadius: BorderRadius.circular(context.compactValue(10)),
               ),
               child: Icon(
                 Icons.close_rounded,

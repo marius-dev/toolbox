@@ -10,10 +10,7 @@ class _ProjectMenuController {
     required BuildContext context,
     required Rect anchorRect,
     required List<Tool> installedTools,
-    required VoidCallback onShowInFinder,
-    required VoidCallback onOpenInTerminal,
-    required void Function(ToolId) onOpenWith,
-    required VoidCallback onDelete,
+    required ProjectItemActions actions,
   }) {
     hideMenu();
 
@@ -25,10 +22,7 @@ class _ProjectMenuController {
 
     final menuBuilder = _ProjectMenuBuilder(
       installedTools: installedTools,
-      onShowInFinder: onShowInFinder,
-      onOpenInTerminal: onOpenInTerminal,
-      onOpenWith: onOpenWith,
-      onDelete: onDelete,
+      actions: actions,
     );
 
     final toolActions = menuBuilder.resolveToolActions(context);

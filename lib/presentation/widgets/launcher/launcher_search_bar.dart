@@ -4,12 +4,9 @@ import 'package:flutter/services.dart';
 
 import '../../../core/theme/theme_extensions.dart';
 import '../app_menu.dart';
+import '../../screens/launcher/launcher_intents.dart';
 
 part 'launcher_search_suffix.dart';
-
-class AddProjectIntent extends Intent {
-  const AddProjectIntent();
-}
 
 class LauncherSearchBar extends StatelessWidget {
   final TextEditingController controller;

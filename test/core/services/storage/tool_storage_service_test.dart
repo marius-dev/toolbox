@@ -1,6 +1,9 @@
 import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:project_launcher/core/services/storage/tool_storage_service.dart';
+
+import '../../../test_helpers/path_provider_stub.dart';
 
 void main() {
   late ToolStorageService service;
@@ -8,11 +11,13 @@ void main() {
 
   setUp(() async {
     TestWidgetsFlutterBinding.ensureInitialized();
-    service = ToolStorageService();
     tempDir = await Directory.systemTemp.createTemp('tool_storage_test');
+    stubPathProvider(path: tempDir.path);
+    service = ToolStorageService();
   });
 
   tearDown(() async {
+    resetPathProvider();
     if (await tempDir.exists()) {
       await tempDir.delete(recursive: true);
     }

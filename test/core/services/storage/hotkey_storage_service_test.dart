@@ -1,6 +1,9 @@
 import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:project_launcher/core/services/storage/hotkey_storage_service.dart';
+
+import '../../../test_helpers/path_provider_stub.dart';
 
 void main() {
   late HotkeyStorageService service;
@@ -8,11 +11,13 @@ void main() {
 
   setUp(() async {
     TestWidgetsFlutterBinding.ensureInitialized();
-    service = HotkeyStorageService();
     tempDir = await Directory.systemTemp.createTemp('hotkey_storage_test');
+    stubPathProvider(path: tempDir.path);
+    service = HotkeyStorageService();
   });
 
   tearDown(() async {
+    resetPathProvider();
     if (await tempDir.exists()) {
       await tempDir.delete(recursive: true);
     }
@@ -24,19 +29,22 @@ void main() {
       expect(hotkey, isNull);
     });
 
-    test('saveHotkeyPreference and getHotkeyPreference work correctly', () async {
-      final testHotkey = {
-        'keyCode': 'space',
-        'modifiers': ['command', 'shift'],
-      };
+    test(
+      'saveHotkeyPreference and getHotkeyPreference work correctly',
+      () async {
+        final testHotkey = {
+          'keyCode': 'space',
+          'modifiers': ['command', 'shift'],
+        };
 
-      await service.saveHotkeyPreference(testHotkey);
-      final loaded = await service.getHotkeyPreference();
+        await service.saveHotkeyPreference(testHotkey);
+        final loaded = await service.getHotkeyPreference();
 
-      expect(loaded, isNotNull);
-      expect(loaded!['keyCode'], equals('space'));
-      expect(loaded['modifiers'], equals(['command', 'shift']));
-    });
+        expect(loaded, isNotNull);
+        expect(loaded!['keyCode'], equals('space'));
+        expect(loaded['modifiers'], equals(['command', 'shift']));
+      },
+    );
 
     test('saveHotkeyPreference with null clears hotkey', () async {
       final testHotkey = {

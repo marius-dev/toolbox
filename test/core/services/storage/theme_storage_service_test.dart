@@ -1,8 +1,11 @@
 import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:project_launcher/core/services/storage/theme_storage_service.dart';
 import 'package:project_launcher/core/theme/glass_style.dart';
+
+import '../../../test_helpers/path_provider_stub.dart';
 
 void main() {
   late ThemeStorageService service;
@@ -10,41 +13,49 @@ void main() {
 
   setUp(() async {
     TestWidgetsFlutterBinding.ensureInitialized();
-    service = ThemeStorageService();
     tempDir = await Directory.systemTemp.createTemp('theme_storage_test');
+    stubPathProvider(path: tempDir.path);
+    service = ThemeStorageService();
   });
 
   tearDown(() async {
+    resetPathProvider();
     if (await tempDir.exists()) {
       await tempDir.delete(recursive: true);
     }
   });
 
   group('ThemeStorageService', () {
-    test('getThemePreferences returns defaults when no preferences exist', () async {
-      final prefs = await service.getThemePreferences();
+    test(
+      'getThemePreferences returns defaults when no preferences exist',
+      () async {
+        final prefs = await service.getThemePreferences();
 
-      expect(prefs['themeMode'], equals('system'));
-      expect(prefs['accentColor'], equals(0xFF6366F1));
-      expect(prefs['scale'], equals(1.0));
-      expect(prefs['glassStyle'], equals('tinted'));
-    });
+        expect(prefs['themeMode'], equals('system'));
+        expect(prefs['accentColor'], equals(0xFF6366F1));
+        expect(prefs['scale'], equals(1.0));
+        expect(prefs['glassStyle'], equals('tinted'));
+      },
+    );
 
-    test('saveThemePreferences and getThemePreferences work correctly', () async {
-      await service.saveThemePreferences(
-        themeMode: ThemeMode.dark,
-        accentColor: 0xFFFF0000,
-        appScale: 1.2,
-        glassStyle: GlassStyle.clear,
-      );
+    test(
+      'saveThemePreferences and getThemePreferences work correctly',
+      () async {
+        await service.saveThemePreferences(
+          themeMode: ThemeMode.dark,
+          accentColor: 0xFFFF0000,
+          appScale: 1.2,
+          glassStyle: GlassStyle.clear,
+        );
 
-      final prefs = await service.getThemePreferences();
+        final prefs = await service.getThemePreferences();
 
-      expect(prefs['themeMode'], equals('dark'));
-      expect(prefs['accentColor'], equals(0xFFFF0000));
-      expect(prefs['scale'], equals(1.2));
-      expect(prefs['glassStyle'], equals('clear'));
-    });
+        expect(prefs['themeMode'], equals('dark'));
+        expect(prefs['accentColor'], equals(0xFFFF0000));
+        expect(prefs['scale'], equals(1.2));
+        expect(prefs['glassStyle'], equals('clear'));
+      },
+    );
 
     test('supports all ThemeMode values', () async {
       // Test dark

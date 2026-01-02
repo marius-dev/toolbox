@@ -1,6 +1,9 @@
 import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:project_launcher/core/services/storage/workspace_storage_service.dart';
+
+import '../../../test_helpers/path_provider_stub.dart';
 
 void main() {
   late WorkspaceStorageService service;
@@ -8,21 +11,26 @@ void main() {
 
   setUp(() async {
     TestWidgetsFlutterBinding.ensureInitialized();
-    service = WorkspaceStorageService();
     tempDir = await Directory.systemTemp.createTemp('workspace_storage_test');
+    stubPathProvider(path: tempDir.path);
+    service = WorkspaceStorageService();
   });
 
   tearDown(() async {
+    resetPathProvider();
     if (await tempDir.exists()) {
       await tempDir.delete(recursive: true);
     }
   });
 
   group('WorkspaceStorageService', () {
-    test('loadWorkspaces returns empty list when file does not exist', () async {
-      final workspaces = await service.loadWorkspaces();
-      expect(workspaces, isEmpty);
-    });
+    test(
+      'loadWorkspaces returns empty list when file does not exist',
+      () async {
+        final workspaces = await service.loadWorkspaces();
+        expect(workspaces, isEmpty);
+      },
+    );
 
     test('saveWorkspaces and loadWorkspaces work correctly', () async {
       final testWorkspaces = [
@@ -45,11 +53,14 @@ void main() {
       expect(id, isNull);
     });
 
-    test('saveSelectedWorkspaceId and getSelectedWorkspaceId work correctly', () async {
-      await service.saveSelectedWorkspaceId('workspace-123');
-      final id = await service.getSelectedWorkspaceId();
-      expect(id, equals('workspace-123'));
-    });
+    test(
+      'saveSelectedWorkspaceId and getSelectedWorkspaceId work correctly',
+      () async {
+        await service.saveSelectedWorkspaceId('workspace-123');
+        final id = await service.getSelectedWorkspaceId();
+        expect(id, equals('workspace-123'));
+      },
+    );
 
     test('saveSelectedWorkspaceId with null clears selection', () async {
       await service.saveSelectedWorkspaceId('workspace-123');
@@ -58,11 +69,14 @@ void main() {
       expect(id, isNull);
     });
 
-    test('saveSelectedWorkspaceId with empty string clears selection', () async {
-      await service.saveSelectedWorkspaceId('workspace-123');
-      await service.saveSelectedWorkspaceId('');
-      final id = await service.getSelectedWorkspaceId();
-      expect(id, isNull);
-    });
+    test(
+      'saveSelectedWorkspaceId with empty string clears selection',
+      () async {
+        await service.saveSelectedWorkspaceId('workspace-123');
+        await service.saveSelectedWorkspaceId('');
+        final id = await service.getSelectedWorkspaceId();
+        expect(id, isNull);
+      },
+    );
   });
 }

@@ -13,7 +13,7 @@ final getIt = GetIt.instance;
 ///
 /// Example:
 /// ```dart
-/// final storage = locate<StorageService>();
+/// final themeProvider = locate<ThemeProvider>();
 /// ```
 T locate<T extends Object>() => getIt<T>();
 

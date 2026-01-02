@@ -1,5 +1,7 @@
 import '../../domain/repositories/project_repository.dart';
 import '../../domain/repositories/workspace_repository.dart';
+import '../../domain/services/project_launch_service.dart';
+import '../../domain/services/project_metadata_sync_service.dart';
 import '../../domain/use_cases/project_use_cases.dart';
 import '../../domain/use_cases/tool_use_cases.dart';
 import '../../domain/use_cases/workspace_use_cases.dart';
@@ -9,7 +11,6 @@ import '../../presentation/providers/workspace_provider.dart';
 import '../services/app_icon_resolver.dart';
 import '../services/hotkey_service.dart';
 import '../services/project_metadata_service.dart';
-import '../services/storage_service.dart';
 import '../services/storage/hotkey_storage_service.dart';
 import '../services/storage/project_storage_service.dart';
 import '../services/storage/theme_storage_service.dart';
@@ -41,6 +42,9 @@ Future<void> setupServiceLocator() async {
   // Register repositories (depend on services)
   _registerRepositories();
 
+  // Register domain services that depend on repositories
+  _registerDomainServices();
+
   // Register use cases (depend on repositories and services)
   _registerUseCases();
 
@@ -57,10 +61,6 @@ Future<void> setupServiceLocator() async {
 /// instantiated when first accessed. Dependencies are resolved from the
 /// service locator.
 Future<void> _registerServices() async {
-  // Legacy storage service - kept for backward compatibility
-  // TODO: Remove once all consumers are migrated to specialized services
-  getIt.registerLazySingleton<StorageService>(() => StorageService());
-
   // Specialized storage services (no dependencies)
   getIt.registerLazySingleton<ProjectStorageService>(
     () => ProjectStorageService(),
@@ -113,6 +113,21 @@ void _registerRepositories() {
   );
 }
 
+void _registerDomainServices() {
+  getIt.registerLazySingleton<ProjectMetadataSyncService>(
+    () => ProjectMetadataSyncService(
+      getIt<ProjectRepository>(),
+      getIt<ProjectMetadataService>(),
+    ),
+  );
+  getIt.registerLazySingleton<ProjectLaunchService>(
+    () => ProjectLaunchService(
+      getIt<ProjectRepository>(),
+      getIt<ToolDiscoveryService>(),
+    ),
+  );
+}
+
 /// Registers all use cases.
 ///
 /// Use cases encapsulate business logic and depend on repositories
@@ -121,8 +136,8 @@ void _registerUseCases() {
   getIt.registerLazySingleton<ProjectUseCases>(
     () => ProjectUseCases(
       getIt<ProjectRepository>(),
-      getIt<ProjectMetadataService>(),
-      getIt<ToolDiscoveryService>(),
+      getIt<ProjectMetadataSyncService>(),
+      getIt<ProjectLaunchService>(),
     ),
   );
   getIt.registerLazySingleton<WorkspaceUseCases>(
