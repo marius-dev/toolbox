@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:project_launcher/domain/models/project.dart';
-import 'package:project_launcher/presentation/screens/settings_screen.dart';
+import 'package:project_launcher/presentation/screens/preferences_screen.dart';
 import 'package:project_launcher/presentation/screens/workspaces_screen.dart';
 import 'package:project_launcher/presentation/widgets/project_dialog.dart';
 import 'package:window_manager/window_manager.dart';
@@ -36,7 +36,7 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
   final FocusNode _projectListFocusNode = FocusNode();
-  bool _showSettings = false;
+  bool _showPreferences = false;
   LauncherTab _selectedTab = LauncherTab.projects;
   bool _wasHidden = false;
   bool _isSearchFocusScheduled = false;
@@ -109,15 +109,15 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
     });
   }
 
-  void _toggleSettings() {
-    setState(() => _showSettings = !_showSettings);
-    if (!_showSettings) {
+  void _togglePreferences() {
+    setState(() => _showPreferences = !_showPreferences);
+    if (!_showPreferences) {
       WidgetsBinding.instance.addPostFrameCallback((_) => _focusSearchField());
     }
   }
 
   void _focusSearchField({String? initialInput}) {
-    if (!mounted || _selectedTab != LauncherTab.projects || _showSettings)
+    if (!mounted || _selectedTab != LauncherTab.projects || _showPreferences)
       return;
     _dismissPopupMenus();
     if (initialInput != null && initialInput.isNotEmpty) {
@@ -159,9 +159,9 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
     final route = ModalRoute.of(context);
     if (route == null || !route.isCurrent) return;
     if (event is! RawKeyDownEvent) return;
-    if (_showSettings) {
+    if (_showPreferences) {
       if (event.logicalKey == LogicalKeyboardKey.escape) {
-        _toggleSettings();
+        _togglePreferences();
       }
       return;
     }
@@ -202,6 +202,11 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
         control: !isMac,
         meta: isMac,
       ): const AddProjectIntent(),
+      SingleActivator(
+        LogicalKeyboardKey.comma,
+        control: !isMac,
+        meta: isMac,
+      ): const TogglePreferencesIntent(),
     };
 
     return Shortcuts(
@@ -210,10 +215,17 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
         actions: {
           AddProjectIntent: CallbackAction<AddProjectIntent>(
             onInvoke: (_intent) {
-              if (_showSettings || _selectedTab != LauncherTab.projects) {
+              if (_showPreferences || _selectedTab != LauncherTab.projects) {
                 return null;
               }
               _showAddProjectDialog();
+              return null;
+            },
+          ),
+          TogglePreferencesIntent:
+              CallbackAction<TogglePreferencesIntent>(
+            onInvoke: (_intent) {
+              _togglePreferences();
               return null;
             },
           ),
@@ -247,9 +259,9 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
                   fit: StackFit.expand,
                   children: [
                     Positioned.fill(
-                      child: _showSettings
-                          ? SettingsScreen(
-                              onBack: _toggleSettings,
+                      child: _showPreferences
+                          ? PreferencesScreen(
+                              onBack: _togglePreferences,
                               onRescan: _toolsProvider.refresh,
                             )
                           : _buildMainView(),
@@ -290,7 +302,7 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
                   );
                 }
               },
-              onSettingsPressed: _toggleSettings,
+              onPreferencesPressed: _togglePreferences,
               hasSyncErrors: hasMissingPaths,
               isSyncing: _projectProvider.isSyncing,
               onSyncMetadata: _projectProvider.syncMetadata,
@@ -500,4 +512,8 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
       refreshDelay: const Duration(seconds: 1),
     );
   }
+}
+
+class TogglePreferencesIntent extends Intent {
+  const TogglePreferencesIntent();
 }

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/theme_provider.dart';
@@ -11,7 +12,7 @@ part 'launcher_header_buttons.dart';
 class LauncherHeader extends StatelessWidget {
   final LauncherTab selectedTab;
   final ValueChanged<LauncherTab> onTabSelected;
-  final VoidCallback onSettingsPressed;
+  final VoidCallback onPreferencesPressed;
   final bool hasSyncErrors;
   final bool isSyncing;
   final VoidCallback onSyncMetadata;
@@ -25,7 +26,7 @@ class LauncherHeader extends StatelessWidget {
     super.key,
     required this.selectedTab,
     required this.onTabSelected,
-    required this.onSettingsPressed,
+    required this.onPreferencesPressed,
     this.hasSyncErrors = false,
     this.isSyncing = false,
     required this.onSyncMetadata,
@@ -80,7 +81,7 @@ class LauncherHeader extends StatelessWidget {
                     hasSyncErrors: hasSyncErrors,
                   ),
                   SizedBox(width: CompactLayout.value(context, 8)),
-                  _SettingsButton(onPressed: onSettingsPressed),
+                  _PreferencesButton(onPressed: onPreferencesPressed),
                 ],
               ),
               SizedBox(height: CompactLayout.value(context, 10)),

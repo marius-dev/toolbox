@@ -8,11 +8,11 @@ import '../widgets/hotkey_picker.dart';
 import '../widgets/section_layout.dart';
 import '../widgets/settings_tile.dart';
 
-class SettingsScreen extends StatelessWidget {
+class PreferencesScreen extends StatelessWidget {
   final VoidCallback onBack;
   final VoidCallback onRescan;
 
-  const SettingsScreen({
+  const PreferencesScreen({
     super.key,
     required this.onBack,
     required this.onRescan,
@@ -28,7 +28,7 @@ class SettingsScreen extends StatelessWidget {
           Expanded(
             child: SectionLayout(
               onBack: onBack,
-              title: 'Settings',
+              title: 'Preferences',
               subtitle: 'Customize how the launcher looks and behaves.',
               padding: CompactLayout.symmetric(context, horizontal: 18),
               child: ListView(

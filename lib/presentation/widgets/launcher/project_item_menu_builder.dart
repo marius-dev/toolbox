@@ -1,5 +1,19 @@
 part of 'project_item.dart';
 
+String _revealActionLabel() {
+  if (Platform.isMacOS) return 'Reveal in Finder';
+  if (Platform.isWindows) return 'Show in Explorer';
+  if (Platform.isLinux) return 'Show in Files';
+  return 'Show in Files';
+}
+
+String _revealActionSemanticsLabel() {
+  if (Platform.isMacOS) return 'Reveal project in Finder';
+  if (Platform.isWindows) return 'Show project in Explorer';
+  if (Platform.isLinux) return 'Show project in Files';
+  return 'Show project in Files';
+}
+
 const double _kProjectMenuActionTileBaseHeight = 42.0;
 const double _kProjectMenuIconBaseSize = 18.0;
 
@@ -64,14 +78,14 @@ class _ProjectMenuBuilder {
         const _MenuDivider(),
         _MenuActionTile(
           action: _MenuAction(
-            label: 'Reveal in Finder',
+            label: _revealActionLabel(),
             icon: Icons.folder_open,
             onSelected: onShowInFinder,
-            semanticsLabel: 'Reveal project in Finder',
+            semanticsLabel: _revealActionSemanticsLabel(),
           ),
           onPressed: () => onAction(
             _MenuAction(
-              label: 'Reveal in Finder',
+              label: _revealActionLabel(),
               icon: Icons.folder_open,
               onSelected: onShowInFinder,
             ),

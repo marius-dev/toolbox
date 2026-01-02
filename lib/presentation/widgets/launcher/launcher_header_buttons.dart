@@ -258,16 +258,19 @@ class _SyncButtonState extends State<_SyncButton>
   }
 }
 
-class _SettingsButton extends StatelessWidget {
+class _PreferencesButton extends StatelessWidget {
   final VoidCallback onPressed;
 
-  const _SettingsButton({required this.onPressed});
+  const _PreferencesButton({required this.onPressed});
 
   @override
   Widget build(BuildContext context) {
     final accent = ThemeProvider.instance.accentColor;
+    final isMac = defaultTargetPlatform == TargetPlatform.macOS;
+    final shortcutLabel = isMac ? '⌘,' : 'Ctrl+,';
+
     return Tooltip(
-      message: 'Preferences (⌘,)',
+      message: 'Preferences ($shortcutLabel)',
       waitDuration: const Duration(milliseconds: 120),
       child: InkWell(
         onTap: onPressed,
