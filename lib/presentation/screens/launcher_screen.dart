@@ -8,6 +8,7 @@ import 'package:project_launcher/presentation/screens/preferences_screen.dart';
 import 'package:project_launcher/presentation/screens/workspaces_screen.dart';
 import 'package:project_launcher/presentation/widgets/project_dialog.dart';
 import 'package:window_manager/window_manager.dart';
+import '../../core/theme/theme_extensions.dart';
 
 import '../providers/project_provider.dart';
 import '../providers/tools_provider.dart';
@@ -19,8 +20,10 @@ import '../widgets/launcher/launcher_search_bar.dart';
 import '../widgets/launcher/launcher_tab_bar.dart';
 import '../widgets/launcher/project_list.dart';
 import '../widgets/tools_section.dart';
+import '../../core/di/service_locator.dart';
 import '../../core/services/window_service.dart';
 import '../../core/utils/compact_layout.dart';
+import '../utils/dialog_utils.dart';
 
 class LauncherScreen extends StatefulWidget {
   const LauncherScreen({super.key});
@@ -33,6 +36,7 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
   late final ProjectProvider _projectProvider;
   late final ToolsProvider _toolsProvider;
   late final WorkspaceProvider _workspaceProvider;
+  late final WindowService _windowService;
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
   final FocusNode _projectListFocusNode = FocusNode();
@@ -48,6 +52,7 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
     _projectProvider = ProjectProvider.create();
     _toolsProvider = ToolsProvider.create();
     _workspaceProvider = WorkspaceProvider.create();
+    _windowService = getIt<WindowService>();
     _initializeData();
     _toolsProvider.loadTools();
     windowManager.addListener(this);
@@ -78,9 +83,9 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
   @override
   void onWindowBlur() {
     Future.delayed(const Duration(milliseconds: 100), () {
-      if (!WindowService.instance.shouldAutoHideOnBlur) return;
+      if (!_windowService.shouldAutoHideOnBlur) return;
       _wasHidden = true;
-      WindowService.instance.hide();
+      _windowService.hide();
     });
   }
 
@@ -332,9 +337,8 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
       _showMessage('Workspace not ready');
       return;
     }
-    final created = await showDialog<bool>(
+    final created = await DialogUtils.showAppDialog<bool>(
       context: context,
-      barrierColor: Colors.black.withOpacity(0.78),
       builder: (context) => ProjectDialog(
         defaultToolId: _toolsProvider.defaultToolId,
         onSave: (name, path, preferredToolId) async {
@@ -411,9 +415,8 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
   }
 
   void _showEditProjectDialog(BuildContext context, Project project) {
-    showDialog(
+    DialogUtils.showAppDialog(
       context: context,
-      barrierColor: Colors.black.withOpacity(0.78),
       builder: (context) => ProjectDialog(
         project: project,
         defaultToolId: _toolsProvider.defaultToolId,
@@ -444,7 +447,7 @@ class _LauncherScreenState extends State<LauncherScreen> with WindowListener {
 
     return [
       searchBar,
-      SizedBox(height: CompactLayout.value(context, 5)),
+      SizedBox(height: context.compactValue(5)),
       Expanded(
         child: AnimatedBuilder(
           animation: Listenable.merge([_projectProvider, _toolsProvider]),

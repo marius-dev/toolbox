@@ -2,8 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 
-import '../../core/theme/glass_style.dart';
-import '../../core/theme/theme_provider.dart';
+import '../../core/theme/theme_extensions.dart';
 
 class GlassPanel extends StatelessWidget {
   final Widget child;
@@ -31,11 +30,7 @@ class GlassPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final palette = GlassStylePalette.fromContext(
-      context,
-      style: ThemeProvider.instance.glassStyle,
-      accentColor: ThemeProvider.instance.accentColor,
-    );
+    final palette = context.glassColors();
     final effectiveColor = isTransparent
         ? Colors.transparent
         : (backgroundColor ?? palette.innerColor);

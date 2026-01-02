@@ -1,7 +1,9 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import '../../core/theme/theme_extensions.dart';
 
+import '../../core/di/service_locator.dart';
 import '../../core/theme/glass_style.dart';
 import '../../core/theme/theme_provider.dart';
 
@@ -43,12 +45,12 @@ class AppShell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
-      animation: ThemeProvider.instance,
+      animation: getIt<ThemeProvider>(),
       builder: (context, _) {
         final palette = GlassStylePalette.fromContext(
           context,
-          style: ThemeProvider.instance.glassStyle,
-          accentColor: ThemeProvider.instance.accentColor,
+          style: context.glassStyle,
+          accentColor: context.accentColor,
         );
         final borderRadius = BorderRadius.circular(26);
         final sigma = blurSigma ?? palette.blurSigma;

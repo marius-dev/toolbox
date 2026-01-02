@@ -3,8 +3,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
-import '../../../core/theme/theme_provider.dart';
-import '../../../core/utils/compact_layout.dart';
+import '../../../core/theme/theme_extensions.dart';
 import '../../../core/utils/string_utils.dart';
 import '../../../domain/models/project.dart';
 import '../../../domain/models/tool.dart';
@@ -100,15 +99,14 @@ class ProjectItemState extends State<ProjectItem> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDisabled = !project.pathExists;
-    final isDarkMode = theme.brightness == Brightness.dark;
     final accent = _softAccentColor(
-      ThemeProvider.instance.accentColor,
-      isDarkMode,
+      context.accentColor,
+      context.isDark,
     );
     final isHighlighted =
         widget.isFocused || widget.isHovering || widget.isOpening;
     final highlightColor = theme.dividerColor.withOpacity(
-      isDarkMode ? 0.12 : 0.08,
+      context.isDark ? 0.12 : 0.08,
     );
     final background = isHighlighted ? highlightColor : Colors.transparent;
     const borderColor = Colors.transparent;
@@ -120,9 +118,9 @@ class ProjectItemState extends State<ProjectItem> {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         curve: Curves.easeOutCubic,
-        margin: EdgeInsets.only(bottom: CompactLayout.value(context, 6)),
+        margin: EdgeInsets.only(bottom: context.compactValue(6)),
         padding: EdgeInsets.symmetric(
-          horizontal: CompactLayout.value(context, 12),
+          horizontal: context.compactValue(12),
         ),
         decoration: BoxDecoration(
           color: background,
@@ -130,14 +128,14 @@ class ProjectItemState extends State<ProjectItem> {
           border: Border.all(color: borderColor, width: 1),
         ),
         child: SizedBox(
-          height: CompactLayout.value(context, 56),
+          height: context.compactValue(56),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               _LeftAccent(isVisible: _isRecent, color: accent),
-              SizedBox(width: CompactLayout.value(context, 8)),
+              SizedBox(width: context.compactValue(8)),
               _ProjectAvatar(project: project, isDisabled: isDisabled),
-              SizedBox(width: CompactLayout.value(context, 12)),
+              SizedBox(width: context.compactValue(12)),
               Expanded(
                 child: _ProjectDetails(
                   project: project,
@@ -150,14 +148,14 @@ class ProjectItemState extends State<ProjectItem> {
                   accentColor: accent,
                 ),
               ),
-              SizedBox(width: CompactLayout.value(context, 12)),
+              SizedBox(width: context.compactValue(12)),
               if (isHighlighted && !isDisabled) ...[
                 _StarButton(
                   isStarred: project.isStarred,
                   onPressed: widget.onStarToggle,
                   accentColor: accent,
                 ),
-                SizedBox(width: CompactLayout.value(context, 6)),
+                SizedBox(width: context.compactValue(6)),
               ],
               if (isDisabled)
                 _RemoveProjectButton(onPressed: widget.onDelete)

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../core/theme/theme_extensions.dart';
 
 import '../../core/theme/theme_provider.dart';
 import '../../core/utils/compact_layout.dart';
@@ -55,8 +56,7 @@ class _ToolsSectionState extends State<ToolsSection> {
     final borderColor = theme.dividerColor.withOpacity(0.16);
 
     return Padding(
-      padding: CompactLayout.only(
-        context,
+      padding: context.compactPaddingOnly(
         left: 10,
         top: 6,
         right: 10,
@@ -80,7 +80,7 @@ class _ToolsSectionState extends State<ToolsSection> {
 
   Widget _buildLoadingState(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.all(CompactLayout.value(context, 16)),
+      padding: EdgeInsets.all(context.compactValue(16)),
       child: const Center(child: CircularProgressIndicator()),
     );
   }
@@ -96,8 +96,7 @@ class _ToolsSectionState extends State<ToolsSection> {
         radius: const Radius.circular(6),
         thickness: 4,
         child: ListView.separated(
-          padding: CompactLayout.symmetric(
-            context,
+          padding: context.compactPadding(
             horizontal: 12,
             vertical: 12,
           ),
@@ -114,7 +113,7 @@ class _ToolsSectionState extends State<ToolsSection> {
             );
           },
           separatorBuilder: (context, _) =>
-              SizedBox(height: CompactLayout.value(context, 6)),
+              SizedBox(height: context.compactValue(6)),
           itemCount: widget.installed.length,
         ),
       ),
@@ -125,7 +124,7 @@ class _ToolsSectionState extends State<ToolsSection> {
     final muted = Theme.of(context).textTheme.bodyMedium?.color;
     return Center(
       child: Padding(
-        padding: EdgeInsets.all(CompactLayout.value(context, 20)),
+        padding: EdgeInsets.all(context.compactValue(20)),
         child: Text(
           'No tools found yet. Try scanning again or installing a tool.',
           textAlign: TextAlign.center,
@@ -161,7 +160,7 @@ class _ToolListItemState extends State<_ToolListItem> {
     final tool = widget.tool;
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final accent = _softAccentColor(ThemeProvider.instance.accentColor, isDark);
+    final accent = _softAccentColor(context.accentColor, isDark);
     final textColor = theme.textTheme.bodyLarge!.color!;
     final mutedText = theme.textTheme.bodyMedium!.color!;
     final background = widget.isDefault
@@ -182,7 +181,7 @@ class _ToolListItemState extends State<_ToolListItem> {
         duration: const Duration(milliseconds: 200),
         curve: Curves.easeOutCubic,
         padding: EdgeInsets.symmetric(
-          horizontal: CompactLayout.value(context, 12),
+          horizontal: context.compactValue(12),
         ),
         decoration: BoxDecoration(
           color: background,
@@ -193,12 +192,12 @@ class _ToolListItemState extends State<_ToolListItem> {
           ),
         ),
         child: SizedBox(
-          height: CompactLayout.value(context, 60),
+          height: context.compactValue(60),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              ToolIcon(tool: tool, size: CompactLayout.value(context, 34)),
-              SizedBox(width: CompactLayout.value(context, 12)),
+              ToolIcon(tool: tool, size: context.compactValue(34)),
+              SizedBox(width: context.compactValue(12)),
               Expanded(
                 child: _ToolDetails(
                   tool: tool,
@@ -206,14 +205,14 @@ class _ToolListItemState extends State<_ToolListItem> {
                   mutedText: mutedText,
                 ),
               ),
-              SizedBox(width: CompactLayout.value(context, 8)),
+              SizedBox(width: context.compactValue(8)),
               if (!tool.isInstalled || widget.isDefault) ...[
                 _ToolStatusGroup(
                   isInstalled: tool.isInstalled,
                   isDefault: widget.isDefault,
                   accentColor: accent,
                 ),
-                SizedBox(width: CompactLayout.value(context, 8)),
+                SizedBox(width: context.compactValue(8)),
               ],
               _ToolActionsMenu(
                 tool: tool,
@@ -258,25 +257,25 @@ class _ToolDetails extends StatelessWidget {
           style: TextStyle(
             color: textColor,
             fontWeight: FontWeight.w800,
-            fontSize: CompactLayout.value(context, 13),
+            fontSize: context.compactValue(13),
           ),
           overflow: TextOverflow.ellipsis,
         ),
-        SizedBox(height: CompactLayout.value(context, 6)),
+        SizedBox(height: context.compactValue(6)),
         Row(
           children: [
             Icon(
               Icons.folder_rounded,
-              size: CompactLayout.value(context, 15),
+              size: context.compactValue(15),
               color: Theme.of(context).iconTheme.color,
             ),
-            SizedBox(width: CompactLayout.value(context, 6)),
+            SizedBox(width: context.compactValue(6)),
             Expanded(
               child: Text(
                 pathText,
                 style: Theme.of(context).textTheme.bodySmall!.copyWith(
                   color: mutedText.withOpacity(0.8),
-                  fontSize: CompactLayout.value(context, 11),
+                  fontSize: context.compactValue(11),
                 ),
                 overflow: TextOverflow.ellipsis,
               ),
@@ -334,7 +333,7 @@ class _ToolStatusGroup extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         for (var i = 0; i < chips.length; i++) ...[
-          if (i > 0) SizedBox(width: CompactLayout.value(context, 6)),
+          if (i > 0) SizedBox(width: context.compactValue(6)),
           chips[i],
         ],
       ],
@@ -358,10 +357,10 @@ class _StatusChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: EdgeInsets.only(left: CompactLayout.value(context, 8)),
+      margin: EdgeInsets.only(left: context.compactValue(8)),
       padding: EdgeInsets.symmetric(
-        horizontal: CompactLayout.value(context, 7),
-        vertical: CompactLayout.value(context, 3),
+        horizontal: context.compactValue(7),
+        vertical: context.compactValue(3),
       ),
       decoration: BoxDecoration(
         color: background,
@@ -374,15 +373,15 @@ class _StatusChip extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           if (icon != null) ...[
-            Icon(icon, size: CompactLayout.value(context, 13), color: color),
-            SizedBox(width: CompactLayout.value(context, 4)),
+            Icon(icon, size: context.compactValue(13), color: color),
+            SizedBox(width: context.compactValue(4)),
           ],
           Text(
             label,
             style: TextStyle(
               color: color,
               fontWeight: FontWeight.w700,
-              fontSize: CompactLayout.value(context, 10),
+              fontSize: context.compactValue(10),
             ),
           ),
         ],
@@ -426,7 +425,7 @@ class _ToolActionsMenu extends StatelessWidget {
       icon: Icon(
         Icons.more_horiz,
         color: theme.iconTheme.color,
-        size: CompactLayout.value(context, 18),
+        size: context.compactValue(18),
       ),
       position: PopupMenuPosition.under,
       onSelected: (action) {
@@ -447,10 +446,10 @@ class _ToolActionsMenu extends StatelessWidget {
               children: [
                 Icon(
                   Icons.open_in_new_rounded,
-                  size: CompactLayout.value(context, 16),
+                  size: context.compactValue(16),
                   color: textColor,
                 ),
-                SizedBox(width: CompactLayout.value(context, 8)),
+                SizedBox(width: context.compactValue(8)),
                 Text('Open', style: textStyle),
               ],
             ),
@@ -462,10 +461,10 @@ class _ToolActionsMenu extends StatelessWidget {
               children: [
                 Icon(
                   Icons.check_rounded,
-                  size: CompactLayout.value(context, 16),
+                  size: context.compactValue(16),
                   color: textColor,
                 ),
-                SizedBox(width: CompactLayout.value(context, 8)),
+                SizedBox(width: context.compactValue(8)),
                 Text('Set as default', style: textStyle),
               ],
             ),

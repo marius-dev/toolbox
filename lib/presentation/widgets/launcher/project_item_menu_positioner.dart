@@ -8,9 +8,9 @@ class _MenuPositioner {
     required double menuWidth,
     required double menuHeight,
   }) {
-    final horizontalPadding = CompactLayout.value(context, 8);
-    final horizontalOffset = -CompactLayout.value(context, 6);
-    final verticalOffset = CompactLayout.value(context, 10);
+    final horizontalPadding = context.compactValue(8);
+    final horizontalOffset = -context.compactValue(6);
+    final verticalOffset = context.compactValue(10);
 
     final desiredLeft = anchorRect.left + horizontalOffset;
     final left = math.min(

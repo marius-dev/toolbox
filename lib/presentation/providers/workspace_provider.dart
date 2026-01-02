@@ -1,20 +1,20 @@
 import 'package:flutter/foundation.dart';
 
-import '../../core/services/storage_service.dart';
+import '../../core/di/service_locator.dart';
+import '../../core/services/storage/workspace_storage_service.dart';
 import '../../domain/models/workspace.dart';
-import '../../domain/repositories/workspace_repository.dart';
 import '../../domain/use_cases/workspace_use_cases.dart';
 
 class WorkspaceProvider extends ChangeNotifier {
   static const String _defaultWorkspaceName = 'Main workspace';
 
   final WorkspaceUseCases _useCases;
-  final StorageService _storage = StorageService.instance;
+  final WorkspaceStorageService _storage;
 
-  WorkspaceProvider(this._useCases);
+  WorkspaceProvider(this._useCases, this._storage);
 
   factory WorkspaceProvider.create() {
-    return WorkspaceProvider(WorkspaceUseCases(WorkspaceRepository.instance));
+    return getIt<WorkspaceProvider>();
   }
 
   List<Workspace> _workspaces = [];

@@ -30,7 +30,7 @@ class _WorkspaceSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final accent = ThemeProvider.instance.accentColor;
+    final accent = context.accentColor;
     final baseColor = Theme.of(context).iconTheme.color!;
     final background = Theme.of(context).cardColor.withOpacity(0.25);
     final label = isLoading
@@ -73,9 +73,9 @@ class _WorkspaceSelector extends StatelessWidget {
                     size: 16,
                     color: isSelected ? accent : baseTextColor,
                   ),
-                  SizedBox(width: CompactLayout.value(context, 8)),
+                  SizedBox(width: context.compactValue(8)),
                   SizedBox(
-                    width: CompactLayout.value(context, 160),
+                    width: context.compactValue(160),
                     child: Text(
                       workspace.name,
                       style: textStyle.copyWith(
@@ -120,9 +120,9 @@ class _WorkspaceSelector extends StatelessWidget {
         waitDuration: const Duration(milliseconds: 120),
         child: Container(
           padding: EdgeInsets.symmetric(
-            horizontal: CompactLayout.value(context, 10),
+            horizontal: context.compactValue(10),
           ),
-          height: CompactLayout.value(context, 28),
+          height: context.compactValue(28),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(12),
             color: background,
@@ -133,13 +133,13 @@ class _WorkspaceSelector extends StatelessWidget {
             children: [
               Icon(
                 Icons.layers_rounded,
-                size: CompactLayout.value(context, 14),
+                size: context.compactValue(14),
                 color: labelColor,
               ),
-              SizedBox(width: CompactLayout.value(context, 6)),
+              SizedBox(width: context.compactValue(6)),
               ConstrainedBox(
                 constraints: BoxConstraints(
-                  maxWidth: CompactLayout.value(context, 120),
+                  maxWidth: context.compactValue(120),
                 ),
                 child: Text(
                   label,
@@ -150,10 +150,10 @@ class _WorkspaceSelector extends StatelessWidget {
                   ),
                 ),
               ),
-              SizedBox(width: CompactLayout.value(context, 4)),
+              SizedBox(width: context.compactValue(4)),
               Icon(
                 Icons.expand_more_rounded,
-                size: CompactLayout.value(context, 16),
+                size: context.compactValue(16),
                 color: labelColor,
               ),
             ],
@@ -216,7 +216,7 @@ class _SyncButtonState extends State<_SyncButton>
 
   @override
   Widget build(BuildContext context) {
-    final accent = ThemeProvider.instance.accentColor;
+    final accent = context.accentColor;
     final baseColor = Theme.of(context).iconTheme.color!;
     final background = Theme.of(context).cardColor.withOpacity(0.25);
     final isBusy = widget.isSyncing;
@@ -236,8 +236,8 @@ class _SyncButtonState extends State<_SyncButton>
         onTap: isBusy ? null : widget.onPressed,
         borderRadius: BorderRadius.circular(12),
         child: Container(
-          width: CompactLayout.value(context, 34),
-          height: CompactLayout.value(context, 28),
+          width: context.compactValue(34),
+          height: context.compactValue(28),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(12),
             color: isBusy ? accent.withOpacity(0.16) : background,
@@ -248,7 +248,7 @@ class _SyncButtonState extends State<_SyncButton>
             turns: _rotationController,
             child: Icon(
               Icons.sync_rounded,
-              size: CompactLayout.value(context, 14),
+              size: context.compactValue(14),
               color: iconColor,
             ),
           ),
@@ -265,7 +265,7 @@ class _PreferencesButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final accent = ThemeProvider.instance.accentColor;
+    final accent = context.accentColor;
     final isMac = defaultTargetPlatform == TargetPlatform.macOS;
     final shortcutLabel = isMac ? '⌘,' : 'Ctrl+,';
 
@@ -276,8 +276,8 @@ class _PreferencesButton extends StatelessWidget {
         onTap: onPressed,
         borderRadius: BorderRadius.circular(12),
         child: Container(
-          width: CompactLayout.value(context, 34),
-          height: CompactLayout.value(context, 28),
+          width: context.compactValue(34),
+          height: context.compactValue(28),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(12),
             border: Border.all(color: accent.withOpacity(0.4)),
@@ -285,7 +285,7 @@ class _PreferencesButton extends StatelessWidget {
           alignment: Alignment.center,
           child: Icon(
             Icons.settings_rounded,
-            size: CompactLayout.value(context, 14),
+            size: context.compactValue(14),
             color: accent,
           ),
         ),

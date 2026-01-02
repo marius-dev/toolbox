@@ -7,15 +7,20 @@ import '../repositories/project_repository.dart';
 
 class ProjectUseCases {
   final ProjectRepository _repository;
+  final ProjectMetadataService _metadataService;
+  final ToolDiscoveryService _discoveryService;
 
-  ProjectUseCases(this._repository);
+  ProjectUseCases(
+    this._repository,
+    this._metadataService,
+    this._discoveryService,
+  );
 
   Future<List<Project>> getAllProjects() => _repository.loadProjects();
 
   Future<List<Project>> syncProjectMetadata(List<Project> projects) async {
     if (projects.isEmpty) return projects;
 
-    final metadataService = ProjectMetadataService.instance;
     final updated = <Project>[];
 
     for (final project in projects) {
@@ -24,7 +29,7 @@ class ProjectUseCases {
         continue;
       }
 
-      final gitInfo = await metadataService.fetchGitInfo(project.path);
+      final gitInfo = await _metadataService.fetchGitInfo(project.path);
       updated.add(project.copyWith(gitInfo: gitInfo));
     }
 
@@ -72,7 +77,6 @@ class ProjectUseCases {
   }) async {
     if (!project.pathExists) return;
 
-    final discovery = ToolDiscoveryService.instance;
     final resolved = await _pickToolForProject(
       project,
       defaultToolId: defaultToolId,
@@ -80,7 +84,7 @@ class ProjectUseCases {
     );
 
     if (resolved != null) {
-      await discovery.launchTool(resolved.tool, targetPath: project.path);
+      await _discoveryService.launchTool(resolved.tool, targetPath: project.path);
       final updated = project.copyWith(
         lastOpened: DateTime.now(),
         lastUsedToolId: resolved.tool.id,
@@ -153,16 +157,15 @@ class ProjectUseCases {
     List<Tool> installedTools = const [],
   }) async {
     try {
-      final discovery = ToolDiscoveryService.instance;
       Tool? tool;
       try {
         tool = installedTools.firstWhere((t) => t.id == toolId);
       } catch (_) {
-        tool = await discovery.discoverTool(toolId);
+        tool = await _discoveryService.discoverTool(toolId);
       }
 
       if (tool.isInstalled && tool.path != null) {
-        await discovery.launchTool(tool, targetPath: project.path);
+        await _discoveryService.launchTool(tool, targetPath: project.path);
         final updated = project.copyWith(
           lastOpened: DateTime.now(),
           lastUsedToolId: tool.id,
@@ -187,8 +190,6 @@ class ProjectUseCases {
     ToolId? defaultToolId,
     List<Tool> installedTools = const [],
   }) async {
-    final discovery = ToolDiscoveryService.instance;
-
     Tool? candidate;
 
     if (project.lastUsedToolId != null) {
@@ -197,7 +198,7 @@ class ProjectUseCases {
           (t) => t.id == project.lastUsedToolId,
         );
       } catch (_) {
-        candidate = await discovery.discoverTool(project.lastUsedToolId!);
+        candidate = await _discoveryService.discoverTool(project.lastUsedToolId!);
       }
 
       if ((!candidate.isInstalled || candidate.path == null)) {
@@ -206,7 +207,7 @@ class ProjectUseCases {
     }
 
     if (candidate == null && defaultToolId != null) {
-      final fallback = await discovery.discoverTool(defaultToolId);
+      final fallback = await _discoveryService.discoverTool(defaultToolId);
       if (fallback.isInstalled && fallback.path != null) {
         candidate = fallback;
       }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../core/theme/theme_extensions.dart';
 
 import '../../core/theme/theme_provider.dart';
 
@@ -66,7 +67,7 @@ class ListingItemVisuals {
   }) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final accentColor = ThemeProvider.instance.accentColor;
+    final accentColor = context.accentColor;
     final surface = theme.colorScheme.surface;
 
     final baseOverlay = isDark

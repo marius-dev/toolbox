@@ -29,8 +29,8 @@ class _ProjectActionsMenuState extends State<_ProjectActionsMenu> {
   Widget build(BuildContext context) {
     final iconColor = Theme.of(context).iconTheme.color;
     final accentColor = _softAccentColor(
-      ThemeProvider.instance.accentColor,
-      Theme.of(context).brightness == Brightness.dark,
+      context.accentColor,
+      context.isDark,
     );
 
     return Semantics(
@@ -52,18 +52,18 @@ class _ProjectActionsMenuState extends State<_ProjectActionsMenu> {
                 message: 'Project options',
                 child: Container(
                   key: _menuButtonKey,
-                  padding: EdgeInsets.all(CompactLayout.value(context, 8)),
+                  padding: EdgeInsets.all(context.compactValue(8)),
                   decoration: BoxDecoration(
                     color: isActive
                         ? accentColor.withOpacity(0.12)
                         : Colors.transparent,
                     borderRadius: BorderRadius.circular(
-                      CompactLayout.value(context, 10),
+                      context.compactValue(10),
                     ),
                   ),
                   child: Icon(
                     Icons.more_horiz,
-                    size: CompactLayout.value(context, 16),
+                    size: context.compactValue(16),
                     color: isActive ? accentColor : iconColor,
                   ),
                 ),
@@ -112,8 +112,8 @@ class _RemoveProjectButtonState extends State<_RemoveProjectButton> {
   Widget build(BuildContext context) {
     final iconColor = Theme.of(context).iconTheme.color;
     final accentColor = _softAccentColor(
-      ThemeProvider.instance.accentColor,
-      Theme.of(context).brightness == Brightness.dark,
+      context.accentColor,
+      context.isDark,
     );
 
     return Semantics(
@@ -130,18 +130,18 @@ class _RemoveProjectButtonState extends State<_RemoveProjectButton> {
             message: 'Remove from workspace',
             waitDuration: const Duration(milliseconds: 120),
             child: Container(
-              padding: EdgeInsets.all(CompactLayout.value(context, 8)),
+              padding: EdgeInsets.all(context.compactValue(8)),
               decoration: BoxDecoration(
                 color: _isHovered
                     ? accentColor.withOpacity(0.12)
                     : Colors.transparent,
                 borderRadius: BorderRadius.circular(
-                  CompactLayout.value(context, 10),
+                  context.compactValue(10),
                 ),
               ),
               child: Icon(
                 Icons.close_rounded,
-                size: CompactLayout.value(context, 16),
+                size: context.compactValue(16),
                 color: _isHovered ? accentColor : iconColor,
               ),
             ),

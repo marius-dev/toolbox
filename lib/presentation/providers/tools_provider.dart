@@ -1,18 +1,18 @@
 import 'package:flutter/foundation.dart';
 
-import '../../core/services/storage_service.dart';
-import '../../core/services/tool_discovery_service.dart';
+import '../../core/di/service_locator.dart';
+import '../../core/services/storage/tool_storage_service.dart';
 import '../../domain/models/tool.dart';
 import '../../domain/use_cases/tool_use_cases.dart';
 
 class ToolsProvider extends ChangeNotifier {
   final ToolUseCases _useCases;
-  final StorageService _storage = StorageService.instance;
+  final ToolStorageService _storage;
 
-  ToolsProvider(this._useCases);
+  ToolsProvider(this._useCases, this._storage);
 
   factory ToolsProvider.create() {
-    return ToolsProvider(ToolUseCases(ToolDiscoveryService.instance));
+    return getIt<ToolsProvider>();
   }
 
   List<Tool> _tools = [];

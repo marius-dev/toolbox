@@ -2,8 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../../../core/theme/theme_provider.dart';
-import '../../../core/utils/compact_layout.dart';
+import '../../../core/theme/theme_extensions.dart';
 import '../app_menu.dart';
 
 part 'launcher_search_suffix.dart';
@@ -34,8 +33,7 @@ class LauncherSearchBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final padding = CompactLayout.symmetric(
-      context,
+    final padding = context.compactPadding(
       horizontal: 10,
       vertical: 12,
     );
@@ -55,13 +53,12 @@ class LauncherSearchBar extends StatelessWidget {
   }
 
   Widget _buildSearchField(BuildContext context, bool hasActions) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final baseColor = Theme.of(context).textTheme.bodyLarge!.color!;
-    final fillColor = isDark
+    final fillColor = context.isDark
         ? Colors.black.withOpacity(0.5)
         : Colors.white.withOpacity(0.9);
-    final borderColor = baseColor.withOpacity(isDark ? 0.26 : 0.12);
-    final accentColor = ThemeProvider.instance.accentColor;
+    final borderColor = baseColor.withOpacity(context.isDark ? 0.26 : 0.12);
+    final accentColor = context.accentColor;
     final isMac = defaultTargetPlatform == TargetPlatform.macOS;
 
     return ValueListenableBuilder<TextEditingValue>(

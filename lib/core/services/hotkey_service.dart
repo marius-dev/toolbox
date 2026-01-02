@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:hotkey_manager/hotkey_manager.dart';
-import 'package:project_launcher/core/services/storage_service.dart';
+import 'package:project_launcher/core/services/storage/hotkey_storage_service.dart';
 import 'package:project_launcher/core/services/window_service.dart';
 
 class HotkeyService extends ChangeNotifier {
-  static final HotkeyService _instance = HotkeyService._internal();
-  static HotkeyService get instance => _instance;
+  final HotkeyStorageService _storageService;
+  final WindowService _windowService;
 
-  HotkeyService._internal();
+  HotkeyService(this._storageService, this._windowService);
 
   HotKey? _launcherHotKey;
 
@@ -15,7 +15,7 @@ class HotkeyService extends ChangeNotifier {
 
   Future<void> initialize() async {
     try {
-      final saved = await StorageService.instance.getHotkeyPreference();
+      final saved = await _storageService.getHotkeyPreference();
       if (saved != null) {
         _launcherHotKey = HotKey.fromJson(saved)..scope = HotKeyScope.system;
         await _registerHotkey(_launcherHotKey!);
@@ -32,11 +32,11 @@ class HotkeyService extends ChangeNotifier {
     if (hotKey != null) {
       _launcherHotKey!.scope = HotKeyScope.system;
       await _registerHotkey(_launcherHotKey!);
-      await StorageService.instance.saveHotkeyPreference(
+      await _storageService.saveHotkeyPreference(
         _launcherHotKey!.toJson(),
       );
     } else {
-      await StorageService.instance.saveHotkeyPreference(null);
+      await _storageService.saveHotkeyPreference(null);
     }
 
     notifyListeners();
@@ -46,7 +46,7 @@ class HotkeyService extends ChangeNotifier {
     try {
       await hotKeyManager.register(
         hotKey,
-        keyDownHandler: (_) => WindowService.instance.toggle(),
+        keyDownHandler: (_) => _windowService.toggle(),
       );
     } catch (e) {
       debugPrint('Hotkey registration error: $e');

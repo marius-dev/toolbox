@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:hotkey_manager/hotkey_manager.dart';
+import '../../core/theme/theme_extensions.dart';
 
+import '../../core/di/service_locator.dart';
 import '../../core/services/hotkey_service.dart';
 import '../../core/services/window_service.dart';
 import '../../core/theme/theme_provider.dart';
@@ -14,26 +16,32 @@ class HotkeyPicker extends StatefulWidget {
 }
 
 class _HotkeyPickerState extends State<HotkeyPicker> {
+  late final HotkeyService _hotkeyService;
+  late final WindowService _windowService;
+  late final ThemeProvider _themeProvider;
   HotKey? _currentHotKey;
   bool _isRecording = false;
 
   @override
   void initState() {
     super.initState();
-    _currentHotKey = HotkeyService.instance.currentHotKey;
-    HotkeyService.instance.addListener(_updateHotkey);
-    ThemeProvider.instance.addListener(_rebuild);
+    _hotkeyService = getIt<HotkeyService>();
+    _windowService = getIt<WindowService>();
+    _themeProvider = getIt<ThemeProvider>();
+    _currentHotKey = _hotkeyService.currentHotKey;
+    _hotkeyService.addListener(_updateHotkey);
+    _themeProvider.addListener(_rebuild);
   }
 
   @override
   void dispose() {
-    HotkeyService.instance.removeListener(_updateHotkey);
-    ThemeProvider.instance.removeListener(_rebuild);
+    _hotkeyService.removeListener(_updateHotkey);
+    _themeProvider.removeListener(_rebuild);
     super.dispose();
   }
 
   void _updateHotkey() =>
-      setState(() => _currentHotKey = HotkeyService.instance.currentHotKey);
+      setState(() => _currentHotKey = _hotkeyService.currentHotKey);
   void _rebuild() => setState(() {});
 
   String _formatHotkeySymbols(HotKey hotKey) {
@@ -109,13 +117,13 @@ class _HotkeyPickerState extends State<HotkeyPicker> {
   }
 
   Future<void> _saveHotkey(HotKey hotKey) async {
-    await HotkeyService.instance.setHotkey(hotKey);
-    await WindowService.instance.show();
+    await _hotkeyService.setHotkey(hotKey);
+    await _windowService.show();
   }
 
   Future<void> _clearHotkey() async {
     setState(() => _isRecording = false);
-    await HotkeyService.instance.setHotkey(null);
+    await _hotkeyService.setHotkey(null);
   }
 
   Future<void> _handleRecordedHotkey(HotKey hotKey) async {

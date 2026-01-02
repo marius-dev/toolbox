@@ -1,13 +1,10 @@
-import '../../core/services/storage_service.dart';
+import '../../core/services/storage/workspace_storage_service.dart';
 import '../models/workspace.dart';
 
 class WorkspaceRepository {
-  static final WorkspaceRepository _instance = WorkspaceRepository._internal();
-  static WorkspaceRepository get instance => _instance;
+  final WorkspaceStorageService _storage;
 
-  WorkspaceRepository._internal();
-
-  final StorageService _storage = StorageService.instance;
+  WorkspaceRepository(this._storage);
 
   Future<List<Workspace>> loadWorkspaces() async {
     final data = await _storage.loadWorkspaces();

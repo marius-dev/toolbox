@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../core/theme/theme_extensions.dart';
 
 import '../../core/utils/compact_layout.dart';
 import 'glass_button.dart';
@@ -50,7 +51,7 @@ class SectionLayout extends StatelessWidget {
                   onPressed: onBack,
                 ),
               ),
-              SizedBox(width: CompactLayout.value(context, 12)),
+              SizedBox(width: context.compactValue(12)),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -62,7 +63,7 @@ class SectionLayout extends StatelessWidget {
                           ) ??
                           const TextStyle(fontWeight: FontWeight.w800),
                     ),
-                    SizedBox(height: CompactLayout.value(context, 4)),
+                    SizedBox(height: context.compactValue(4)),
                     Text(
                       subtitle,
                       style: textTheme.bodyMedium?.copyWith(
@@ -75,7 +76,7 @@ class SectionLayout extends StatelessWidget {
               ),
             ],
           ),
-          SizedBox(height: CompactLayout.value(context, 12)),
+          SizedBox(height: context.compactValue(12)),
           body,
         ],
       ),

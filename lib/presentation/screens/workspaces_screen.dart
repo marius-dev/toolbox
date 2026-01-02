@@ -4,7 +4,9 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../../core/theme/theme_extensions.dart';
 
+import '../../core/di/service_locator.dart';
 import '../../core/services/window_service.dart';
 import '../../core/theme/theme_provider.dart';
 import '../../core/utils/compact_layout.dart';
@@ -40,11 +42,13 @@ class _WorkspacesScreenState extends State<WorkspacesScreen>
   static const int _workspaceExportVersion = 1;
 
   late final AnimationController _introController;
+  late final WindowService _windowService;
   final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
+    _windowService = getIt<WindowService>();
     _introController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 520),
@@ -137,7 +141,7 @@ class _WorkspacesScreenState extends State<WorkspacesScreen>
     };
 
     final suggestedName = '${_sanitizeFileName(workspace.name)}.json';
-    final outputPath = await WindowService.instance.runWithAutoHideSuppressed(
+    final outputPath = await _windowService.runWithAutoHideSuppressed(
       () => FilePicker.platform.saveFile(
         dialogTitle: 'Export workspace',
         fileName: suggestedName,
@@ -162,7 +166,7 @@ class _WorkspacesScreenState extends State<WorkspacesScreen>
   }
 
   Future<void> _importWorkspace() async {
-    final result = await WindowService.instance.runWithAutoHideSuppressed(
+    final result = await _windowService.runWithAutoHideSuppressed(
       () => FilePicker.platform.pickFiles(
         dialogTitle: 'Import workspace',
         type: FileType.custom,
@@ -366,14 +370,14 @@ class _WorkspacesScreenState extends State<WorkspacesScreen>
 
   Widget _buildContent(BuildContext context, Duration duration, Curve curve) {
     final horizontalPadding =
-        CompactLayout.symmetric(context, horizontal: 18);
+        context.compactPadding(horizontal: 18);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Expanded(
           child: Padding(
-            padding: CompactLayout.only(context, top: 40),
+            padding: context.compactPaddingOnly(top: 40),
             child: SectionLayout(
               onBack: () => Navigator.of(context).maybePop(),
               title: 'Manage workspaces',
@@ -383,14 +387,14 @@ class _WorkspacesScreenState extends State<WorkspacesScreen>
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Expanded(child: _buildWorkspaceList(context)),
-                  SizedBox(height: CompactLayout.value(context, 12)),
+                  SizedBox(height: context.compactValue(12)),
                 ],
               ),
             ),
           ),
         ),
         Padding(
-          padding: CompactLayout.only(context, top: 0, bottom: 0),
+          padding: context.compactPaddingOnly(top: 0, bottom: 0),
           child: _buildBottomBar(context, duration, curve),
         ),
       ],
@@ -404,14 +408,14 @@ class _WorkspacesScreenState extends State<WorkspacesScreen>
         if (widget.workspaceProvider.isLoading) {
           return Center(
             child: CircularProgressIndicator(
-              color: ThemeProvider.instance.accentColor,
+              color: context.accentColor,
             ),
           );
         }
         final workspaces = widget.workspaceProvider.workspaces;
         final selectedId = widget.workspaceProvider.selectedWorkspaceId;
         final theme = Theme.of(context);
-        final isDark = theme.brightness == Brightness.dark;
+        final isDark = context.isDark;
         final background = isDark
             ? Colors.black.withOpacity(0.5)
             : Colors.white.withOpacity(0.9);
@@ -433,8 +437,7 @@ class _WorkspacesScreenState extends State<WorkspacesScreen>
                 thickness: 4,
                 child: ListView.builder(
                   controller: _scrollController,
-                  padding: CompactLayout.symmetric(
-                    context,
+                  padding: context.compactPadding(
                     horizontal: 12,
                     vertical: 12,
                   ),
@@ -460,15 +463,15 @@ class _WorkspacesScreenState extends State<WorkspacesScreen>
   }
 
   Widget _buildBottomBar(BuildContext context, Duration duration, Curve curve) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isDark = context.isDark;
     final bottomColor = isDark ? Colors.black.withOpacity(0.42) : null;
 
     return GlassPanel(
       duration: duration,
       curve: curve,
       padding: EdgeInsets.symmetric(
-        horizontal: CompactLayout.value(context, 18),
-        vertical: CompactLayout.value(context, 14),
+        horizontal: context.compactValue(18),
+        vertical: context.compactValue(14),
       ),
       borderRadius: BorderRadius.zero,
       margin: EdgeInsets.zero,
@@ -486,7 +489,7 @@ class _WorkspacesScreenState extends State<WorkspacesScreen>
       mainAxisSize: MainAxisSize.min,
       children: [
         _buildImportButton(context),
-        SizedBox(width: CompactLayout.value(context, 10)),
+        SizedBox(width: context.compactValue(10)),
         _buildCreateButton(context),
       ],
     );
@@ -540,8 +543,8 @@ class _WorkspaceRowState extends State<_WorkspaceRow> {
   Widget build(BuildContext context) {
     final workspace = widget.workspace;
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final accent = _softAccentColor(ThemeProvider.instance.accentColor, isDark);
+    final isDark = context.isDark;
+    final accent = _softAccentColor(context.accentColor, isDark);
     final background = widget.isSelected
         ? accent.withOpacity(isDark ? 0.24 : 0.12)
         : _isHovering
@@ -562,9 +565,9 @@ class _WorkspaceRowState extends State<_WorkspaceRow> {
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
           curve: Curves.easeOutCubic,
-          margin: EdgeInsets.only(bottom: CompactLayout.value(context, 6)),
+          margin: EdgeInsets.only(bottom: context.compactValue(6)),
           padding: EdgeInsets.symmetric(
-            horizontal: CompactLayout.value(context, 12),
+            horizontal: context.compactValue(12),
           ),
           decoration: BoxDecoration(
             color: background,
@@ -575,24 +578,24 @@ class _WorkspaceRowState extends State<_WorkspaceRow> {
             ),
           ),
           child: SizedBox(
-            height: CompactLayout.value(context, 56),
+            height: context.compactValue(56),
             child: Row(
               children: [
                 Container(
-                  padding: EdgeInsets.all(CompactLayout.value(context, 8)),
+                  padding: EdgeInsets.all(context.compactValue(8)),
                   decoration: BoxDecoration(
                     color: accent.withOpacity(0.12),
                     borderRadius: BorderRadius.circular(
-                      CompactLayout.value(context, 10),
+                      context.compactValue(10),
                     ),
                   ),
                   child: Icon(
                     Icons.layers_rounded,
-                    size: CompactLayout.value(context, 18),
+                    size: context.compactValue(18),
                     color: theme.iconTheme.color,
                   ),
                 ),
-                SizedBox(width: CompactLayout.value(context, 12)),
+                SizedBox(width: context.compactValue(12)),
                 Expanded(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -604,7 +607,7 @@ class _WorkspaceRowState extends State<_WorkspaceRow> {
                           fontWeight: FontWeight.w700,
                         ),
                       ),
-                      SizedBox(height: CompactLayout.value(context, 4)),
+                      SizedBox(height: context.compactValue(4)),
                       Text(
                         'Workspace',
                         style: theme.textTheme.bodySmall!.copyWith(
@@ -627,17 +630,17 @@ class _WorkspaceRowState extends State<_WorkspaceRow> {
                         },
                       ),
                     if (!workspace.isDefault)
-                      SizedBox(width: CompactLayout.value(context, 8)),
+                      SizedBox(width: context.compactValue(8)),
                     GlassButton(
                       icon: Icons.download_rounded,
                       tooltip: 'Export workspace',
-                      tintColor: ThemeProvider.instance.accentColor,
+                      tintColor: context.accentColor,
                       onPressed: () {
                         widget.onExport(workspace);
                       },
                     ),
                     if (!workspace.isDefault)
-                      SizedBox(width: CompactLayout.value(context, 8)),
+                      SizedBox(width: context.compactValue(8)),
                     if (!workspace.isDefault)
                       GlassButton(
                         icon: Icons.delete_outline_rounded,

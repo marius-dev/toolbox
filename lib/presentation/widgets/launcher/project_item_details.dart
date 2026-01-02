@@ -27,7 +27,7 @@ class _ProjectDetails extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildTitleRow(context),
-        SizedBox(height: CompactLayout.value(context, 6)),
+        SizedBox(height: context.compactValue(6)),
         _buildPathRow(context),
       ],
     );
@@ -76,7 +76,7 @@ class _ProjectDetails extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           _buildPathAppIcon(context, textColor),
-          SizedBox(width: CompactLayout.value(context, 6)),
+          SizedBox(width: context.compactValue(6)),
           Expanded(
             child: isOpening
                 ? Text(
@@ -108,7 +108,7 @@ class _ProjectDetails extends StatelessWidget {
                   ),
           ),
           if (!isOpening && !isDisabled && gitInfo.isGitRepo) ...[
-            SizedBox(width: CompactLayout.value(context, 8)),
+            SizedBox(width: context.compactValue(8)),
             _GitInfoBadges(gitInfo: gitInfo, accentColor: accentColor),
           ],
         ],
@@ -120,7 +120,7 @@ class _ProjectDetails extends StatelessWidget {
     if (preferredTool == null) {
       return Icon(
         Icons.insert_drive_file_outlined,
-        size: CompactLayout.value(context, 14),
+        size: context.compactValue(14),
         color: mutedText.withOpacity(0.7),
       );
     }
@@ -129,7 +129,7 @@ class _ProjectDetails extends StatelessWidget {
       message: 'Last opened with ${preferredTool!.name}',
       child: ToolIcon(
         tool: preferredTool!,
-        size: CompactLayout.value(context, 20),
+        size: context.compactValue(20),
         borderRadius: 4,
       ),
     );
@@ -158,16 +158,16 @@ class _GitInfoBadges extends StatelessWidget {
           icon: Icons.call_split_rounded,
           color: accentColor,
           tooltip: branchTooltip,
-          maxWidth: CompactLayout.value(context, 120),
+          maxWidth: context.compactValue(120),
         ),
         if (statusLabel != null) ...[
-          SizedBox(width: CompactLayout.value(context, 6)),
+          SizedBox(width: context.compactValue(6)),
           _GitBadge(
             label: statusLabel,
             icon: Icons.circle,
             color: Colors.orange,
             tooltip: statusTooltip,
-            maxWidth: CompactLayout.value(context, 110),
+            maxWidth: context.compactValue(110),
           ),
         ],
       ],
@@ -277,19 +277,19 @@ class _GitBadge extends StatelessWidget {
     final textStyle = Theme.of(context).textTheme.bodySmall!;
     final content = Container(
       padding: EdgeInsets.symmetric(
-        horizontal: CompactLayout.value(context, 6),
-        vertical: CompactLayout.value(context, 2),
+        horizontal: context.compactValue(6),
+        vertical: context.compactValue(2),
       ),
       decoration: BoxDecoration(
         color: color.withOpacity(0.12),
-        borderRadius: BorderRadius.circular(CompactLayout.value(context, 6)),
+        borderRadius: BorderRadius.circular(context.compactValue(6)),
         border: Border.all(color: color.withOpacity(0.4)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: CompactLayout.value(context, 12), color: color),
-          SizedBox(width: CompactLayout.value(context, 4)),
+          Icon(icon, size: context.compactValue(12), color: color),
+          SizedBox(width: context.compactValue(4)),
           ConstrainedBox(
             constraints: BoxConstraints(maxWidth: maxWidth),
             child: Text(
@@ -341,10 +341,10 @@ class _StarButton extends StatelessWidget {
       icon: Icon(
         isStarred ? Icons.star_rounded : Icons.star_border_rounded,
         color: iconColor,
-        size: CompactLayout.value(context, 18),
+        size: context.compactValue(18),
       ),
-      splashRadius: CompactLayout.value(context, 18),
-      padding: EdgeInsets.all(CompactLayout.value(context, 4)),
+      splashRadius: context.compactValue(18),
+      padding: EdgeInsets.all(context.compactValue(4)),
       onPressed: onPressed,
     );
   }
@@ -359,11 +359,11 @@ class _ProjectAvatar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final accentColor = _softAccentColor(
-      ThemeProvider.instance.accentColor,
-      Theme.of(context).brightness == Brightness.dark,
+      context.accentColor,
+      context.isDark,
     );
     final textColor = Theme.of(context).textTheme.bodyLarge!.color!;
-    final avatarSize = CompactLayout.value(context, 38);
+    final avatarSize = context.compactValue(38);
     final gradient = _projectAvatarGradient(project.name, accentColor);
     final name = project.name.trim();
     final initials = name.isEmpty
@@ -381,7 +381,7 @@ class _ProjectAvatar extends StatelessWidget {
                 colors: [Colors.grey.shade800, Colors.grey.shade700],
               )
             : gradient,
-        borderRadius: BorderRadius.circular(CompactLayout.value(context, 10)),
+        borderRadius: BorderRadius.circular(context.compactValue(10)),
         boxShadow: [
           if (!isDisabled)
             BoxShadow(
@@ -397,7 +397,7 @@ class _ProjectAvatar extends StatelessWidget {
         style: TextStyle(
           color: textColor,
           fontWeight: FontWeight.bold,
-          fontSize: CompactLayout.value(context, 13),
+          fontSize: context.compactValue(13),
         ),
       ),
     );

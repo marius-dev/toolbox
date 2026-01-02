@@ -5,10 +5,9 @@ import 'package:project_launcher/core/services/window_service.dart';
 import 'package:tray_manager/tray_manager.dart';
 
 class TrayService with TrayListener {
-  static final TrayService _instance = TrayService._internal();
-  static TrayService get instance => _instance;
+  final WindowService _windowService;
 
-  TrayService._internal();
+  TrayService(this._windowService);
 
   Future<void> initialize() async {
     trayManager.addListener(this);
@@ -34,7 +33,7 @@ class TrayService with TrayListener {
 
   @override
   void onTrayIconMouseDown() {
-    WindowService.instance.toggle();
+    _windowService.toggle();
   }
 
   @override
@@ -45,7 +44,7 @@ class TrayService with TrayListener {
   @override
   void onTrayMenuItemClick(MenuItem menuItem) {
     if (menuItem.key == 'show') {
-      WindowService.instance.toggle();
+      _windowService.toggle();
     } else if (menuItem.key == 'exit') {
       exit(0);
     }

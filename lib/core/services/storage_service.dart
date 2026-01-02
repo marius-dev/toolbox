@@ -6,10 +6,7 @@ import 'package:path_provider/path_provider.dart';
 import '../theme/glass_style.dart';
 
 class StorageService {
-  static final StorageService _instance = StorageService._internal();
-  static StorageService get instance => _instance;
-
-  StorageService._internal();
+  StorageService();
 
   Future<String> get _localPath async {
     final directory = await getApplicationDocumentsDirectory();

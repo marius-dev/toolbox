@@ -41,7 +41,7 @@ class _ProjectMenuBuilder {
       _buildToolActions(context);
 
   double menuWidth(BuildContext context) =>
-      CompactLayout.value(context, _baseMenuWidth);
+      context.compactValue(_baseMenuWidth);
 
   double estimateMenuHeight(BuildContext context, int toolCount) {
     final headerHeight = _headerSectionHeight(context);
@@ -61,6 +61,28 @@ class _ProjectMenuBuilder {
     required List<_MenuAction> toolActions,
     required void Function(_MenuAction) onAction,
   }) {
+    // Create menu actions once to avoid duplication
+    final revealAction = _MenuAction(
+      label: _revealActionLabel(),
+      icon: Icons.folder_open,
+      onSelected: onShowInFinder,
+      semanticsLabel: _revealActionSemanticsLabel(),
+    );
+
+    final terminalAction = _MenuAction(
+      label: 'Open in Terminal',
+      icon: Icons.terminal,
+      onSelected: onOpenInTerminal,
+      semanticsLabel: 'Open project in terminal',
+    );
+
+    final deleteAction = _MenuAction(
+      label: 'Hide project',
+      icon: Icons.delete_outline,
+      onSelected: onDelete,
+      isDestructive: true,
+    );
+
     return Column(
       mainAxisSize: MainAxisSize.max,
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -77,51 +99,17 @@ class _ProjectMenuBuilder {
         ),
         const _MenuDivider(),
         _MenuActionTile(
-          action: _MenuAction(
-            label: _revealActionLabel(),
-            icon: Icons.folder_open,
-            onSelected: onShowInFinder,
-            semanticsLabel: _revealActionSemanticsLabel(),
-          ),
-          onPressed: () => onAction(
-            _MenuAction(
-              label: _revealActionLabel(),
-              icon: Icons.folder_open,
-              onSelected: onShowInFinder,
-            ),
-          ),
+          action: revealAction,
+          onPressed: () => onAction(revealAction),
         ),
         _MenuActionTile(
-          action: _MenuAction(
-            label: 'Open in Terminal',
-            icon: Icons.terminal,
-            onSelected: onOpenInTerminal,
-            semanticsLabel: 'Open project in terminal',
-          ),
-          onPressed: () => onAction(
-            _MenuAction(
-              label: 'Open in Terminal',
-              icon: Icons.terminal,
-              onSelected: onOpenInTerminal,
-            ),
-          ),
+          action: terminalAction,
+          onPressed: () => onAction(terminalAction),
         ),
         const _MenuDivider(),
         _MenuActionTile(
-          action: _MenuAction(
-            label: 'Hide project',
-            icon: Icons.delete_outline,
-            onSelected: onDelete,
-            isDestructive: true,
-          ),
-          onPressed: () => onAction(
-            _MenuAction(
-              label: 'Hide project',
-              icon: Icons.delete_outline,
-              onSelected: onDelete,
-              isDestructive: true,
-            ),
-          ),
+          action: deleteAction,
+          onPressed: () => onAction(deleteAction),
         ),
       ],
     );
@@ -135,8 +123,8 @@ class _ProjectMenuBuilder {
             icon: Icons.launch,
             leading: ToolIcon(
               tool: tool,
-              size: CompactLayout.value(context, 18),
-              borderRadius: CompactLayout.value(context, 4),
+              size: context.compactValue(18),
+              borderRadius: context.compactValue(4),
             ),
             onSelected: () => onOpenWith(tool.id),
             semanticsLabel: 'Open project with ${tool.name}',
@@ -146,7 +134,7 @@ class _ProjectMenuBuilder {
   }
 
   double _openWithSectionHeight(BuildContext context, int toolCount) {
-    final actionHeight = CompactLayout.value(context, _baseActionTileHeight);
+    final actionHeight = context.compactValue(_baseActionTileHeight);
     if (toolCount <= 0) return actionHeight;
 
     final baseHeight = toolCount * actionHeight;
@@ -174,14 +162,14 @@ class _ProjectMenuBuilder {
   }
 
   double _actionTileHeight(BuildContext context) =>
-      CompactLayout.value(context, _baseActionTileHeight);
+      context.compactValue(_baseActionTileHeight);
 
   double _headerSectionHeight(BuildContext context) =>
-      CompactLayout.value(context, _headerHeight);
+      context.compactValue(_headerHeight);
 
   double _dividerSectionHeight(BuildContext context) {
-    final margin = CompactLayout.value(context, 4);
-    return CompactLayout.value(context, 1) + (margin * 2);
+    final margin = context.compactValue(4);
+    return context.compactValue(1) + (margin * 2);
   }
 
   double _bottomActionsHeight(BuildContext context) =>

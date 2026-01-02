@@ -113,9 +113,9 @@ const Map<ToolId, _JetBrainsProduct> _jetBrainsProducts = {
 };
 
 class ToolDiscoveryService {
-  ToolDiscoveryService._internal();
+  final AppIconResolver _appIconResolver;
 
-  static final ToolDiscoveryService instance = ToolDiscoveryService._internal();
+  ToolDiscoveryService(this._appIconResolver);
 
   final Map<ToolId, Tool> _cache = {};
 
@@ -170,7 +170,7 @@ class ToolDiscoveryService {
   Future<Tool> _probeTool(ToolId id) async {
     final detectedPath = await _detectPath(id);
     final iconPath = detectedPath != null
-        ? await AppIconResolver.instance.resolve(detectedPath)
+        ? await _appIconResolver.resolve(detectedPath)
         : null;
 
     return Tool(

@@ -6,9 +6,7 @@ import 'dart:io';
 /// On macOS, this resolver now includes a more robust, case-insensitive check when searching for
 /// icon files within the Resources directory to better handle non-standard applications like VS Code.
 class AppIconResolver {
-  AppIconResolver._internal();
-
-  static final AppIconResolver instance = AppIconResolver._internal();
+  AppIconResolver();
 
   Future<String?> resolve(String appPath) async {
     try {

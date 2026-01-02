@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:project_launcher/core/theme/theme_provider.dart';
 
+import '../di/service_locator.dart';
 import 'glass_style.dart';
 
 class AppTheme {
@@ -12,7 +13,7 @@ class AppTheme {
   static ThemeData _buildTheme(Brightness brightness) {
     final isDark = brightness == Brightness.dark;
     final colorScheme = _buildColorScheme(brightness);
-    final glassStyle = ThemeProvider.instance.glassStyle;
+    final glassStyle = getIt<ThemeProvider>().glassStyle;
     final isClearGlass = glassStyle == GlassStyle.clear;
     final backgroundColor = isDark
         ? (isClearGlass ? const Color(0xFF03050C) : const Color(0xFF050A14))
@@ -153,7 +154,7 @@ class AppTheme {
   }
 
   static ColorScheme _buildColorScheme(Brightness brightness) {
-    final accentColor = ThemeProvider.instance.accentColor;
+    final accentColor = getIt<ThemeProvider>().accentColor;
     final isDark = brightness == Brightness.dark;
     final background = isDark
         ? const Color(0xFF050A14)

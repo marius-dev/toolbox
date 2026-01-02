@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../core/theme/glass_style.dart';
-import '../../core/theme/theme_provider.dart';
-import '../../core/utils/compact_layout.dart';
+import '../../core/theme/theme_extensions.dart';
 
 class GlassActionButton extends StatelessWidget {
   final String label;
@@ -26,17 +24,9 @@ class GlassActionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final palette = GlassStylePalette.fromContext(
-      context,
-      style: ThemeProvider.instance.glassStyle,
-      accentColor: ThemeProvider.instance.accentColor,
-    );
-    final accent = danger
-        ? theme.colorScheme.error
-        : ThemeProvider.instance.accentColor;
+    final palette = context.glassColors();
+    final accent = danger ? context.theme.colorScheme.error : context.accentColor;
     final base = palette.innerColor;
-    final isDark = theme.brightness == Brightness.dark;
 
     final gradient = primary
         ? [
@@ -62,7 +52,9 @@ class GlassActionButton extends StatelessWidget {
           ]
         : [
             BoxShadow(
-              color: Colors.black.withOpacity(isDark ? 0.22 : 0.08),
+              color: context.surfaceColor(
+                opacity: context.isDark ? 0.22 : 0.08,
+              ),
               blurRadius: 14,
               offset: const Offset(0, 8),
             ),
@@ -70,13 +62,13 @@ class GlassActionButton extends StatelessWidget {
 
     final defaultIconColor = primary
         ? Colors.white
-        : theme.iconTheme.color?.withOpacity(_enabled ? 0.9 : 0.5) ??
+        : context.theme.iconTheme.color?.withOpacity(_enabled ? 0.9 : 0.5) ??
               Colors.white;
     final iconColor = foregroundColor ?? defaultIconColor;
     final textColor =
         foregroundColor ?? (primary ? Colors.white : defaultIconColor);
     final radius = BorderRadius.circular(10);
-    final height = CompactLayout.value(context, 46);
+    final height = context.compactValue(46);
 
     return Opacity(
       opacity: _enabled ? 1 : 0.65,
@@ -89,9 +81,7 @@ class GlassActionButton extends StatelessWidget {
           highlightColor: Colors.transparent,
           child: Ink(
             height: height,
-            padding: EdgeInsets.symmetric(
-              horizontal: CompactLayout.value(context, 16),
-            ),
+            padding: context.compactPadding(horizontal: 16),
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
@@ -107,13 +97,13 @@ class GlassActionButton extends StatelessWidget {
               children: [
                 Icon(
                   icon,
-                  size: CompactLayout.value(context, 18),
+                  size: context.compactValue(18),
                   color: iconColor,
                 ),
-                SizedBox(width: CompactLayout.value(context, 10)),
+                SizedBox(width: context.compactValue(10)),
                 Text(
                   label,
-                  style: theme.textTheme.bodyMedium!.copyWith(
+                  style: context.theme.textTheme.bodyMedium!.copyWith(
                     color: textColor,
                     fontWeight: FontWeight.w700,
                   ),

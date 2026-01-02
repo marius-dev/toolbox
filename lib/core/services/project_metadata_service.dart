@@ -3,10 +3,7 @@ import 'dart:io';
 import '../../domain/models/project.dart';
 
 class ProjectMetadataService {
-  ProjectMetadataService._internal();
-
-  static final ProjectMetadataService instance =
-      ProjectMetadataService._internal();
+  ProjectMetadataService();
 
   Future<ProjectGitInfo> fetchGitInfo(String path) async {
     if (!Directory(path).existsSync()) {

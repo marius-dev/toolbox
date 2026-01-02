@@ -2,13 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:window_manager/window_manager.dart';
 
 class WindowService {
-  static final WindowService _instance = WindowService._internal();
-  static WindowService get instance => _instance;
-
   static const Size _baseWindowSize = Size(460, 640);
   static const double _edgePadding = 8;
 
-  WindowService._internal();
+  WindowService();
 
   int _autoHideSuppressionCount = 0;
 

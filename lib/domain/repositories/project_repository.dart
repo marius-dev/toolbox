@@ -1,13 +1,10 @@
-import '../../core/services/storage_service.dart';
+import '../../core/services/storage/project_storage_service.dart';
 import '../models/project.dart';
 
 class ProjectRepository {
-  static final ProjectRepository _instance = ProjectRepository._internal();
-  static ProjectRepository get instance => _instance;
+  final ProjectStorageService _storage;
 
-  ProjectRepository._internal();
-
-  final StorageService _storage = StorageService.instance;
+  ProjectRepository(this._storage);
 
   Future<List<Project>> loadProjects() async {
     final data = await _storage.loadProjects();

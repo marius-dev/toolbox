@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/theme/theme_extensions.dart';
 
 class ColorPickerDialog extends StatefulWidget {
   final Color initialColor;
@@ -31,7 +32,7 @@ class _ColorPickerDialogState extends State<ColorPickerDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isDark = context.isDark;
     final pickerBg = isDark ? const Color(0xFF11131A) : Colors.white;
     final borderColor = isDark
         ? Colors.white.withOpacity(0.08)

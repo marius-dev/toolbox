@@ -37,7 +37,7 @@ class _ProjectMenuController {
       context,
       toolActions.length,
     );
-    final availablePadding = CompactLayout.value(context, 8);
+    final availablePadding = context.compactValue(8);
     final availableHeight = math
         .max(0.0, overlayBox.size.height - (availablePadding * 2))
         .toDouble();

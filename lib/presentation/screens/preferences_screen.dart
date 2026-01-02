@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 
+import '../../core/di/service_locator.dart';
 import '../../core/theme/glass_style.dart';
+import '../../core/theme/theme_extensions.dart';
 import '../../core/theme/theme_provider.dart';
-import '../../core/utils/compact_layout.dart';
 import '../widgets/color_picker_dialog.dart';
 import '../widgets/hotkey_picker.dart';
 import '../widgets/section_layout.dart';
@@ -21,7 +22,7 @@ class PreferencesScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: CompactLayout.only(context, top: 40),
+      padding: context.compactPaddingOnly(top: 40),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -30,20 +31,20 @@ class PreferencesScreen extends StatelessWidget {
               onBack: onBack,
               title: 'Preferences',
               subtitle: 'Customize how the launcher looks and behaves.',
-              padding: CompactLayout.symmetric(context, horizontal: 18),
+              padding: context.compactPadding(horizontal: 18),
               child: ListView(
                 padding: EdgeInsets.only(
-                  bottom: CompactLayout.value(context, 16),
+                  bottom: context.compactValue(16),
                 ),
                 children: [
                   const HotkeyPicker(),
-                  SizedBox(height: CompactLayout.value(context, 10)),
+                  SizedBox(height: context.compactValue(10)),
                   _buildThemeToggle(context),
-                  SizedBox(height: CompactLayout.value(context, 10)),
+                  SizedBox(height: context.compactValue(10)),
                   _buildGlassStyleTile(context),
-                  SizedBox(height: CompactLayout.value(context, 10)),
+                  SizedBox(height: context.compactValue(10)),
                   _buildScaleTile(context),
-                  SizedBox(height: CompactLayout.value(context, 10)),
+                  SizedBox(height: context.compactValue(10)),
                   _buildAccentColorPicker(context),
                 ],
               ),
@@ -55,12 +56,12 @@ class PreferencesScreen extends StatelessWidget {
   }
 
   Widget _buildThemeToggle(BuildContext context) {
+    final themeProvider = getIt<ThemeProvider>();
     return AnimatedBuilder(
-      animation: ThemeProvider.instance,
+      animation: themeProvider,
       builder: (context, _) {
-        final themeProvider = ThemeProvider.instance;
         final accentColor = themeProvider.accentColor;
-        final isDarkTheme = Theme.of(context).brightness == Brightness.dark;
+        final isDarkTheme = context.isDark;
         final borderColor = isDarkTheme
             ? Colors.white.withOpacity(0.12)
             : Colors.black.withOpacity(0.08);
@@ -71,12 +72,12 @@ class PreferencesScreen extends StatelessWidget {
           icon: Icons.light_mode,
           trailing: Container(
             padding: EdgeInsets.symmetric(
-              horizontal: CompactLayout.value(context, 6),
-              vertical: CompactLayout.value(context, 4),
+              horizontal: context.compactValue(6),
+              vertical: context.compactValue(4),
             ),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(
-                CompactLayout.value(context, 10),
+                context.compactValue(10),
               ),
               border: Border.all(color: borderColor),
             ),
@@ -97,8 +98,8 @@ class PreferencesScreen extends StatelessWidget {
               borderRadius: BorderRadius.circular(10),
               renderBorder: false,
               constraints: BoxConstraints(
-                minWidth: CompactLayout.value(context, 64),
-                minHeight: CompactLayout.value(context, 30),
+                minWidth: context.compactValue(64),
+                minHeight: context.compactValue(30),
               ),
               color: Theme.of(context).textTheme.bodyMedium!.color,
               selectedColor: accentColor,
@@ -112,12 +113,12 @@ class PreferencesScreen extends StatelessWidget {
   }
 
   Widget _buildGlassStyleTile(BuildContext context) {
+    final themeProvider = getIt<ThemeProvider>();
     return AnimatedBuilder(
-      animation: ThemeProvider.instance,
+      animation: themeProvider,
       builder: (context, _) {
-        final themeProvider = ThemeProvider.instance;
         final accentColor = themeProvider.accentColor;
-        final isDarkTheme = Theme.of(context).brightness == Brightness.dark;
+        final isDarkTheme = context.isDark;
         final borderColor = isDarkTheme
             ? Colors.white.withOpacity(0.12)
             : Colors.black.withOpacity(0.08);
@@ -128,12 +129,12 @@ class PreferencesScreen extends StatelessWidget {
           icon: Icons.opacity,
           trailing: Container(
             padding: EdgeInsets.symmetric(
-              horizontal: CompactLayout.value(context, 6),
-              vertical: CompactLayout.value(context, 4),
+              horizontal: context.compactValue(6),
+              vertical: context.compactValue(4),
             ),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(
-                CompactLayout.value(context, 10),
+                context.compactValue(10),
               ),
               border: Border.all(color: borderColor),
             ),
@@ -149,8 +150,8 @@ class PreferencesScreen extends StatelessWidget {
               borderRadius: BorderRadius.circular(10),
               renderBorder: false,
               constraints: BoxConstraints(
-                minWidth: CompactLayout.value(context, 64),
-                minHeight: CompactLayout.value(context, 30),
+                minWidth: context.compactValue(64),
+                minHeight: context.compactValue(30),
               ),
               color: Theme.of(context).textTheme.bodyMedium!.color,
               selectedColor: accentColor,
@@ -164,11 +165,11 @@ class PreferencesScreen extends StatelessWidget {
   }
 
   Widget _buildScaleTile(BuildContext context) {
+    final themeProvider = getIt<ThemeProvider>();
     return AnimatedBuilder(
-      animation: ThemeProvider.instance,
+      animation: themeProvider,
       builder: (context, _) {
-        final themeProvider = ThemeProvider.instance;
-        final isDarkTheme = Theme.of(context).brightness == Brightness.dark;
+        final isDarkTheme = context.isDark;
 
         return SettingsTile(
           title: 'App size',
@@ -189,7 +190,7 @@ class PreferencesScreen extends StatelessWidget {
                   child: Text(
                     label,
                     style: TextStyle(
-                      fontSize: CompactLayout.value(context, 12),
+                      fontSize: context.compactValue(12),
                     ),
                   ),
                 );
@@ -207,10 +208,11 @@ class PreferencesScreen extends StatelessWidget {
   }
 
   Widget _buildAccentColorPicker(BuildContext context) {
+    final themeProvider = getIt<ThemeProvider>();
     return AnimatedBuilder(
-      animation: ThemeProvider.instance,
+      animation: themeProvider,
       builder: (context, _) {
-        final accentColor = ThemeProvider.instance.accentColor;
+        final accentColor = context.accentColor;
         final colorHex =
             '#${accentColor.value.toRadixString(16).padLeft(8, '0').substring(2).toUpperCase()}';
 
@@ -225,20 +227,20 @@ class PreferencesScreen extends StatelessWidget {
   }
 
   Widget _buildColorButton(BuildContext context, Color currentColor) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isDark = context.isDark;
     final borderColor = isDark
         ? Colors.white.withOpacity(0.08)
         : Colors.black.withOpacity(0.06);
 
     return InkWell(
       onTap: () => _showColorPicker(context),
-      borderRadius: BorderRadius.circular(CompactLayout.value(context, 10)),
+      borderRadius: BorderRadius.circular(context.compactValue(10)),
       child: Container(
-        width: CompactLayout.value(context, 34),
-        height: CompactLayout.value(context, 34),
+        width: context.compactValue(34),
+        height: context.compactValue(34),
         decoration: BoxDecoration(
           color: currentColor,
-          borderRadius: BorderRadius.circular(CompactLayout.value(context, 10)),
+          borderRadius: BorderRadius.circular(context.compactValue(10)),
           border: Border.all(color: borderColor),
         ),
       ),
@@ -246,7 +248,7 @@ class PreferencesScreen extends StatelessWidget {
   }
 
   void _showColorPicker(BuildContext context) {
-    final themeProvider = ThemeProvider.instance;
+    final themeProvider = getIt<ThemeProvider>();
     Color tempColor = themeProvider.accentColor;
 
     showDialog(

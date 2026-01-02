@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/theme_provider.dart';
+import '../../core/theme/theme_extensions.dart';
 
 class EmptyState extends StatelessWidget {
   final VoidCallback onAddProject;
@@ -8,11 +9,11 @@ class EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final mutedText = Theme.of(context).brightness == Brightness.dark
+    final mutedText = context.isDark
         ? Colors.white.withOpacity(0.4)
         : Colors.black45;
     final textSecondary = Theme.of(context).textTheme.bodyMedium!.color!;
-    final accentColor = ThemeProvider.instance.accentColor;
+    final accentColor = context.accentColor;
 
     return Center(
       child: Column(

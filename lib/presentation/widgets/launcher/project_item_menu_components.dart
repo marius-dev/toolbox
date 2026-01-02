@@ -20,13 +20,13 @@ class _MenuSectionHeader extends StatelessWidget {
     );
 
     return SizedBox(
-      height: CompactLayout.value(context, 30),
+      height: context.compactValue(30),
       child: Padding(
         padding: EdgeInsets.fromLTRB(
-          CompactLayout.value(context, 12),
-          CompactLayout.value(context, 6),
-          CompactLayout.value(context, 12),
-          CompactLayout.value(context, 4),
+          context.compactValue(12),
+          context.compactValue(6),
+          context.compactValue(12),
+          context.compactValue(4),
         ),
         child: Align(
           alignment: Alignment.centerLeft,
@@ -44,7 +44,7 @@ class _MenuDivider extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       height: 1,
-      margin: EdgeInsets.symmetric(vertical: CompactLayout.value(context, 4)),
+      margin: EdgeInsets.symmetric(vertical: context.compactValue(4)),
       color: Theme.of(context).dividerColor.withOpacity(0.35),
     );
   }
@@ -71,7 +71,7 @@ class _OpenWithSection extends StatelessWidget {
     }
 
     return Scrollbar(
-      radius: Radius.circular(CompactLayout.value(context, 5)),
+      radius: Radius.circular(context.compactValue(5)),
       thickness: 4,
       child: ListView.builder(
         padding: EdgeInsets.zero,
@@ -127,7 +127,7 @@ class _MenuActionTileState extends State<_MenuActionTile> {
   @override
   Widget build(BuildContext context) {
     final menuStyle = AppMenuStyle.of(context);
-    final accent = ThemeProvider.instance.accentColor;
+    final accent = context.accentColor;
     final baseColor = widget.action.isDestructive
         ? Colors.redAccent
         : menuStyle.textStyle.color!;
@@ -155,12 +155,11 @@ class _MenuActionTileState extends State<_MenuActionTile> {
           onEnter: (_) => setState(() => _hovered = true),
           onExit: (_) => setState(() => _hovered = false),
           child: Container(
-            height: CompactLayout.value(
-              context,
+            height: context.compactValue(
               _kProjectMenuActionTileBaseHeight,
             ),
             padding: EdgeInsets.symmetric(
-              horizontal: CompactLayout.value(context, 12),
+              horizontal: context.compactValue(12),
             ),
             decoration: BoxDecoration(
               color: widget.action.enabled && _hovered
@@ -174,14 +173,13 @@ class _MenuActionTileState extends State<_MenuActionTile> {
                 ] else ...[
                   Icon(
                     widget.action.icon,
-                    size: CompactLayout.value(
-                      context,
+                    size: context.compactValue(
                       _kProjectMenuIconBaseSize,
                     ),
                     color: textColor,
                   ),
                 ],
-                SizedBox(width: CompactLayout.value(context, 10)),
+                SizedBox(width: context.compactValue(10)),
                 Expanded(
                   child: Text(
                     widget.action.label,

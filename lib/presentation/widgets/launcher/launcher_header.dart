@@ -1,8 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-import '../../../core/theme/theme_provider.dart';
-import '../../../core/utils/compact_layout.dart';
+import '../../../core/theme/theme_extensions.dart';
 import '../../../domain/models/workspace.dart';
 import '../app_menu.dart';
 import 'launcher_tab_bar.dart';
@@ -39,71 +38,65 @@ class LauncherHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: ThemeProvider.instance,
-      builder: (context, _) {
-        final textTheme = Theme.of(context).textTheme;
-        final labelColor = textTheme.bodySmall!.color!.withOpacity(0.8);
+    final textTheme = Theme.of(context).textTheme;
+    final labelColor = textTheme.bodySmall!.color!.withOpacity(0.8);
 
-        return Container(
-          padding: CompactLayout.only(
-            context,
-            left: 10,
-            top: 16,
-            right: 10,
-            bottom: 8,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+    return Container(
+      padding: context.compactPaddingOnly(
+        left: 10,
+        top: 16,
+        right: 10,
+        bottom: 8,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
             children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Align(
-                      alignment: Alignment.centerLeft,
-                      child: LauncherTabBar(
-                        selectedTab: selectedTab,
-                        onTabSelected: onTabSelected,
-                      ),
-                    ),
+              Expanded(
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: LauncherTabBar(
+                    selectedTab: selectedTab,
+                    onTabSelected: onTabSelected,
                   ),
-                  _WorkspaceSelector(
-                    workspaces: workspaces,
-                    selectedWorkspace: selectedWorkspace,
-                    isLoading: isWorkspaceLoading,
-                    onSelect: onWorkspaceSelected,
-                    onManage: onManageWorkspaces,
-                  ),
-                  SizedBox(width: CompactLayout.value(context, 6)),
-                  _SyncButton(
-                    onPressed: onSyncMetadata,
-                    isSyncing: isSyncing,
-                    hasSyncErrors: hasSyncErrors,
-                  ),
-                  SizedBox(width: CompactLayout.value(context, 8)),
-                  _PreferencesButton(onPressed: onPreferencesPressed),
-                ],
-              ),
-              SizedBox(height: CompactLayout.value(context, 10)),
-              Text(
-                selectedTab == LauncherTab.projects
-                    ? 'Projects toolbox'
-                    : 'Tools surface',
-                style: textTheme.titleMedium!.copyWith(
-                  fontWeight: FontWeight.w700,
                 ),
               ),
-              SizedBox(height: CompactLayout.value(context, 2)),
-              Text(
-                selectedTab == LauncherTab.projects
-                    ? 'Search and open projects instantly'
-                    : 'Manage your preferred editors and utilities',
-                style: textTheme.bodySmall!.copyWith(color: labelColor),
+              _WorkspaceSelector(
+                workspaces: workspaces,
+                selectedWorkspace: selectedWorkspace,
+                isLoading: isWorkspaceLoading,
+                onSelect: onWorkspaceSelected,
+                onManage: onManageWorkspaces,
               ),
+              SizedBox(width: context.compactValue(6)),
+              _SyncButton(
+                onPressed: onSyncMetadata,
+                isSyncing: isSyncing,
+                hasSyncErrors: hasSyncErrors,
+              ),
+              SizedBox(width: context.compactValue(8)),
+              _PreferencesButton(onPressed: onPreferencesPressed),
             ],
           ),
-        );
-      },
+          SizedBox(height: context.compactValue(10)),
+          Text(
+            selectedTab == LauncherTab.projects
+                ? 'Projects toolbox'
+                : 'Tools surface',
+            style: textTheme.titleMedium!.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          SizedBox(height: context.compactValue(2)),
+          Text(
+            selectedTab == LauncherTab.projects
+                ? 'Search and open projects instantly'
+                : 'Manage your preferred editors and utilities',
+            style: textTheme.bodySmall!.copyWith(color: labelColor),
+          ),
+        ],
+      ),
     );
   }
 }

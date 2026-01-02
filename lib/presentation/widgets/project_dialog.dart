@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
+import '../../core/theme/theme_extensions.dart';
 
+import '../../core/di/service_locator.dart';
 import '../../core/services/tool_discovery_service.dart';
 import '../../core/services/window_service.dart';
 import '../../core/theme/glass_style.dart';
-import '../../core/theme/theme_provider.dart';
 import '../../core/utils/compact_layout.dart';
 import '../../domain/models/project.dart';
 import '../../domain/models/tool.dart';
@@ -31,6 +32,8 @@ class ProjectDialog extends StatefulWidget {
 }
 
 class _ProjectDialogState extends State<ProjectDialog> {
+  late final WindowService _windowService;
+  late final ToolDiscoveryService _toolDiscoveryService;
   late TextEditingController _nameController;
   late TextEditingController _pathController;
   bool _isLoadingTools = false;
@@ -40,6 +43,8 @@ class _ProjectDialogState extends State<ProjectDialog> {
   @override
   void initState() {
     super.initState();
+    _windowService = getIt<WindowService>();
+    _toolDiscoveryService = getIt<ToolDiscoveryService>();
     _nameController = TextEditingController(text: widget.project?.name ?? '');
     _pathController = TextEditingController(text: widget.project?.path ?? '');
     _loadInstalledTools();
@@ -53,7 +58,7 @@ class _ProjectDialogState extends State<ProjectDialog> {
   }
 
   Future<void> _pickProjectFolder() async {
-    final selectedPath = await WindowService.instance.runWithAutoHideSuppressed(
+    final selectedPath = await _windowService.runWithAutoHideSuppressed(
       () => FilePicker.platform.getDirectoryPath(),
     );
     if (selectedPath != null) {
@@ -69,7 +74,7 @@ class _ProjectDialogState extends State<ProjectDialog> {
   Future<void> _loadInstalledTools() async {
     setState(() => _isLoadingTools = true);
 
-    final tools = await ToolDiscoveryService.instance.discoverTools();
+    final tools = await _toolDiscoveryService.discoverTools();
     final installed = tools.where((tool) => tool.isInstalled).toList()
       ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
 
@@ -142,7 +147,7 @@ class _ProjectDialogState extends State<ProjectDialog> {
         ? Colors.black.withOpacity(0.45)
         : Colors.white.withOpacity(0.92);
     final borderColor = baseColor.withOpacity(isDark ? 0.3 : 0.16);
-    final accentColor = ThemeProvider.instance.accentColor;
+    final accentColor = context.accentColor;
 
     return InputDecoration(
       labelText: label,
@@ -176,7 +181,7 @@ class _ProjectDialogState extends State<ProjectDialog> {
     final borderColor = theme.dividerColor.withOpacity(0.24);
     return BoxDecoration(
       color: background,
-      borderRadius: BorderRadius.circular(CompactLayout.value(context, 20)),
+      borderRadius: BorderRadius.circular(context.compactValue(20)),
       border: Border.all(color: borderColor),
     );
   }
@@ -184,12 +189,12 @@ class _ProjectDialogState extends State<ProjectDialog> {
   Widget _buildFormCard(BuildContext context) {
     return Container(
       decoration: _cardDecoration(context),
-      padding: EdgeInsets.all(CompactLayout.value(context, 16)),
+      padding: EdgeInsets.all(context.compactValue(16)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           _buildPathField(context),
-          SizedBox(height: CompactLayout.value(context, 12)),
+          SizedBox(height: context.compactValue(12)),
           _buildNameField(context),
         ],
       ),
@@ -200,7 +205,7 @@ class _ProjectDialogState extends State<ProjectDialog> {
     final theme = Theme.of(context);
     return Container(
       decoration: _cardDecoration(context),
-      padding: EdgeInsets.all(CompactLayout.value(context, 16)),
+      padding: EdgeInsets.all(context.compactValue(16)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -210,7 +215,7 @@ class _ProjectDialogState extends State<ProjectDialog> {
               fontWeight: FontWeight.w700,
             ),
           ),
-          SizedBox(height: CompactLayout.value(context, 12)),
+          SizedBox(height: context.compactValue(12)),
           _buildToolsList(context),
         ],
       ),
@@ -250,10 +255,10 @@ class _ProjectDialogState extends State<ProjectDialog> {
   Widget _buildToolsList(BuildContext context) {
     if (_isLoadingTools) {
       return SizedBox(
-        height: CompactLayout.value(context, 100),
+        height: context.compactValue(100),
         child: Center(
           child: CircularProgressIndicator(
-            color: ThemeProvider.instance.accentColor,
+            color: context.accentColor,
           ),
         ),
       );
@@ -268,7 +273,7 @@ class _ProjectDialogState extends State<ProjectDialog> {
 
     return ConstrainedBox(
       constraints: BoxConstraints(
-        maxHeight: CompactLayout.value(context, 220),
+        maxHeight: context.compactValue(220),
       ),
       child: SingleChildScrollView(
         child: Column(
@@ -277,7 +282,7 @@ class _ProjectDialogState extends State<ProjectDialog> {
             for (var i = 0; i < _installedTools.length; i++) ...[
               _buildToolOption(context, _installedTools[i]),
               if (i < _installedTools.length - 1)
-                SizedBox(height: CompactLayout.value(context, 8)),
+                SizedBox(height: context.compactValue(8)),
             ],
           ],
         ),
@@ -287,7 +292,7 @@ class _ProjectDialogState extends State<ProjectDialog> {
 
   Widget _buildToolOption(BuildContext context, Tool tool) {
     final theme = Theme.of(context);
-    final accentColor = ThemeProvider.instance.accentColor;
+    final accentColor = context.accentColor;
     final isSelected = tool.id == _selectedToolId;
     final background = isSelected
         ? accentColor.withOpacity(theme.brightness == Brightness.dark ? 0.2 : 0.12)
@@ -297,25 +302,25 @@ class _ProjectDialogState extends State<ProjectDialog> {
         : theme.dividerColor.withOpacity(theme.brightness == Brightness.dark ? 0.4 : 0.2);
 
     return InkWell(
-      borderRadius: BorderRadius.circular(CompactLayout.value(context, 14)),
+      borderRadius: BorderRadius.circular(context.compactValue(14)),
       onTap: () => _selectTool(tool),
       child: Container(
         padding: EdgeInsets.symmetric(
-          horizontal: CompactLayout.value(context, 12),
-          vertical: CompactLayout.value(context, 10),
+          horizontal: context.compactValue(12),
+          vertical: context.compactValue(10),
         ),
         decoration: BoxDecoration(
           color: background,
-          borderRadius: BorderRadius.circular(CompactLayout.value(context, 14)),
+          borderRadius: BorderRadius.circular(context.compactValue(14)),
           border: Border.all(color: borderColor),
         ),
         child: Row(
           children: [
             ToolIcon(
               tool: tool,
-              size: CompactLayout.value(context, 28),
+              size: context.compactValue(28),
             ),
-            SizedBox(width: CompactLayout.value(context, 10)),
+            SizedBox(width: context.compactValue(10)),
             Expanded(
               child: Text(
                 tool.name,
@@ -352,7 +357,7 @@ class _ProjectDialogState extends State<ProjectDialog> {
           disabledBackgroundColor: accentColor.withOpacity(0.3),
           disabledForegroundColor: Colors.white.withOpacity(0.7),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(CompactLayout.value(context, 8)),
+            borderRadius: BorderRadius.circular(context.compactValue(8)),
           ),
         ),
         child: Text(
@@ -366,9 +371,9 @@ class _ProjectDialogState extends State<ProjectDialog> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final accentColor = ThemeProvider.instance.accentColor;
+    final accentColor = context.accentColor;
     final palette = GlassStylePalette(
-      style: ThemeProvider.instance.glassStyle,
+      style: context.glassStyle,
       isDark: theme.brightness == Brightness.dark,
       accentColor: accentColor,
     );
@@ -380,30 +385,30 @@ class _ProjectDialogState extends State<ProjectDialog> {
       backgroundColor: background,
       elevation: 0,
       insetPadding: EdgeInsets.symmetric(
-        horizontal: CompactLayout.value(context, 28),
-        vertical: CompactLayout.value(context, 18),
+        horizontal: context.compactValue(28),
+        vertical: context.compactValue(18),
       ),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(CompactLayout.value(context, 22)),
+        borderRadius: BorderRadius.circular(context.compactValue(22)),
         side: BorderSide(color: borderColor),
       ),
       titlePadding: EdgeInsets.fromLTRB(
-        CompactLayout.value(context, 24),
-        CompactLayout.value(context, 18),
-        CompactLayout.value(context, 24),
+        context.compactValue(24),
+        context.compactValue(18),
+        context.compactValue(24),
         0,
       ),
       contentPadding: EdgeInsets.fromLTRB(
-        CompactLayout.value(context, 24),
-        CompactLayout.value(context, 14),
-        CompactLayout.value(context, 24),
-        CompactLayout.value(context, 10),
+        context.compactValue(24),
+        context.compactValue(14),
+        context.compactValue(24),
+        context.compactValue(10),
       ),
       actionsPadding: EdgeInsets.fromLTRB(
-        CompactLayout.value(context, 18),
+        context.compactValue(18),
         0,
-        CompactLayout.value(context, 18),
-        CompactLayout.value(context, 12),
+        context.compactValue(18),
+        context.compactValue(12),
       ),
       title: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -412,7 +417,7 @@ class _ProjectDialogState extends State<ProjectDialog> {
             isEditing ? 'Edit Project' : 'Add Project',
             style: theme.textTheme.titleLarge,
           ),
-          SizedBox(height: CompactLayout.value(context, 4)),
+          SizedBox(height: context.compactValue(4)),
           Text(
             isEditing
                 ? 'Adjust the metadata for this project'
@@ -425,7 +430,7 @@ class _ProjectDialogState extends State<ProjectDialog> {
       ),
       content: ConstrainedBox(
         constraints: BoxConstraints(
-          minWidth: CompactLayout.value(context, 380),
+          minWidth: context.compactValue(380),
         ),
         child: SingleChildScrollView(
           child: Column(
@@ -433,7 +438,7 @@ class _ProjectDialogState extends State<ProjectDialog> {
             mainAxisSize: MainAxisSize.min,
             children: [
               _buildFormCard(context),
-              SizedBox(height: CompactLayout.value(context, 14)),
+              SizedBox(height: context.compactValue(14)),
               _buildToolsCard(context),
             ],
           ),

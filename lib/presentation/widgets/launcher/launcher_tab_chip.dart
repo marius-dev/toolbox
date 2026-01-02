@@ -28,8 +28,8 @@ class _ModeChip extends StatelessWidget {
         duration: const Duration(milliseconds: 220),
         curve: Curves.easeOutCubic,
         padding: EdgeInsets.symmetric(
-          horizontal: CompactLayout.value(context, 14),
-          vertical: CompactLayout.value(context, 6),
+          horizontal: context.compactValue(14),
+          vertical: context.compactValue(6),
         ),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),
@@ -43,15 +43,15 @@ class _ModeChip extends StatelessWidget {
           children: [
             Icon(
               icon,
-              size: CompactLayout.value(context, 14),
+              size: context.compactValue(14),
               color: isActive ? Colors.white : inactiveColor,
             ),
-            SizedBox(width: CompactLayout.value(context, 6)),
+            SizedBox(width: context.compactValue(6)),
             Text(
               label,
               style: TextStyle(
                 color: isActive ? Colors.white : inactiveColor,
-                fontSize: CompactLayout.value(context, 13),
+                fontSize: context.compactValue(13),
                 fontWeight: FontWeight.w600,
               ),
             ),

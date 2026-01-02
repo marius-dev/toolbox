@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 
-import '../services/storage_service.dart';
+import '../services/storage/theme_storage_service.dart';
 import 'glass_style.dart';
 
 class ThemeProvider extends ChangeNotifier with WidgetsBindingObserver {
-  static final ThemeProvider _instance = ThemeProvider._internal();
-  static ThemeProvider get instance => _instance;
+  final ThemeStorageService _storageService;
 
-  ThemeProvider._internal() {
+  ThemeProvider(this._storageService) {
     final binding = WidgetsFlutterBinding.ensureInitialized();
     binding.addObserver(this);
     _platformBrightness = binding.platformDispatcher.platformBrightness;
@@ -90,7 +89,7 @@ class ThemeProvider extends ChangeNotifier with WidgetsBindingObserver {
 
   Future<void> _loadThemePreferences() async {
     // Load from storage
-    final prefs = await StorageService.instance.getThemePreferences();
+    final prefs = await _storageService.getThemePreferences();
     _themeMode = _themeModeFromString(prefs['themeMode'] as String?);
     _accentColor = Color(prefs['accentColor'] ?? 0xFF6366F1);
     _glassStyle = GlassStyleExtension.fromString(
@@ -115,7 +114,7 @@ class ThemeProvider extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   Future<void> _saveThemePreferences() async {
-    await StorageService.instance.saveThemePreferences(
+    await _storageService.saveThemePreferences(
       themeMode: _themeMode,
       accentColor: _accentColor.value,
       appScale: _scaleFactor,

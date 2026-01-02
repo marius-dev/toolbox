@@ -1,8 +1,8 @@
 import 'package:flutter/foundation.dart';
 
+import '../../core/di/service_locator.dart';
 import '../../domain/models/project.dart';
 import '../../domain/models/tool.dart';
-import '../../domain/repositories/project_repository.dart';
 import '../../domain/use_cases/project_use_cases.dart';
 
 class ProjectProvider extends ChangeNotifier {
@@ -22,7 +22,7 @@ class ProjectProvider extends ChangeNotifier {
   ProjectProvider(this._useCases);
 
   factory ProjectProvider.create() {
-    return ProjectProvider(ProjectUseCases(ProjectRepository.instance));
+    return getIt<ProjectProvider>();
   }
 
   // Getters

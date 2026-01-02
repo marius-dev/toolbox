@@ -4,7 +4,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../../../core/utils/compact_layout.dart';
+import '../../../core/theme/theme_extensions.dart';
 import '../../../domain/models/project.dart';
 import '../../../domain/models/tool.dart';
 import 'project_item.dart';
@@ -338,7 +338,7 @@ class _ProjectListState extends State<ProjectList> {
     final sections = _projectSections();
     final favorites = sections.favorites;
     final others = sections.others;
-    final headerPadding = CompactLayout.only(context, top: 6, bottom: 4);
+    final headerPadding = context.compactPaddingOnly(top: 6, bottom: 4);
     final theme = Theme.of(context);
     final background = theme.brightness == Brightness.dark
         ? Colors.black.withOpacity(0.5)
@@ -349,7 +349,7 @@ class _ProjectListState extends State<ProjectList> {
       focusNode: widget.focusNode,
       onKeyEvent: _handleKeyEvent,
       child: Container(
-        margin: CompactLayout.only(context, left: 10, right: 10, bottom: 14),
+        margin: context.compactPaddingOnly(left: 10, right: 10, bottom: 14),
         decoration: BoxDecoration(
           color: background,
           borderRadius: BorderRadius.circular(22),
@@ -364,7 +364,7 @@ class _ProjectListState extends State<ProjectList> {
               radius: const Radius.circular(6),
               thickness: 4,
               child: Padding(
-                padding: CompactLayout.symmetric(context, horizontal: 12),
+                padding: context.compactPadding(horizontal: 12),
                 child: CustomScrollView(
                   controller: _scrollController,
                   slivers: [
@@ -421,7 +421,7 @@ class _ProjectListState extends State<ProjectList> {
         widget.focusNode.hasFocus && globalIndex == _selectedIndex;
     final isOpening = _openingProjectId == project.id;
     final topPadding = globalIndex == 0
-        ? CompactLayout.value(context, 10)
+        ? context.compactValue(10)
         : 0.0;
 
     final key = _itemKeys[globalIndex];

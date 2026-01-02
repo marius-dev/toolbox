@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../../core/theme/theme_extensions.dart';
 
 import '../../core/theme/glass_style.dart';
 import '../../core/theme/theme_provider.dart';
@@ -41,9 +42,9 @@ class _WorkspaceDialogState extends State<WorkspaceDialog> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final accentColor = ThemeProvider.instance.accentColor;
+    final accentColor = context.accentColor;
     final palette = GlassStylePalette(
-      style: ThemeProvider.instance.glassStyle,
+      style: context.glassStyle,
       isDark: theme.brightness == Brightness.dark,
       accentColor: accentColor,
     );
@@ -60,30 +61,30 @@ class _WorkspaceDialogState extends State<WorkspaceDialog> {
       surfaceTintColor: Colors.transparent,
       elevation: 0,
       insetPadding: EdgeInsets.symmetric(
-        horizontal: CompactLayout.value(context, 28),
-        vertical: CompactLayout.value(context, 18),
+        horizontal: context.compactValue(28),
+        vertical: context.compactValue(18),
       ),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(CompactLayout.value(context, 22)),
+        borderRadius: BorderRadius.circular(context.compactValue(22)),
         side: BorderSide(color: borderColor),
       ),
       titlePadding: EdgeInsets.fromLTRB(
-        CompactLayout.value(context, 24),
-        CompactLayout.value(context, 18),
-        CompactLayout.value(context, 24),
+        context.compactValue(24),
+        context.compactValue(18),
+        context.compactValue(24),
         0,
       ),
       contentPadding: EdgeInsets.fromLTRB(
-        CompactLayout.value(context, 24),
-        CompactLayout.value(context, 14),
-        CompactLayout.value(context, 24),
-        CompactLayout.value(context, 10),
+        context.compactValue(24),
+        context.compactValue(14),
+        context.compactValue(24),
+        context.compactValue(10),
       ),
       actionsPadding: EdgeInsets.fromLTRB(
-        CompactLayout.value(context, 18),
+        context.compactValue(18),
         0,
-        CompactLayout.value(context, 18),
-        CompactLayout.value(context, 12),
+        context.compactValue(18),
+        context.compactValue(12),
       ),
       title: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -92,7 +93,7 @@ class _WorkspaceDialogState extends State<WorkspaceDialog> {
             isEditing ? 'Edit workspace' : 'Create workspace',
             style: theme.textTheme.titleLarge,
           ),
-          SizedBox(height: CompactLayout.value(context, 4)),
+          SizedBox(height: context.compactValue(4)),
           Text(
             isEditing
                 ? 'Rename your workspace to keep it organized.'
@@ -105,7 +106,7 @@ class _WorkspaceDialogState extends State<WorkspaceDialog> {
       ),
       content: ConstrainedBox(
         constraints: BoxConstraints(
-          minWidth: CompactLayout.value(context, 360),
+          minWidth: context.compactValue(360),
         ),
         child: TextField(
           controller: _nameController,
@@ -127,19 +128,19 @@ class _WorkspaceDialogState extends State<WorkspaceDialog> {
             ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(
-                CompactLayout.value(context, 10),
+                context.compactValue(10),
               ),
               borderSide: BorderSide(color: borderColor),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(
-                CompactLayout.value(context, 10),
+                context.compactValue(10),
               ),
               borderSide: BorderSide(color: borderColor),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(
-                CompactLayout.value(context, 10),
+                context.compactValue(10),
               ),
               borderSide: BorderSide(color: accentColor, width: 1.5),
             ),
@@ -163,7 +164,7 @@ class _WorkspaceDialogState extends State<WorkspaceDialog> {
             disabledForegroundColor: Colors.white.withOpacity(0.7),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(
-                CompactLayout.value(context, 8),
+                context.compactValue(8),
               ),
             ),
           ),
@@ -193,9 +194,9 @@ class WorkspaceDeleteDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final accentColor = ThemeProvider.instance.accentColor;
+    final accentColor = context.accentColor;
     final palette = GlassStylePalette(
-      style: ThemeProvider.instance.glassStyle,
+      style: context.glassStyle,
       isDark: theme.brightness == Brightness.dark,
       accentColor: accentColor,
     );
@@ -207,30 +208,30 @@ class WorkspaceDeleteDialog extends StatelessWidget {
       surfaceTintColor: Colors.transparent,
       elevation: 0,
       insetPadding: EdgeInsets.symmetric(
-        horizontal: CompactLayout.value(context, 28),
-        vertical: CompactLayout.value(context, 18),
+        horizontal: context.compactValue(28),
+        vertical: context.compactValue(18),
       ),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(CompactLayout.value(context, 22)),
+        borderRadius: BorderRadius.circular(context.compactValue(22)),
         side: BorderSide(color: borderColor),
       ),
       titlePadding: EdgeInsets.fromLTRB(
-        CompactLayout.value(context, 24),
-        CompactLayout.value(context, 18),
-        CompactLayout.value(context, 24),
+        context.compactValue(24),
+        context.compactValue(18),
+        context.compactValue(24),
         0,
       ),
       contentPadding: EdgeInsets.fromLTRB(
-        CompactLayout.value(context, 24),
-        CompactLayout.value(context, 14),
-        CompactLayout.value(context, 24),
-        CompactLayout.value(context, 10),
+        context.compactValue(24),
+        context.compactValue(14),
+        context.compactValue(24),
+        context.compactValue(10),
       ),
       actionsPadding: EdgeInsets.fromLTRB(
-        CompactLayout.value(context, 18),
+        context.compactValue(18),
         0,
-        CompactLayout.value(context, 18),
-        CompactLayout.value(context, 12),
+        context.compactValue(18),
+        context.compactValue(12),
       ),
       title: Text('Remove workspace?', style: theme.textTheme.titleLarge),
       content: Text(
@@ -254,7 +255,7 @@ class WorkspaceDeleteDialog extends StatelessWidget {
             foregroundColor: Colors.white,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(
-                CompactLayout.value(context, 8),
+                context.compactValue(8),
               ),
             ),
           ),

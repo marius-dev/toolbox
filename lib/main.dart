@@ -1,14 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:window_manager/window_manager.dart';
-import 'core/services/window_service.dart';
-import 'core/services/tray_service.dart';
+import 'core/di/service_locator.dart';
+import 'core/di/service_registration.dart';
 import 'core/services/hotkey_service.dart';
+import 'core/services/tray_service.dart';
+import 'core/services/window_service.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_provider.dart';
 import 'presentation/screens/launcher_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Setup dependency injection
+  await setupServiceLocator();
 
   // Initialize services
   await _initializeServices();
@@ -18,9 +23,9 @@ void main() async {
 
 Future<void> _initializeServices() async {
   await windowManager.ensureInitialized();
-  await WindowService.instance.initialize();
-  await TrayService.instance.initialize();
-  await HotkeyService.instance.initialize();
+  await getIt<WindowService>().initialize();
+  await getIt<TrayService>().initialize();
+  await getIt<HotkeyService>().initialize();
 }
 
 class ProjectLauncherApp extends StatefulWidget {
@@ -31,17 +36,28 @@ class ProjectLauncherApp extends StatefulWidget {
 }
 
 class _ProjectLauncherAppState extends State<ProjectLauncherApp> {
-  double _appliedScale = ThemeProvider.instance.effectiveScaleFactor;
+  late final ThemeProvider _themeProvider;
+  late final WindowService _windowService;
+  late double _appliedScale;
+
+  @override
+  void initState() {
+    super.initState();
+    _themeProvider = getIt<ThemeProvider>();
+    _windowService = getIt<WindowService>();
+    _appliedScale = _themeProvider.effectiveScaleFactor;
+  }
+
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
-      animation: ThemeProvider.instance,
+      animation: _themeProvider,
       builder: (context, _) {
-        final scale = ThemeProvider.instance.effectiveScaleFactor;
+        final scale = _themeProvider.effectiveScaleFactor;
         if (_appliedScale != scale) {
           _appliedScale = scale;
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            WindowService.instance.resizeForScale(scale);
+            _windowService.resizeForScale(scale);
           });
         }
         return MaterialApp(
@@ -49,7 +65,7 @@ class _ProjectLauncherAppState extends State<ProjectLauncherApp> {
           debugShowCheckedModeBanner: false,
           theme: AppTheme.lightTheme,
           darkTheme: AppTheme.darkTheme,
-          themeMode: ThemeProvider.instance.themeMode,
+          themeMode: _themeProvider.themeMode,
           builder: (context, child) =>
               _buildScaledContent(context, child, scale),
           home: const LauncherScreen(),
