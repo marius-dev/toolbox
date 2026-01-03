@@ -1,8 +1,16 @@
 import 'package:flutter/material.dart';
 
+import 'glass_style_strategy.dart';
+
+/// Glass style enumeration for UI theming.
+///
+/// This enum provides a simple interface for selecting between different
+/// glass morphism styles. Each enum value maps to a concrete strategy
+/// implementation that defines the visual characteristics.
 enum GlassStyle { clear, tinted }
 
 extension GlassStyleExtension on GlassStyle {
+  /// Returns the storage key for serialization.
   String get storageKey {
     switch (this) {
       case GlassStyle.clear:
@@ -12,6 +20,20 @@ extension GlassStyleExtension on GlassStyle {
     }
   }
 
+  /// Returns the strategy implementation for this glass style.
+  ///
+  /// This method bridges the enum to the strategy pattern, allowing
+  /// the rest of the codebase to work with concrete strategy instances.
+  GlassStyleStrategy get strategy {
+    switch (this) {
+      case GlassStyle.clear:
+        return const ClearGlassStrategy();
+      case GlassStyle.tinted:
+        return const TintedGlassStrategy();
+    }
+  }
+
+  /// Creates a GlassStyle from a storage key string.
   static GlassStyle fromString(String? value) {
     switch (value) {
       case 'clear':
@@ -24,16 +46,22 @@ extension GlassStyleExtension on GlassStyle {
   }
 }
 
+/// Palette generator for glass morphism effects.
+///
+/// This class now uses composition with [GlassStyleStrategy] instead of
+/// conditional logic, following the Strategy pattern for better maintainability
+/// and extensibility.
 class GlassStylePalette {
   GlassStylePalette({
     required this.style,
     required this.isDark,
     required this.accentColor,
-  });
+  }) : _strategy = style.strategy;
 
   final GlassStyle style;
   final bool isDark;
   final Color accentColor;
+  final GlassStyleStrategy _strategy;
 
   factory GlassStylePalette.fromContext(
     BuildContext context, {
@@ -47,81 +75,100 @@ class GlassStylePalette {
     );
   }
 
-  double get blurSigma => style == GlassStyle.clear ? 16 : 24;
+  /// Returns the blur sigma for backdrop filters.
+  double get blurSigma => _strategy.blurSigma;
 
-  double get _surfaceOpacity => isDark
-      ? (style == GlassStyle.clear ? 0.08 : 0.12)
-      : (style == GlassStyle.clear ? 0.24 : 0.32);
+  /// Returns the surface opacity for this palette.
+  double get _surfaceOpacity => _strategy.surfaceOpacity(isDark);
 
+  /// Returns the base color for glass surfaces.
   Color get baseColor => Colors.white.withOpacity(_surfaceOpacity);
 
-  double get accentOpacity =>
-      style == GlassStyle.tinted ? (isDark ? 0.2 : 0.15) : 0.0;
+  /// Returns the accent overlay opacity.
+  double get accentOpacity => _strategy.accentOpacity(isDark);
 
+  /// Returns the inner color with optional accent tinting.
   Color get innerColor {
     final base = baseColor;
     if (accentOpacity <= 0) return base;
     return Color.alphaBlend(accentColor.withOpacity(accentOpacity), base);
   }
 
-  Color get borderColor => isDark
-      ? Colors.white.withOpacity(style == GlassStyle.tinted ? 0.2 : 0.12)
-      : Colors.black.withOpacity(style == GlassStyle.tinted ? 0.08 : 0.04);
+  /// Returns the border color for glass elements.
+  Color get borderColor {
+    final opacity = _strategy.borderOpacity(isDark);
+    return isDark
+        ? Colors.white.withOpacity(opacity)
+        : Colors.black.withOpacity(opacity);
+  }
 
-  LinearGradient get gradient => style == GlassStyle.tinted
-      ? LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            innerColor,
-            Color.alphaBlend(accentColor.withOpacity(0.08), innerColor),
-          ],
-        )
-      : LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [innerColor, innerColor],
-        );
+  /// Returns the gradient for glass surfaces.
+  LinearGradient get gradient {
+    if (accentOpacity > 0) {
+      // Tinted style with gradient
+      return LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [
+          innerColor,
+          Color.alphaBlend(accentColor.withOpacity(0.08), innerColor),
+        ],
+      );
+    } else {
+      // Clear style with flat color
+      return LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [innerColor, innerColor],
+      );
+    }
+  }
 
+  /// Returns the background gradient colors.
   List<Color> get backgroundGradient {
+    final opacities = _strategy.backgroundGradientOpacities(isDark);
+    final accentOverlayOpacity = _strategy.backgroundAccentOpacity(isDark);
+
     final start = isDark
-        ? Color(0xFF03050C).withOpacity(style == GlassStyle.clear ? 0.32 : 0.45)
-        : Colors.white.withOpacity(style == GlassStyle.clear ? 0.55 : 0.82);
+        ? Color(0xFF03050C).withOpacity(opacities[0])
+        : Colors.white.withOpacity(opacities[0]);
+
     final middleBase = isDark
-        ? Color(0xFF05070F).withOpacity(style == GlassStyle.clear ? 0.3 : 0.38)
-        : Colors.white.withOpacity(style == GlassStyle.clear ? 0.5 : 0.8);
+        ? Color(0xFF05070F).withOpacity(opacities[1])
+        : Colors.white.withOpacity(opacities[1]);
+
     final end = isDark
-        ? Color(0xFF0E1324).withOpacity(style == GlassStyle.clear ? 0.42 : 0.6)
-        : Color(
-            0xFFF5F6FB,
-          ).withOpacity(style == GlassStyle.clear ? 0.38 : 0.65);
-    final overlayOpacity = style == GlassStyle.tinted
-        ? (isDark ? 0.18 : 0.08)
-        : 0.0;
-    final middle = Color.alphaBlend(
-      accentColor.withOpacity(overlayOpacity),
-      middleBase,
-    );
+        ? Color(0xFF0E1324).withOpacity(opacities[2])
+        : Color(0xFFF5F6FB).withOpacity(opacities[2]);
+
+    final middle = accentOverlayOpacity > 0
+        ? Color.alphaBlend(
+            accentColor.withOpacity(accentOverlayOpacity),
+            middleBase,
+          )
+        : middleBase;
 
     return [start, middle, end];
   }
 
+  /// Returns the glow color for ambient effects.
   Color get glowColor =>
-      accentColor.withOpacity(style == GlassStyle.tinted ? 0.6 : 0.25);
+      accentColor.withOpacity(_strategy.glowOpacity());
 
-  List<BoxShadow>? get shadow => [
-    BoxShadow(
-      color: Colors.black.withOpacity(
-        isDark
-            ? (style == GlassStyle.tinted ? 0.55 : 0.25)
-            : (style == GlassStyle.tinted ? 0.18 : 0.08),
+  /// Returns the shadow configuration for glass elements.
+  List<BoxShadow>? get shadow {
+    final config = _strategy.shadowConfig(isDark);
+    return [
+      BoxShadow(
+        color: Colors.black.withOpacity(config.opacity),
+        blurRadius: config.blurRadius,
+        offset: Offset(0, config.offsetY),
       ),
-      blurRadius: style == GlassStyle.tinted ? 30 : 18,
-      offset: Offset(0, style == GlassStyle.tinted ? 16 : 10),
-    ),
-  ];
+    ];
+  }
 }
 
+/// Helper function to create solid dialog backgrounds.
 Color solidDialogBackground(GlassStylePalette palette, ThemeData theme) {
   return Color.alphaBlend(palette.innerColor, theme.colorScheme.surface);
 }

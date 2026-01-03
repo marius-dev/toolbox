@@ -1,19 +1,5 @@
 part of 'project_item.dart';
 
-String _revealActionLabel() {
-  if (Platform.isMacOS) return 'Reveal in Finder';
-  if (Platform.isWindows) return 'Show in Explorer';
-  if (Platform.isLinux) return 'Show in Files';
-  return 'Show in Files';
-}
-
-String _revealActionSemanticsLabel() {
-  if (Platform.isMacOS) return 'Reveal project in Finder';
-  if (Platform.isWindows) return 'Show project in Explorer';
-  if (Platform.isLinux) return 'Show project in Files';
-  return 'Show project in Files';
-}
-
 const double _kProjectMenuActionTileBaseHeight = 42.0;
 const double _kProjectMenuIconBaseSize = 18.0;
 
@@ -57,17 +43,17 @@ class _ProjectMenuBuilder {
   }) {
     // Create menu actions once to avoid duplication
     final revealAction = _MenuAction(
-      label: _revealActionLabel(),
+      label: PlatformStrings.revealInFileManager,
       icon: Icons.folder_open,
       onSelected: actions.onShowInFinder,
-      semanticsLabel: _revealActionSemanticsLabel(),
+      semanticsLabel: PlatformStrings.revealProjectInFileManager(),
     );
 
     final terminalAction = _MenuAction(
-      label: 'Open in Terminal',
+      label: PlatformStrings.openInTerminal,
       icon: Icons.terminal,
       onSelected: actions.onOpenInTerminal,
-      semanticsLabel: 'Open project in terminal',
+      semanticsLabel: PlatformStrings.openProjectInTerminal(),
     );
 
     final deleteAction = _MenuAction(

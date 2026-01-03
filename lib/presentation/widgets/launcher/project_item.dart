@@ -1,9 +1,9 @@
-import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/theme_extensions.dart';
+import '../../../core/utils/platform_strings.dart';
 import '../../../core/utils/string_utils.dart';
 import '../../../domain/models/project.dart';
 import '../../../domain/models/tool.dart';
