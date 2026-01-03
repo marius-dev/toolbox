@@ -2,11 +2,13 @@ part of 'project_item.dart';
 
 class _ProjectActionsMenu extends StatefulWidget {
   final List<Tool> installedTools;
+  final List<Workspace> otherWorkspaces;
   final ProjectItemActions actions;
   final _ProjectMenuController menuController;
 
   const _ProjectActionsMenu({
     required this.installedTools,
+    required this.otherWorkspaces,
     required this.actions,
     required this.menuController,
   });
@@ -79,6 +81,7 @@ class _ProjectActionsMenuState extends State<_ProjectActionsMenu> {
       context: context,
       anchorRect: buttonRect,
       installedTools: widget.installedTools,
+      otherWorkspaces: widget.otherWorkspaces,
       actions: widget.actions,
     );
   }

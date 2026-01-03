@@ -10,18 +10,19 @@ class _ProjectMenuController {
     required BuildContext context,
     required Rect anchorRect,
     required List<Tool> installedTools,
+    required List<Workspace> otherWorkspaces,
     required ProjectItemActions actions,
   }) {
     hideMenu();
 
     final overlayState = Overlay.of(context);
-    if (overlayState == null) return;
 
     final overlayBox = overlayState.context.findRenderObject() as RenderBox?;
     if (overlayBox == null) return;
 
     final menuBuilder = _ProjectMenuBuilder(
       installedTools: installedTools,
+      otherWorkspaces: otherWorkspaces,
       actions: actions,
     );
 

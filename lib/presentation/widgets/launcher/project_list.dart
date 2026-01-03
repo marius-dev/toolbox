@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import '../../../core/theme/theme_extensions.dart';
 import '../../../domain/models/project.dart';
 import '../../../domain/models/tool.dart';
+import '../../../domain/models/workspace.dart';
 import 'project_item.dart';
 import 'project_list_scroll_behavior.dart';
 import 'project_section_header.dart';
@@ -16,12 +17,14 @@ class ProjectList extends StatefulWidget {
   final List<Project> projects;
   final List<Tool> installedTools;
   final ToolId? defaultToolId;
+  final List<Workspace> otherWorkspaces;
   final String searchQuery;
   final Future<void> Function(Project project) onProjectTap;
   final ValueChanged<Project> onStarToggle;
   final ValueChanged<Project> onShowInFinder;
   final ValueChanged<Project> onOpenInTerminal;
   final void Function(Project project, ToolId toolId) onOpenWith;
+  final void Function(Project project, String workspaceId)? onMoveToWorkspace;
   final ValueChanged<Project> onDelete;
   final FocusNode focusNode;
   final VoidCallback onFocusSearch;
@@ -31,12 +34,14 @@ class ProjectList extends StatefulWidget {
     required this.projects,
     required this.installedTools,
     required this.defaultToolId,
+    this.otherWorkspaces = const [],
     required this.searchQuery,
     required this.onProjectTap,
     required this.onStarToggle,
     required this.onShowInFinder,
     required this.onOpenInTerminal,
     required this.onOpenWith,
+    this.onMoveToWorkspace,
     required this.onDelete,
     required this.focusNode,
     required this.onFocusSearch,
@@ -437,12 +442,16 @@ class _ProjectListState extends State<ProjectList> {
           project: project,
           installedTools: widget.installedTools,
           defaultToolId: widget.defaultToolId,
+          otherWorkspaces: widget.otherWorkspaces,
           actions: ProjectItemActions(
             onTap: () => _handleProjectTap(project, globalIndex),
             onStarToggle: () => widget.onStarToggle(project),
             onShowInFinder: () => _handleShowInFinder(project),
             onOpenInTerminal: () => _handleOpenInTerminal(project),
             onOpenWith: (toolId) => _handleOpenWith(project, toolId),
+            onMoveToWorkspace: widget.onMoveToWorkspace != null
+                ? (workspaceId) => widget.onMoveToWorkspace!(project, workspaceId)
+                : null,
             onDelete: () => widget.onDelete(project),
           ),
           status: ProjectItemStatus(

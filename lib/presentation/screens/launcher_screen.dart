@@ -361,10 +361,16 @@ class _LauncherScreenState extends State<LauncherScreen> {
               );
             }
 
+            // Get other workspaces (excluding the currently selected one)
+            final otherWorkspaces = _workspaceProvider.workspaces
+                .where((w) => w.id != _workspaceProvider.selectedWorkspaceId)
+                .toList();
+
             return ProjectList(
               projects: _projectProvider.projects,
               installedTools: _toolsProvider.installed,
               defaultToolId: _toolsProvider.defaultToolId,
+              otherWorkspaces: otherWorkspaces,
               searchQuery: _projectProvider.searchQuery,
               focusNode: _projectListFocusNode,
               onProjectTap: _projectActions.handleOpenProject,
@@ -373,6 +379,8 @@ class _LauncherScreenState extends State<LauncherScreen> {
                   _projectActions.handleShowInFinder(project.path),
               onOpenInTerminal: _projectActions.handleOpenInTerminal,
               onOpenWith: _projectActions.handleOpenWith,
+              onMoveToWorkspace: (project, workspaceId) =>
+                  _projectProvider.moveProjectToWorkspace(project, workspaceId),
               onDelete: _projectActions.handleDeleteProject,
               onFocusSearch: () => _searchController.focusSearchField(),
             );

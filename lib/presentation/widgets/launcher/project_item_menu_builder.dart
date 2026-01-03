@@ -1,20 +1,22 @@
 part of 'project_item.dart';
 
-const double _kProjectMenuActionTileBaseHeight = 42.0;
-const double _kProjectMenuIconBaseSize = 18.0;
+const double _kProjectMenuActionTileBaseHeight = 34.0; // More compact
+const double _kProjectMenuIconBaseSize = 16.0;
 
 class _ProjectMenuBuilder {
   const _ProjectMenuBuilder({
     required this.installedTools,
     required this.actions,
+    required this.otherWorkspaces,
   });
 
   final List<Tool> installedTools;
   final ProjectItemActions actions;
+  final List<Workspace> otherWorkspaces;
 
   static const double _baseActionTileHeight = _kProjectMenuActionTileBaseHeight;
-  static const double _baseMenuWidth = 260.0;
-  static const double _headerHeight = 30.0;
+  static const double _baseMenuWidth = 240.0; // Slightly narrower
+  static const double _headerHeight = 22.0; // More compact header
   static const int _bottomActionCount = 3;
 
   List<_MenuAction> resolveToolActions(BuildContext context) =>
@@ -27,12 +29,27 @@ class _ProjectMenuBuilder {
     final headerHeight = _headerSectionHeight(context);
     final dividerHeight = _dividerSectionHeight(context);
     final openWithHeight = _openWithSectionHeight(context, toolCount);
+    final workspaceHeight = _workspaceSectionHeight(context);
+
+    // Add small buffer to prevent sub-pixel overflow
+    const buffer = 2.0;
 
     return headerHeight +
         openWithHeight +
         dividerHeight +
         _bottomActionsHeight(context) +
-        dividerHeight;
+        (workspaceHeight > 0 ? dividerHeight + workspaceHeight : 0) +
+        dividerHeight +
+        buffer;
+  }
+
+  double _workspaceSectionHeight(BuildContext context) {
+    if (otherWorkspaces.isEmpty) return 0;
+    final headerHeight = _headerSectionHeight(context);
+    final actionHeight = _actionTileHeight(context);
+    // Show header + up to 3 workspaces, scrollable if more
+    final itemCount = math.min(otherWorkspaces.length, 3);
+    return headerHeight + (actionHeight * itemCount);
   }
 
   Widget buildMenuContent(
@@ -63,18 +80,34 @@ class _ProjectMenuBuilder {
       isDestructive: true,
     );
 
+    // Build workspace move actions
+    final workspaceActions = otherWorkspaces
+        .map(
+          (ws) => _MenuAction(
+            label: ws.name,
+            icon: Icons.drive_file_move_outline,
+            onSelected: () => actions.onMoveToWorkspace?.call(ws.id),
+            semanticsLabel: 'Move to ${ws.name}',
+          ),
+        )
+        .toList();
+
+    // Calculate workspace section height (max 3 items visible)
+    final workspaceSectionHeight = workspaceActions.isEmpty
+        ? 0.0
+        : math.min(workspaceActions.length, 3) * _actionTileHeight(context);
+
     return Column(
-      mainAxisSize: MainAxisSize.max,
+      mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const _MenuSectionHeader(label: 'Open with'),
-        Expanded(
-          child: ConstrainedBox(
-            constraints: BoxConstraints(maxHeight: openWithSectionHeight),
-            child: _OpenWithSection(
-              toolActions: toolActions,
-              onAction: onAction,
-            ),
+        SizedBox(
+          height: openWithSectionHeight,
+          child: _ScrollableActionList(
+            actions: toolActions,
+            onAction: onAction,
+            emptyMessage: 'No supported tools installed',
           ),
         ),
         const _MenuDivider(),
@@ -86,6 +119,17 @@ class _ProjectMenuBuilder {
           action: terminalAction,
           onPressed: () => onAction(terminalAction),
         ),
+        if (workspaceActions.isNotEmpty) ...[
+          const _MenuDivider(),
+          const _MenuSectionHeader(label: 'Move to'),
+          SizedBox(
+            height: workspaceSectionHeight,
+            child: _ScrollableActionList(
+              actions: workspaceActions,
+              onAction: onAction,
+            ),
+          ),
+        ],
         const _MenuDivider(),
         _MenuActionTile(
           action: deleteAction,

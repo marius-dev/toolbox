@@ -14,19 +14,20 @@ class _MenuSectionHeader extends StatelessWidget {
         theme.textTheme.bodySmall ??
         menuStyle.textStyle;
     final headerStyle = baseStyle.copyWith(
-      color: menuStyle.textStyle.color!.withOpacity(0.7),
-      letterSpacing: 0.8,
-      fontWeight: FontWeight.w700,
+      color: menuStyle.textStyle.color!.withValues(alpha: 0.5),
+      fontSize: 10,
+      letterSpacing: 0.6,
+      fontWeight: FontWeight.w600,
     );
 
     return SizedBox(
-      height: context.compactValue(30),
+      height: context.compactValue(22), // More compact
       child: Padding(
         padding: EdgeInsets.fromLTRB(
           context.compactValue(12),
-          context.compactValue(6),
-          context.compactValue(12),
           context.compactValue(4),
+          context.compactValue(12),
+          context.compactValue(2),
         ),
         child: Align(
           alignment: Alignment.centerLeft,
@@ -53,36 +54,44 @@ class _MenuDivider extends StatelessWidget {
   }
 }
 
-class _OpenWithSection extends StatelessWidget {
-  final List<_MenuAction> toolActions;
+/// A scrollable list of menu actions with a scrollbar
+class _ScrollableActionList extends StatelessWidget {
+  final List<_MenuAction> actions;
   final void Function(_MenuAction) onAction;
+  final String? emptyMessage;
 
-  const _OpenWithSection({required this.toolActions, required this.onAction});
+  const _ScrollableActionList({
+    required this.actions,
+    required this.onAction,
+    this.emptyMessage,
+  });
 
   @override
   Widget build(BuildContext context) {
-    if (toolActions.isEmpty) {
+    if (actions.isEmpty) {
       return _MenuActionTile(
-        action: const _MenuAction(
-          label: 'No supported tools installed',
+        action: _MenuAction(
+          label: emptyMessage ?? 'No items',
           icon: Icons.block,
           onSelected: _noop,
           enabled: false,
         ),
         isMuted: true,
+        indented: true,
       );
     }
 
     return Scrollbar(
-      radius: Radius.circular(context.compactValue(5)),
-      thickness: 4,
+      radius: Radius.circular(context.compactValue(4)),
+      thickness: 3,
       child: ListView.builder(
         padding: EdgeInsets.zero,
         physics: const ClampingScrollPhysics(),
-        itemCount: toolActions.length,
+        itemCount: actions.length,
         itemBuilder: (context, index) => _MenuActionTile(
-          action: toolActions[index],
-          onPressed: () => onAction(toolActions[index]),
+          action: actions[index],
+          onPressed: () => onAction(actions[index]),
+          indented: true,
         ),
       ),
     );
@@ -112,11 +121,13 @@ class _MenuAction {
 class _MenuActionTile extends StatefulWidget {
   final _MenuAction action;
   final bool isMuted;
+  final bool indented;
   final VoidCallback? onPressed;
 
   const _MenuActionTile({
     required this.action,
     this.isMuted = false,
+    this.indented = false,
     this.onPressed,
   });
 
@@ -130,18 +141,23 @@ class _MenuActionTileState extends State<_MenuActionTile> {
   @override
   Widget build(BuildContext context) {
     final menuStyle = AppMenuStyle.of(context);
-    final accent = context.accentColor;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final baseColor = widget.action.isDestructive
         ? Colors.redAccent
         : menuStyle.textStyle.color!;
     final disabledColor = widget.action.isDestructive
-        ? baseColor.withOpacity(0.5)
+        ? baseColor.withValues(alpha: 0.5)
         : menuStyle.mutedTextStyle.color!;
     final textColor = widget.isMuted
-        ? baseColor.withOpacity(0.6)
+        ? baseColor.withValues(alpha: 0.6)
         : widget.action.enabled
         ? baseColor
         : disabledColor;
+
+    // Indented items have more left padding
+    final leftPadding = widget.indented
+        ? context.compactValue(20)
+        : context.compactValue(12);
 
     return Semantics(
       label: widget.action.semanticsLabel,
@@ -161,12 +177,15 @@ class _MenuActionTileState extends State<_MenuActionTile> {
             height: context.compactValue(
               _kProjectMenuActionTileBaseHeight,
             ),
-            padding: EdgeInsets.symmetric(
-              horizontal: context.compactValue(12),
+            padding: EdgeInsets.only(
+              left: leftPadding,
+              right: context.compactValue(12),
             ),
             decoration: BoxDecoration(
               color: widget.action.enabled && _hovered
-                  ? accent.withOpacity(0.08)
+                  ? (isDark
+                      ? Colors.white.withValues(alpha: 0.08)
+                      : Colors.black.withValues(alpha: 0.05))
                   : Colors.transparent,
             ),
             child: Row(
@@ -188,8 +207,9 @@ class _MenuActionTileState extends State<_MenuActionTile> {
                     widget.action.label,
                     style: menuStyle.textStyle.copyWith(
                       color: textColor,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.w500,
                     ),
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ],

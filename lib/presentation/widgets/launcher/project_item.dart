@@ -8,6 +8,7 @@ import '../../../core/utils/platform_strings.dart';
 import '../../../core/utils/string_utils.dart';
 import '../../../domain/models/project.dart';
 import '../../../domain/models/tool.dart';
+import '../../../domain/models/workspace.dart';
 import '../app_menu.dart';
 import '../tool_icon.dart';
 
@@ -25,6 +26,7 @@ class ProjectItemActions {
   final VoidCallback onShowInFinder;
   final VoidCallback onOpenInTerminal;
   final void Function(ToolId toolId) onOpenWith;
+  final void Function(String workspaceId)? onMoveToWorkspace;
   final VoidCallback onDelete;
 
   const ProjectItemActions({
@@ -33,6 +35,7 @@ class ProjectItemActions {
     required this.onShowInFinder,
     required this.onOpenInTerminal,
     required this.onOpenWith,
+    this.onMoveToWorkspace,
     required this.onDelete,
   });
 }
@@ -62,6 +65,7 @@ class ProjectItem extends StatefulWidget {
   final Project project;
   final List<Tool> installedTools;
   final ToolId? defaultToolId;
+  final List<Workspace> otherWorkspaces;
   final ProjectItemActions actions;
   final ProjectItemStatus status;
 
@@ -70,6 +74,7 @@ class ProjectItem extends StatefulWidget {
     required this.project,
     required this.installedTools,
     required this.defaultToolId,
+    this.otherWorkspaces = const [],
     required this.actions,
     this.status = const ProjectItemStatus(),
   });
@@ -86,6 +91,7 @@ class ProjectItemState extends State<ProjectItem> {
   Project get project => widget.project;
   List<Tool> get installedTools => widget.installedTools;
   ToolId? get defaultToolId => widget.defaultToolId;
+  List<Workspace> get otherWorkspaces => widget.otherWorkspaces;
 
   @override
   void initState() {
@@ -109,6 +115,7 @@ class ProjectItemState extends State<ProjectItem> {
       context: context,
       anchorRect: rect,
       installedTools: installedTools,
+      otherWorkspaces: otherWorkspaces,
       actions: actions,
     );
   }
@@ -179,6 +186,7 @@ class ProjectItemState extends State<ProjectItem> {
               else
                 _ProjectActionsMenu(
                   installedTools: installedTools,
+                  otherWorkspaces: otherWorkspaces,
                   actions: widget.actions,
                   menuController: _menuController,
                 ),
@@ -219,6 +227,7 @@ class ProjectItemState extends State<ProjectItem> {
       context: context,
       anchorRect: anchorRect,
       installedTools: installedTools,
+      otherWorkspaces: otherWorkspaces,
       actions: actions,
     );
   }
