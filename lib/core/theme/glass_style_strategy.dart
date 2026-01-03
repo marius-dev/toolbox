@@ -1,3 +1,5 @@
+import 'design_tokens.dart';
+
 /// Abstract strategy for glass style rendering.
 ///
 /// This interface defines all the visual properties needed to render
@@ -40,6 +42,42 @@ abstract class GlassStyleStrategy {
 
   /// Returns the shadow configuration.
   ShadowConfig shadowConfig(bool isDark);
+
+  /// Returns the highlight line opacity for top edge glass effect.
+  double highlightLineOpacity(bool isDark);
+
+  /// Returns the blur sigma for a specific depth layer.
+  double blurForDepth(GlassDepth depth) {
+    switch (depth) {
+      case GlassDepth.background:
+        return 0;
+      case GlassDepth.primary:
+        return blurSigma;
+      case GlassDepth.secondary:
+        return blurSigma * 0.6;
+      case GlassDepth.interactive:
+        return blurSigma * 0.4;
+      case GlassDepth.floating:
+        return blurSigma * 1.4;
+    }
+  }
+
+  /// Returns the opacity for a specific depth layer.
+  double opacityForDepth(GlassDepth depth, bool isDark) {
+    final base = surfaceOpacity(isDark);
+    switch (depth) {
+      case GlassDepth.background:
+        return 0;
+      case GlassDepth.primary:
+        return base;
+      case GlassDepth.secondary:
+        return base * 0.6;
+      case GlassDepth.interactive:
+        return base * 1.2;
+      case GlassDepth.floating:
+        return isDark ? 0.88 : 0.92;
+    }
+  }
 }
 
 /// Shadow configuration for glass effects.
@@ -56,6 +94,8 @@ class ShadowConfig {
 }
 
 /// Clear glass style strategy with minimal tinting and transparency.
+///
+/// Modern minimal aesthetic with subtle glass effects.
 class ClearGlassStrategy extends GlassStyleStrategy {
   const ClearGlassStrategy();
 
@@ -66,23 +106,23 @@ class ClearGlassStrategy extends GlassStyleStrategy {
   String get displayName => 'Clear';
 
   @override
-  double get blurSigma => 16.0;
+  double get blurSigma => 10.0; // Reduced from 16.0
 
   @override
-  double surfaceOpacity(bool isDark) => isDark ? 0.08 : 0.24;
+  double surfaceOpacity(bool isDark) => isDark ? 0.05 : 0.15; // Reduced from 0.08 : 0.24
 
   @override
   double accentOpacity(bool isDark) => 0.0; // No accent tint
 
   @override
-  double borderOpacity(bool isDark) => isDark ? 0.12 : 0.04;
+  double borderOpacity(bool isDark) => isDark ? 0.08 : 0.03; // Reduced from 0.12 : 0.04
 
   @override
   List<double> backgroundGradientOpacities(bool isDark) {
     if (isDark) {
-      return [0.32, 0.3, 0.42]; // start, middle, end
+      return [0.28, 0.26, 0.35]; // Softer, more uniform (was 0.32, 0.3, 0.42)
     } else {
-      return [0.55, 0.5, 0.38];
+      return [0.45, 0.42, 0.32]; // Brighter, cleaner (was 0.55, 0.5, 0.38)
     }
   }
 
@@ -90,19 +130,25 @@ class ClearGlassStrategy extends GlassStyleStrategy {
   double backgroundAccentOpacity(bool isDark) => 0.0; // No accent overlay
 
   @override
-  double glowOpacity() => 0.25;
+  double glowOpacity() => 0.18; // Reduced from 0.25
 
   @override
   ShadowConfig shadowConfig(bool isDark) {
     return ShadowConfig(
-      opacity: isDark ? 0.25 : 0.08,
-      blurRadius: 18.0,
-      offsetY: 10.0,
+      opacity: isDark ? 0.12 : 0.04, // Reduced from 0.25 : 0.08
+      blurRadius: 12.0, // Reduced from 18.0
+      offsetY: 6.0, // Reduced from 10.0
     );
   }
+
+  @override
+  double highlightLineOpacity(bool isDark) => isDark ? 0.06 : 0.03;
 }
 
-/// Tinted glass style strategy with stronger accent colors and deeper effects.
+/// Simplified tinted glass style with subtle accent hints.
+///
+/// Vibrant but simple - accent colors are used sparingly for visual interest
+/// without overwhelming the interface.
 class TintedGlassStrategy extends GlassStyleStrategy {
   const TintedGlassStrategy();
 
@@ -113,38 +159,44 @@ class TintedGlassStrategy extends GlassStyleStrategy {
   String get displayName => 'Tinted';
 
   @override
-  double get blurSigma => 24.0;
+  double get blurSigma => 12.0;
 
   @override
-  double surfaceOpacity(bool isDark) => isDark ? 0.12 : 0.32;
+  double surfaceOpacity(bool isDark) => isDark ? 0.06 : 0.18;
 
   @override
-  double accentOpacity(bool isDark) => isDark ? 0.2 : 0.15;
+  // Significantly reduced accent - subtle hint instead of prominent color
+  double accentOpacity(bool isDark) => isDark ? 0.04 : 0.05;
 
   @override
-  double borderOpacity(bool isDark) => isDark ? 0.2 : 0.08;
+  double borderOpacity(bool isDark) => isDark ? 0.10 : 0.04;
 
   @override
   List<double> backgroundGradientOpacities(bool isDark) {
     if (isDark) {
-      return [0.45, 0.38, 0.6]; // start, middle, end
+      return [0.40, 0.35, 0.50]; // Slightly deeper for contrast
     } else {
-      return [0.82, 0.8, 0.65];
+      return [0.75, 0.72, 0.60];
     }
   }
 
   @override
-  double backgroundAccentOpacity(bool isDark) => isDark ? 0.18 : 0.08;
+  // Minimal accent in background - just a hint of color
+  double backgroundAccentOpacity(bool isDark) => isDark ? 0.03 : 0.02;
 
   @override
-  double glowOpacity() => 0.6;
+  // Reduced glow for subtler ambient effect
+  double glowOpacity() => 0.20;
 
   @override
   ShadowConfig shadowConfig(bool isDark) {
     return ShadowConfig(
-      opacity: isDark ? 0.55 : 0.18,
-      blurRadius: 30.0,
-      offsetY: 16.0,
+      opacity: isDark ? 0.20 : 0.08,
+      blurRadius: 14.0,
+      offsetY: 6.0,
     );
   }
+
+  @override
+  double highlightLineOpacity(bool isDark) => isDark ? 0.08 : 0.04;
 }

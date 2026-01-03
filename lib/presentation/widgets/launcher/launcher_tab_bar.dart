@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/theme/design_tokens.dart';
 import '../../../core/theme/theme_extensions.dart';
 
 part 'launcher_tab_chip.dart';
@@ -19,13 +20,14 @@ class LauncherTabBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final accent = context.accentColor;
-    final outline = Theme.of(context).dividerColor.withOpacity(0.4);
+    // Subtler border for minimal look
+    final outline = Theme.of(context).dividerColor.withValues(alpha: 0.3);
     final baseText = Theme.of(context).textTheme.bodyMedium!.color!;
 
     return Container(
-      padding: EdgeInsets.all(context.compactValue(4)),
+      padding: EdgeInsets.all(context.compactValue(DesignTokens.space1)),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(DesignTokens.radiusXl),
         border: Border.all(color: outline),
       ),
       child: Row(
@@ -39,7 +41,7 @@ class LauncherTabBar extends StatelessWidget {
             textColor: baseText,
             onTap: () => onTabSelected(LauncherTab.projects),
           ),
-          SizedBox(width: context.compactValue(4)),
+          SizedBox(width: context.compactValue(DesignTokens.space1)),
           _ModeChip(
             label: 'Tools',
             icon: Icons.grid_view_rounded,

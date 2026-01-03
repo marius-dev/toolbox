@@ -73,6 +73,7 @@ class _InlineActionMenuButton extends StatelessWidget {
 
     return AppMenuButton<_ActionMenuOption>(
       tooltip: 'Add new items',
+      openOnHover: true,
       padding: EdgeInsets.zero,
       onSelected: (option) {
         switch (option) {

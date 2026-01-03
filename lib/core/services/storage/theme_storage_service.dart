@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../theme/glass_style.dart';
 import 'base_storage_service.dart';
 import 'storage_keys.dart';
 
@@ -49,14 +48,12 @@ class ThemeStorageService extends BaseStorageService {
     required ThemeMode themeMode,
     required int accentColor,
     required double appScale,
-    required GlassStyle glassStyle,
   }) async {
     final prefs = await readPreferences();
     prefs[StorageKeys.themeMode] = _themeModeToString(themeMode);
     prefs.remove(StorageKeys.isDark); // Remove legacy key
     prefs[StorageKeys.accentColor] = accentColor;
     prefs[StorageKeys.scale] = appScale;
-    prefs[StorageKeys.glassStyle] = glassStyle.storageKey;
     await writePreferences(prefs);
   }
 

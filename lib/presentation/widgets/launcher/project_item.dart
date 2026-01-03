@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../../../core/theme/design_tokens.dart';
 import '../../../core/theme/theme_extensions.dart';
 import '../../../core/utils/platform_strings.dart';
 import '../../../core/utils/string_utils.dart';
@@ -119,8 +120,9 @@ class ProjectItemState extends State<ProjectItem> {
     final accent = _softAccentColor(context.accentColor, context.isDark);
     final isHighlighted =
         status.isFocused || status.isHovering || status.isOpening;
-    final highlightColor = theme.dividerColor.withOpacity(
-      context.isDark ? 0.12 : 0.08,
+    // Reduced opacity for modern minimal aesthetic
+    final highlightColor = theme.dividerColor.withValues(
+      alpha: context.isDark ? 0.08 : 0.05,
     );
     final background = isHighlighted ? highlightColor : Colors.transparent;
     const borderColor = Colors.transparent;
@@ -130,13 +132,16 @@ class ProjectItemState extends State<ProjectItem> {
       onTap: isDisabled ? null : _handleTap,
       onSecondaryTapDown: isDisabled ? null : _openContextMenu,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        curve: Curves.easeOutCubic,
-        margin: EdgeInsets.only(bottom: context.compactValue(6)),
-        padding: EdgeInsets.symmetric(horizontal: context.compactValue(12)),
+        duration: GlassTransitions.hoverDuration,
+        curve: GlassTransitions.hoverCurve,
+        margin: EdgeInsets.only(bottom: context.compactValue(DesignTokens.space1)),
+        padding: EdgeInsets.symmetric(horizontal: context.compactValue(DesignTokens.space3)),
+        // Subtle lift on hover
+        transform: Matrix4.identity()
+          ..setTranslationRaw(0.0, isHighlighted ? -1.0 : 0.0, 0.0),
         decoration: BoxDecoration(
           color: background,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(DesignTokens.radiusLg),
           border: Border.all(color: borderColor, width: 1),
         ),
         child: SizedBox(

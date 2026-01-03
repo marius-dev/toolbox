@@ -42,10 +42,13 @@ class _MenuDivider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       height: 1,
       margin: EdgeInsets.symmetric(vertical: context.compactValue(4)),
-      color: Theme.of(context).dividerColor.withOpacity(0.35),
+      color: isDark
+          ? Colors.white.withValues(alpha: 0.08)
+          : Colors.black.withValues(alpha: 0.06),
     );
   }
 }

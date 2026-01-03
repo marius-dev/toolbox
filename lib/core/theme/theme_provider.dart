@@ -16,7 +16,6 @@ class ThemeProvider extends ChangeNotifier with WidgetsBindingObserver {
   ThemeMode _themeMode = ThemeMode.system;
   Brightness _platformBrightness = Brightness.dark;
   Color _accentColor = const Color(0xFF6366F1);
-  GlassStyle _glassStyle = GlassStyle.tinted;
   double _scaleFactor = 1.0;
 
   static const List<double> scaleOptions = [
@@ -32,7 +31,8 @@ class ThemeProvider extends ChangeNotifier with WidgetsBindingObserver {
 
   ThemeMode get themeMode => _themeMode;
   Color get accentColor => _accentColor;
-  GlassStyle get glassStyle => _glassStyle;
+  // Always use tinted glass style - simplified design
+  GlassStyle get glassStyle => GlassStyle.tinted;
   double get scaleFactor => _scaleFactor;
   double get effectiveScaleFactor => _mapToEffectiveScale(_scaleFactor);
   bool get isDarkMode => _effectiveBrightness == Brightness.dark;
@@ -56,13 +56,6 @@ class ThemeProvider extends ChangeNotifier with WidgetsBindingObserver {
 
   void setAccentColor(Color color) {
     _accentColor = color;
-    _saveThemePreferences();
-    notifyListeners();
-  }
-
-  void setGlassStyle(GlassStyle style) {
-    if (_glassStyle == style) return;
-    _glassStyle = style;
     _saveThemePreferences();
     notifyListeners();
   }
@@ -92,9 +85,6 @@ class ThemeProvider extends ChangeNotifier with WidgetsBindingObserver {
     final prefs = await _storageService.getThemePreferences();
     _themeMode = _themeModeFromString(prefs['themeMode'] as String?);
     _accentColor = Color(prefs['accentColor'] ?? 0xFF6366F1);
-    _glassStyle = GlassStyleExtension.fromString(
-      prefs['glassStyle'] as String?,
-    );
     final storedScale = prefs['scale'];
     final scaleValue = storedScale is num ? storedScale.toDouble() : 1.0;
     _scaleFactor = _normalizeScale(scaleValue);
@@ -118,7 +108,6 @@ class ThemeProvider extends ChangeNotifier with WidgetsBindingObserver {
       themeMode: _themeMode,
       accentColor: _accentColor.value,
       appScale: _scaleFactor,
-      glassStyle: _glassStyle,
     );
   }
 

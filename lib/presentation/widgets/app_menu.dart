@@ -1,5 +1,7 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import '../../core/theme/theme_extensions.dart';
+
+import '../../core/theme/design_tokens.dart';
 
 class AppMenuStyle {
   final Color backgroundColor;
@@ -27,23 +29,30 @@ class AppMenuStyle {
     final baseTextStyle =
         theme.textTheme.bodyMedium ?? const TextStyle(fontSize: 12);
     final baseTextColor = baseTextStyle.color ?? colorScheme.onSurface;
-    final borderColor = colorScheme.onSurface.withOpacity(isDark ? 0.08 : 0.06);
+
+    // Solid border for clear separation
+    final borderColor = isDark
+        ? Colors.white.withValues(alpha: 0.12)
+        : Colors.black.withValues(alpha: 0.08);
+
+    // Solid opaque backgrounds - no transparency
+    final backgroundColor = isDark
+        ? const Color(0xFF1C1C1E) // Dark solid gray (iOS-like)
+        : const Color(0xFFFAFAFA); // Light solid off-white
 
     return AppMenuStyle._(
-      backgroundColor: isDark
-          ? Colors.black.withOpacity(0.84)
-          : colorScheme.surface,
+      backgroundColor: backgroundColor,
       borderColor: borderColor,
       textStyle: baseTextStyle.copyWith(color: baseTextColor),
       mutedTextStyle: baseTextStyle.copyWith(
-        color: baseTextColor.withOpacity(0.4),
+        color: baseTextColor.withValues(alpha: 0.4),
       ),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: borderColor),
+        borderRadius: BorderRadius.circular(DesignTokens.radiusMd),
+        side: BorderSide(color: borderColor, width: 1),
       ),
-      offset: const Offset(0, 10),
-      elevation: 0,
+      offset: const Offset(0, 6),
+      elevation: isDark ? 12 : 8, // Proper shadow for depth
     );
   }
 
@@ -51,7 +60,7 @@ class AppMenuStyle {
       enabled ? textStyle.color! : mutedTextStyle.color!;
 }
 
-class AppMenuButton<T> extends StatelessWidget {
+class AppMenuButton<T> extends StatefulWidget {
   final PopupMenuItemBuilder<T> itemBuilder;
   final PopupMenuItemSelected<T>? onSelected;
   final Widget? child;
@@ -64,6 +73,7 @@ class AppMenuButton<T> extends StatelessWidget {
   final ShapeBorder? shape;
   final Color? color;
   final PopupMenuPosition position;
+  final bool openOnHover;
 
   const AppMenuButton({
     super.key,
@@ -79,25 +89,66 @@ class AppMenuButton<T> extends StatelessWidget {
     this.shape,
     this.color,
     this.position = PopupMenuPosition.over,
+    this.openOnHover = false,
   });
+
+  @override
+  State<AppMenuButton<T>> createState() => _AppMenuButtonState<T>();
+}
+
+class _AppMenuButtonState<T> extends State<AppMenuButton<T>> {
+  final GlobalKey<PopupMenuButtonState<T>> _menuKey =
+      GlobalKey<PopupMenuButtonState<T>>();
+  bool _menuOpen = false;
+
+  void _handleHoverEnter(PointerEnterEvent event) {
+    if (!widget.openOnHover || !widget.enabled || _menuOpen) return;
+    _menuOpen = true;
+    _menuKey.currentState?.showButtonMenu();
+  }
+
+  void _handleSelected(T value) {
+    _resetMenuState();
+    widget.onSelected?.call(value);
+  }
+
+  void _handleCanceled() {
+    _resetMenuState();
+  }
+
+  void _resetMenuState() {
+    _menuOpen = false;
+  }
 
   @override
   Widget build(BuildContext context) {
     final menuStyle = AppMenuStyle.of(context);
 
-    return PopupMenuButton<T>(
-      itemBuilder: itemBuilder,
-      onSelected: onSelected,
-      tooltip: tooltip,
-      padding: padding ?? const EdgeInsets.all(8),
-      offset: offset ?? menuStyle.offset,
-      color: color ?? menuStyle.backgroundColor,
-      shape: shape ?? menuStyle.shape,
-      elevation: elevation ?? menuStyle.elevation,
-      enabled: enabled,
-      position: position,
-      icon: icon,
-      child: child,
+    final menuButton = PopupMenuButton<T>(
+      key: _menuKey,
+      itemBuilder: widget.itemBuilder,
+      onSelected: _handleSelected,
+      onCanceled: _handleCanceled,
+      tooltip: widget.tooltip,
+      padding: widget.padding ?? const EdgeInsets.all(DesignTokens.space2),
+      offset: widget.offset ?? menuStyle.offset,
+      color: widget.color ?? menuStyle.backgroundColor,
+      shape: widget.shape ?? menuStyle.shape,
+      elevation: widget.elevation ?? menuStyle.elevation,
+      enabled: widget.enabled,
+      position: widget.position,
+      icon: widget.icon,
+      child: widget.child,
+    );
+
+    if (!widget.openOnHover) {
+      return menuButton;
+    }
+
+    return MouseRegion(
+      onEnter: _handleHoverEnter,
+      // onExit: _handleHoverExit,
+      child: menuButton,
     );
   }
 }

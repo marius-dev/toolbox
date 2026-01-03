@@ -1,10 +1,11 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import '../../core/theme/theme_extensions.dart';
 
 import '../../core/di/service_locator.dart';
+import '../../core/theme/design_tokens.dart';
 import '../../core/theme/glass_style.dart';
+import '../../core/theme/theme_extensions.dart';
 import '../../core/theme/theme_provider.dart';
 
 class GlowSpec {
@@ -52,34 +53,35 @@ class AppShell extends StatelessWidget {
           style: context.glassStyle,
           accentColor: context.accentColor,
         );
-        final borderRadius = BorderRadius.circular(26);
+        final borderRadius = BorderRadius.circular(DesignTokens.radius2xl);
         final sigma = blurSigma ?? palette.blurSigma;
+        // Very subtle aurora glows - vibrant but not overwhelming
         final glowSpecs =
             glows ??
             const [
               GlowSpec(
                 alignment: Alignment.topLeft,
-                offset: Offset(-36, -160),
-                size: 320,
-                opacity: 0.7,
+                offset: Offset(-48, -180),
+                size: 260,
+                opacity: 0.25, // Much subtler
                 angle: -0.55,
-                thickness: 0.36,
+                thickness: 0.24,
               ),
               GlowSpec(
                 alignment: Alignment.topRight,
-                offset: Offset(140, -60),
-                size: 260,
-                opacity: 0.36,
+                offset: Offset(160, -80),
+                size: 200,
+                opacity: 0.15, // Much subtler
                 angle: 0.48,
-                thickness: 0.32,
+                thickness: 0.20,
               ),
               GlowSpec(
                 alignment: Alignment.bottomRight,
-                offset: Offset(72, 200),
-                size: 420,
-                opacity: 0.82,
+                offset: Offset(90, 240),
+                size: 300,
+                opacity: 0.30, // Much subtler
                 angle: -0.2,
-                thickness: 0.4,
+                thickness: 0.26,
               ),
             ];
 
@@ -123,11 +125,12 @@ class AppShell extends StatelessWidget {
                         ),
                       ),
                     ),
+                    // Subtle overlay for depth
                     Positioned.fill(
                       child: ColoredBox(
                         color: palette.isDark
-                            ? Colors.black.withOpacity(0.16)
-                            : Colors.white.withOpacity(0.04),
+                            ? Colors.black.withValues(alpha: 0.10)
+                            : Colors.white.withValues(alpha: 0.02),
                       ),
                     ),
                     _GlowLayer(
@@ -203,23 +206,25 @@ class _AuroraBand extends StatelessWidget {
     required this.isDark,
   });
 
-  Color _tint(Color target, double amount) {
-    final blendWith = isDark ? Colors.white : Colors.black;
-    return Color.lerp(target, blendWith, amount)!;
-  }
-
   @override
   Widget build(BuildContext context) {
-    final halo = _tint(color, 0.18);
-    final highlight = _tint(color, isDark ? 0.52 : 0.68);
-    final depth = _tint(color, isDark ? 0.22 : 0.16);
+    // More sophisticated color derivation for subtle aurora
+    final hsl = HSLColor.fromColor(color);
+    final highlight = hsl
+        .withLightness((hsl.lightness + 0.25).clamp(0.0, 1.0))
+        .toColor();
+    final depth = hsl
+        .withSaturation((hsl.saturation - 0.15).clamp(0.0, 1.0))
+        .withLightness((hsl.lightness - 0.1).clamp(0.0, 1.0))
+        .toColor();
+    final secondary = hsl.withHue((hsl.hue + 30) % 360).toColor();
 
     return Transform.rotate(
       angle: angle,
       child: ImageFiltered(
         imageFilter: ImageFilter.blur(
-          sigmaX: height * 0.9,
-          sigmaY: height * 0.9,
+          sigmaX: height * 1.4, // More blur for softer appearance
+          sigmaY: height * 1.4,
         ),
         child: Container(
           width: width,
@@ -230,12 +235,12 @@ class _AuroraBand extends StatelessWidget {
               begin: const Alignment(-1.2, 0.8),
               end: const Alignment(1.1, -0.6),
               colors: [
-                highlight.withOpacity(opacity * 0.6),
-                color.withOpacity(opacity * 0.18),
-                depth.withOpacity(opacity * 0.6),
-                halo.withOpacity(opacity * 0.2),
+                highlight.withValues(alpha: opacity * 0.25),
+                color.withValues(alpha: opacity * 0.08),
+                secondary.withValues(alpha: opacity * 0.12),
+                depth.withValues(alpha: opacity * 0.20),
               ],
-              stops: const [0.0, 0.38, 0.78, 1.0],
+              stops: const [0.0, 0.35, 0.65, 1.0],
             ),
           ),
           foregroundDecoration: BoxDecoration(
@@ -244,7 +249,7 @@ class _AuroraBand extends StatelessWidget {
               begin: const Alignment(-0.8, -1.2),
               end: const Alignment(0.8, 1.0),
               colors: [
-                Colors.white.withOpacity(opacity * (isDark ? 0.14 : 0.1)),
+                Colors.white.withValues(alpha: opacity * (isDark ? 0.06 : 0.04)),
                 Colors.transparent,
               ],
             ),

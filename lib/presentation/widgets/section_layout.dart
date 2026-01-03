@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../core/theme/theme_extensions.dart';
 
-import '../../core/utils/compact_layout.dart';
+import '../../core/theme/design_tokens.dart';
+import '../../core/theme/theme_extensions.dart';
 import 'glass_button.dart';
 
 class SectionLayout extends StatelessWidget {
@@ -30,7 +30,7 @@ class SectionLayout extends StatelessWidget {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final labelColor = textTheme.bodyMedium?.color ?? Colors.black;
-    final secondaryColor = labelColor.withOpacity(0.8);
+    final secondaryColor = labelColor.withValues(alpha: 0.75);
 
     final body = expandBody ? Expanded(child: child) : child;
 
@@ -51,7 +51,7 @@ class SectionLayout extends StatelessWidget {
                   onPressed: onBack,
                 ),
               ),
-              SizedBox(width: context.compactValue(12)),
+              SizedBox(width: context.compactValue(DesignTokens.space3)),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -63,7 +63,7 @@ class SectionLayout extends StatelessWidget {
                           ) ??
                           const TextStyle(fontWeight: FontWeight.w800),
                     ),
-                    SizedBox(height: context.compactValue(4)),
+                    SizedBox(height: context.compactValue(DesignTokens.space1)),
                     Text(
                       subtitle,
                       style: textTheme.bodyMedium?.copyWith(
@@ -76,7 +76,7 @@ class SectionLayout extends StatelessWidget {
               ),
             ],
           ),
-          SizedBox(height: context.compactValue(12)),
+          SizedBox(height: context.compactValue(DesignTokens.space3)),
           body,
         ],
       ),

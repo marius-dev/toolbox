@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:project_launcher/core/theme/theme_provider.dart';
 
 import '../di/service_locator.dart';
+import 'design_tokens.dart';
 import 'glass_style.dart';
 
 class AppTheme {
@@ -15,21 +16,23 @@ class AppTheme {
     final colorScheme = _buildColorScheme(brightness);
     final glassStyle = getIt<ThemeProvider>().glassStyle;
     final isClearGlass = glassStyle == GlassStyle.clear;
+
+    // Refined colors for modern minimal aesthetic
     final backgroundColor = isDark
-        ? (isClearGlass ? const Color(0xFF03050C) : const Color(0xFF050A14))
-        : (isClearGlass ? const Color(0xFFFDFDFD) : const Color(0xFFF5F6FB));
+        ? (isClearGlass ? const Color(0xFF02040A) : const Color(0xFF040810))
+        : (isClearGlass ? const Color(0xFFFEFEFE) : const Color(0xFFF8F9FC));
     final surfaceColor = isDark
-        ? (isClearGlass ? const Color(0xFF121628) : const Color(0xFF151B2F))
-        : (isClearGlass ? Colors.white.withOpacity(0.96) : Colors.white);
+        ? (isClearGlass ? const Color(0xFF0E1220) : const Color(0xFF121828))
+        : (isClearGlass ? Colors.white.withValues(alpha: 0.98) : Colors.white);
     final elevatedSurface = isDark
-        ? (isClearGlass ? const Color(0xFF1A1E33) : const Color(0xFF1D2440))
-        : Colors.white.withOpacity(isClearGlass ? 0.92 : 0.96);
+        ? (isClearGlass ? const Color(0xFF161A2C) : const Color(0xFF1A2038))
+        : Colors.white.withValues(alpha: isClearGlass ? 0.95 : 0.98);
     final outlineColor = isDark
-        ? Colors.white.withOpacity(isClearGlass ? 0.06 : 0.08)
-        : Colors.black.withOpacity(isClearGlass ? 0.04 : 0.08);
+        ? Colors.white.withValues(alpha: isClearGlass ? 0.05 : 0.06)
+        : Colors.black.withValues(alpha: isClearGlass ? 0.03 : 0.05);
     final faintOutline = isDark
-        ? Colors.white.withOpacity(isClearGlass ? 0.03 : 0.04)
-        : Colors.black.withOpacity(isClearGlass ? 0.02 : 0.04);
+        ? Colors.white.withValues(alpha: isClearGlass ? 0.02 : 0.03)
+        : Colors.black.withValues(alpha: isClearGlass ? 0.015 : 0.03);
 
     return ThemeData(
       brightness: brightness,
@@ -43,7 +46,7 @@ class AppTheme {
       popupMenuTheme: PopupMenuThemeData(
         color: elevatedSurface,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(DesignTokens.radiusMd),
           side: BorderSide(color: outlineColor),
         ),
         elevation: 0,
@@ -57,25 +60,30 @@ class AppTheme {
         filled: true,
         fillColor: elevatedSurface,
         hintStyle: TextStyle(
-          color: isDark ? Colors.white.withOpacity(0.6) : Colors.black45,
+          color: isDark
+              ? Colors.white.withValues(alpha: 0.55)
+              : Colors.black.withValues(alpha: 0.4),
           fontSize: 12,
         ),
         labelStyle: TextStyle(
           color: isDark ? Colors.white70 : Colors.black54,
           fontSize: 12,
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: DesignTokens.space3,
+          vertical: DesignTokens.space2,
+        ),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(DesignTokens.radiusMd),
           borderSide: BorderSide(color: outlineColor),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(DesignTokens.radiusMd),
           borderSide: BorderSide(color: outlineColor),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(color: colorScheme.primary, width: 1.5),
+          borderRadius: BorderRadius.circular(DesignTokens.radiusMd),
+          borderSide: BorderSide(color: colorScheme.primary, width: 1.2),
         ),
       ),
 
@@ -83,7 +91,7 @@ class AppTheme {
         color: elevatedSurface,
         elevation: 0,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(DesignTokens.radiusLg),
           side: BorderSide(color: faintOutline),
         ),
       ),
@@ -91,7 +99,7 @@ class AppTheme {
       dialogTheme: DialogThemeData(
         backgroundColor: elevatedSurface,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(DesignTokens.radiusLg),
           side: BorderSide(color: outlineColor),
         ),
         titleTextStyle: TextStyle(
@@ -138,17 +146,23 @@ class AppTheme {
           backgroundColor: colorScheme.primary,
           foregroundColor: Colors.white,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(DesignTokens.radiusSm),
           ),
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          padding: const EdgeInsets.symmetric(
+            horizontal: DesignTokens.space4,
+            vertical: DesignTokens.space3,
+          ),
           textStyle: const TextStyle(fontWeight: FontWeight.w600),
         ),
       ),
 
       listTileTheme: ListTileThemeData(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(DesignTokens.radiusLg),
+        ),
         tileColor: surfaceColor,
-        selectedTileColor: colorScheme.primary.withOpacity(isDark ? 0.15 : 0.1),
+        selectedTileColor:
+            colorScheme.primary.withValues(alpha: isDark ? 0.12 : 0.08),
       ),
     );
   }
@@ -156,10 +170,10 @@ class AppTheme {
   static ColorScheme _buildColorScheme(Brightness brightness) {
     final accentColor = getIt<ThemeProvider>().accentColor;
     final isDark = brightness == Brightness.dark;
-    final background = isDark
-        ? const Color(0xFF050A14)
-        : const Color(0xFFF5F6FB);
-    final surface = isDark ? const Color(0xFF151B2F) : Colors.white;
+    final surface = isDark ? const Color(0xFF121828) : Colors.white;
+    final surfaceContainer = isDark
+        ? const Color(0xFF040810)
+        : const Color(0xFFF8F9FC);
 
     return ColorScheme(
       brightness: brightness,
@@ -171,8 +185,9 @@ class AppTheme {
       onError: Colors.white,
       surface: surface,
       onSurface: isDark ? Colors.white : Colors.black87,
-      background: background,
-      onBackground: isDark ? Colors.white : Colors.black87,
+      surfaceContainerLowest: surfaceContainer,
+      surfaceContainerLow: surfaceContainer,
+      surfaceContainer: surfaceContainer,
     );
   }
 }

@@ -1,6 +1,6 @@
 part of 'launcher_tab_bar.dart';
 
-class _ModeChip extends StatelessWidget {
+class _ModeChip extends StatefulWidget {
   final String label;
   final IconData icon;
   final bool isActive;
@@ -18,44 +18,66 @@ class _ModeChip extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    final inactiveColor = textColor.withOpacity(0.7);
+  State<_ModeChip> createState() => _ModeChipState();
+}
 
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 220),
-        curve: Curves.easeOutCubic,
-        padding: EdgeInsets.symmetric(
-          horizontal: context.compactValue(14),
-          vertical: context.compactValue(6),
-        ),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          color: isActive ? accent : Colors.transparent,
-          border: Border.all(
-            color: isActive ? accent : textColor.withOpacity(0.3),
+class _ModeChipState extends State<_ModeChip> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final inactiveColor = widget.textColor.withValues(alpha: 0.65);
+
+    // Hover effect for inactive chips
+    final backgroundColor = widget.isActive
+        ? widget.accent
+        : _isHovered
+            ? widget.accent.withValues(alpha: 0.12)
+            : Colors.transparent;
+
+    final borderColor = widget.isActive
+        ? widget.accent
+        : _isHovered
+            ? widget.accent.withValues(alpha: 0.3)
+            : widget.textColor.withValues(alpha: 0.2);
+
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: InkWell(
+        onTap: widget.onTap,
+        borderRadius: BorderRadius.circular(DesignTokens.radiusLg),
+        child: AnimatedContainer(
+          duration: GlassTransitions.hoverDuration,
+          curve: GlassTransitions.hoverCurve,
+          padding: EdgeInsets.symmetric(
+            horizontal: context.compactValue(DesignTokens.space4 - 2),
+            vertical: context.compactValue(DesignTokens.space1 + 2),
           ),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              icon,
-              size: context.compactValue(14),
-              color: isActive ? Colors.white : inactiveColor,
-            ),
-            SizedBox(width: context.compactValue(6)),
-            Text(
-              label,
-              style: TextStyle(
-                color: isActive ? Colors.white : inactiveColor,
-                fontSize: context.compactValue(13),
-                fontWeight: FontWeight.w600,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(DesignTokens.radiusLg),
+            color: backgroundColor,
+            border: Border.all(color: borderColor),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                widget.icon,
+                size: context.compactValue(DesignTokens.iconSm),
+                color: widget.isActive ? Colors.white : inactiveColor,
               ),
-            ),
-          ],
+              SizedBox(width: context.compactValue(DesignTokens.space1 + 2)),
+              Text(
+                widget.label,
+                style: TextStyle(
+                  color: widget.isActive ? Colors.white : inactiveColor,
+                  fontSize: context.compactValue(13),
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

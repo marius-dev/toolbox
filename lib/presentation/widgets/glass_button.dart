@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 
+import '../../core/theme/design_tokens.dart';
 import '../../core/theme/theme_colors.dart';
 import '../../core/theme/theme_extensions.dart';
 
-class GlassButton extends StatelessWidget {
+class GlassButton extends StatefulWidget {
   final IconData icon;
   final VoidCallback onPressed;
   final double size;
@@ -22,16 +23,24 @@ class GlassButton extends StatelessWidget {
   });
 
   @override
+  State<GlassButton> createState() => _GlassButtonState();
+}
+
+class _GlassButtonState extends State<GlassButton> {
+  bool _isHovered = false;
+
+  @override
   Widget build(BuildContext context) {
-    final accent = tintColor ?? context.accentColor;
+    final accent = widget.tintColor ?? context.accentColor;
     final baseColor = context.baseSurface;
     final highlight = context.highlightColor(accentColor: accent);
-    final baseBorder = context.borderColor(opacity: context.isDark ? 0.1 : 0.08);
-    final borderColor = tintColor == null
+    final baseBorder =
+        context.borderColor(opacity: context.isDark ? 0.08 : 0.05);
+    final borderColor = widget.tintColor == null
         ? baseBorder
         : context.accentBorderColor(accentColor: accent, baseBorder: baseBorder);
-    final resolvedIconColor = iconColor ??
-        (tintColor == null
+    final resolvedIconColor = widget.iconColor ??
+        (widget.tintColor == null
             ? context.iconColor()
             : context.accentWithOpacity(
                 accentColor: accent,
@@ -39,43 +48,63 @@ class GlassButton extends StatelessWidget {
                 lightOpacity: 0.85,
               ));
 
-    final resolvedSize = context.compactValue(size);
-    final button = Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onPressed,
-        borderRadius: BorderRadius.circular(8),
-        child: Container(
-          width: resolvedSize,
-          height: resolvedSize,
-          decoration: BoxDecoration(
-            borderRadius: context.compactRadius(10),
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [baseColor, Color.alphaBlend(highlight, baseColor)],
-            ),
-            border: Border.all(color: borderColor, width: 1),
-            boxShadow: [
-              if (context.isDark)
-                BoxShadow(
-                  color: ThemeColors.shadowColor(accent),
-                  blurRadius: 12,
-                  offset: const Offset(0, 6),
+    final resolvedSize = context.compactValue(widget.size);
+
+    final button = MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: AnimatedScale(
+        scale: _isHovered ? 1.02 : 1.0,
+        duration: GlassTransitions.hoverDuration,
+        curve: GlassTransitions.hoverCurve,
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: widget.onPressed,
+            borderRadius: BorderRadius.circular(DesignTokens.radiusSm),
+            child: AnimatedContainer(
+              duration: GlassTransitions.hoverDuration,
+              curve: GlassTransitions.hoverCurve,
+              width: resolvedSize,
+              height: resolvedSize,
+              decoration: BoxDecoration(
+                borderRadius: context.compactRadius(DesignTokens.radiusSm),
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    baseColor,
+                    Color.alphaBlend(highlight, baseColor),
+                  ],
                 ),
-            ],
-          ),
-          child: Icon(
-            icon,
-            color: resolvedIconColor,
-            size: context.compactValue(14),
+                border: Border.all(
+                  color: _isHovered
+                      ? borderColor.withValues(alpha: borderColor.a * 1.5)
+                      : borderColor,
+                  width: 1,
+                ),
+                boxShadow: [
+                  if (context.isDark)
+                    BoxShadow(
+                      color: ThemeColors.shadowColor(accent, opacity: 0.15),
+                      blurRadius: 8, // Reduced from 12
+                      offset: const Offset(0, 4), // Reduced from 6
+                    ),
+                ],
+              ),
+              child: Icon(
+                widget.icon,
+                color: resolvedIconColor,
+                size: context.compactValue(14),
+              ),
+            ),
           ),
         ),
       ),
     );
 
-    if (tooltip != null) {
-      return Tooltip(message: tooltip!, child: button);
+    if (widget.tooltip != null) {
+      return Tooltip(message: widget.tooltip!, child: button);
     }
 
     return button;

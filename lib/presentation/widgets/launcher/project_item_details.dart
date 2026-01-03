@@ -385,9 +385,10 @@ class _ProjectAvatar extends StatelessWidget {
         boxShadow: [
           if (!isDisabled)
             BoxShadow(
-              color: accentColor.withOpacity(0.35),
-              blurRadius: 16,
-              offset: const Offset(0, 6),
+              // Subtler shadow - less accent color prominence
+              color: accentColor.withOpacity(0.18),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
             ),
         ],
       ),
@@ -412,16 +413,16 @@ class _LeftAccent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedOpacity(
-      opacity: isVisible ? 1 : 0,
-      duration: const Duration(milliseconds: 180),
-      child: Container(
-        width: 3,
-        height: 32,
-        decoration: BoxDecoration(
-          color: color.withOpacity(0.9),
-          borderRadius: BorderRadius.circular(3),
-        ),
+    // Animate height for smoother appearance
+    return AnimatedContainer(
+      duration: GlassTransitions.stateDuration,
+      curve: GlassTransitions.stateCurve,
+      width: 3,
+      height: isVisible ? 22 : 0, // Slightly shorter
+      decoration: BoxDecoration(
+        // Subtler accent indicator
+        color: color.withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(2),
       ),
     );
   }
@@ -470,7 +471,7 @@ Gradient _projectAvatarGradient(String name, Color accentColor) {
   final angle = (name.hashCode % 360) * (math.pi / 180);
   final startAlignment = Alignment(math.cos(angle), math.sin(angle));
   final endAlignment = Alignment(-startAlignment.x, -startAlignment.y);
-  final midColor = Color.lerp(colors.first, colors.last, 0.5)!.withOpacity(0.9);
+  final midColor = Color.lerp(colors.first, colors.last, 0.5)!.withValues(alpha: 0.9);
 
   return LinearGradient(
     begin: startAlignment,
@@ -482,10 +483,11 @@ Gradient _projectAvatarGradient(String name, Color accentColor) {
 
 List<Color> _projectAvatarGradientColors(String name, Color accentColor) {
   final randomColor = _projectAvatarRandomColor(name);
-  final mixedColor = Color.lerp(randomColor, accentColor, 0.35)!;
+  // Reduced accent mix-in for subtler influence
+  final mixedColor = Color.lerp(randomColor, accentColor, 0.20)!;
   return [
-    _adjustLightness(randomColor, 0.12),
-    _adjustLightness(mixedColor, -0.08),
+    _adjustLightness(randomColor, 0.10),
+    _adjustLightness(mixedColor, -0.06),
   ];
 }
 

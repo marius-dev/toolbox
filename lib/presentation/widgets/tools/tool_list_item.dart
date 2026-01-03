@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+
+import '../../../core/theme/design_tokens.dart';
 import '../../../core/theme/theme_extensions.dart';
-import '../../../core/utils/compact_layout.dart';
 import '../../../domain/models/tool.dart';
 import '../tool_icon.dart';
 import 'tool_actions_menu.dart';
@@ -37,29 +38,30 @@ class _ToolListItemState extends State<ToolListItem> {
     final accent = softAccentColor(context.accentColor, isDark);
     final textColor = theme.textTheme.bodyLarge!.color!;
     final mutedText = theme.textTheme.bodyMedium!.color!;
+    // Reduced opacities for modern minimal aesthetic
     final background = widget.isDefault
-        ? accent.withOpacity(isDark ? 0.22 : 0.12)
+        ? accent.withValues(alpha: isDark ? 0.16 : 0.08)
         : _isHovering
-        ? theme.dividerColor.withOpacity(isDark ? 0.12 : 0.08)
-        : Colors.transparent;
+            ? theme.dividerColor.withValues(alpha: isDark ? 0.08 : 0.05)
+            : Colors.transparent;
     final borderColor = widget.isDefault
-        ? accent.withOpacity(0.82)
+        ? accent.withValues(alpha: 0.65)
         : _isHovering
-        ? theme.dividerColor.withOpacity(isDark ? 0.4 : 0.32)
-        : Colors.transparent;
+            ? theme.dividerColor.withValues(alpha: isDark ? 0.28 : 0.22)
+            : Colors.transparent;
 
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovering = true),
       onExit: (_) => setState(() => _isHovering = false),
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        curve: Curves.easeOutCubic,
+        duration: GlassTransitions.hoverDuration,
+        curve: GlassTransitions.hoverCurve,
         padding: EdgeInsets.symmetric(
-          horizontal: context.compactValue(12),
+          horizontal: context.compactValue(DesignTokens.space3),
         ),
         decoration: BoxDecoration(
           color: background,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(DesignTokens.radiusLg),
           border: Border.all(
             color: borderColor,
             width: widget.isDefault ? 1.2 : 1,

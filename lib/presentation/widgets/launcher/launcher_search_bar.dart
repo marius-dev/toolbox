@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../../core/theme/design_tokens.dart';
 import '../../../core/theme/theme_extensions.dart';
 import '../app_menu.dart';
 import '../../screens/launcher/launcher_intents.dart';
@@ -31,8 +32,8 @@ class LauncherSearchBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final padding = context.compactPadding(
-      horizontal: 10,
-      vertical: 12,
+      horizontal: DesignTokens.space3,
+      vertical: DesignTokens.space3,
     );
     final hasActions = onAddProject != null || onImportFromGit != null;
 
@@ -51,10 +52,13 @@ class LauncherSearchBar extends StatelessWidget {
 
   Widget _buildSearchField(BuildContext context, bool hasActions) {
     final baseColor = Theme.of(context).textTheme.bodyLarge!.color!;
+    // Glass-style input background
     final fillColor = context.isDark
-        ? Colors.black.withOpacity(0.5)
-        : Colors.white.withOpacity(0.9);
-    final borderColor = baseColor.withOpacity(context.isDark ? 0.26 : 0.12);
+        ? Colors.black.withValues(alpha: 0.35)
+        : Colors.white.withValues(alpha: 0.85);
+    final borderColor = baseColor.withValues(
+      alpha: context.isDark ? 0.18 : 0.08,
+    );
     final accentColor = context.accentColor;
     final isMac = defaultTargetPlatform == TargetPlatform.macOS;
 
@@ -107,11 +111,13 @@ class LauncherSearchBar extends StatelessWidget {
                   filled: true,
                   fillColor: fillColor,
                   hintText: 'Type to search ...',
-                  hintStyle: TextStyle(color: baseColor.withOpacity(0.5)),
+                  hintStyle: TextStyle(
+                    color: baseColor.withValues(alpha: 0.45),
+                  ),
                   prefixIcon: Icon(
                     Icons.search_rounded,
-                    size: 18,
-                    color: baseColor.withOpacity(0.7),
+                    size: DesignTokens.iconLg,
+                    color: baseColor.withValues(alpha: 0.65),
                   ),
                   prefixIconConstraints: const BoxConstraints(
                     minWidth: 48,
@@ -134,16 +140,16 @@ class LauncherSearchBar extends StatelessWidget {
                     minHeight: 48,
                   ),
                   contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 4,
-                    vertical: 18,
+                    horizontal: DesignTokens.space1,
+                    vertical: DesignTokens.space5 - 2,
                   ),
                   enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(DesignTokens.radiusLg),
                     borderSide: BorderSide(color: borderColor),
                   ),
                   focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    borderSide: BorderSide(color: accentColor, width: 1.4),
+                    borderRadius: BorderRadius.circular(DesignTokens.radiusLg),
+                    borderSide: BorderSide(color: accentColor, width: 1.2),
                   ),
                 ),
               ),

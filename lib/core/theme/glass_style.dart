@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 
+import 'design_tokens.dart';
 import 'glass_style_strategy.dart';
+
+export 'design_tokens.dart' show GlassDepth, GlassShadows, GlassTransitions, DesignTokens;
 
 /// Glass style enumeration for UI theming.
 ///
@@ -160,11 +163,27 @@ class GlassStylePalette {
     final config = _strategy.shadowConfig(isDark);
     return [
       BoxShadow(
-        color: Colors.black.withOpacity(config.opacity),
+        color: Colors.black.withValues(alpha: config.opacity),
         blurRadius: config.blurRadius,
         offset: Offset(0, config.offsetY),
       ),
     ];
+  }
+
+  /// Returns the blur sigma for a specific depth layer.
+  double blurForDepth(GlassDepth depth) => _strategy.blurForDepth(depth);
+
+  /// Returns the surface opacity for a specific depth layer.
+  double opacityForDepth(GlassDepth depth) =>
+      _strategy.opacityForDepth(depth, isDark);
+
+  /// Returns the highlight line opacity for top edge effects.
+  double get highlightLineOpacity => _strategy.highlightLineOpacity(isDark);
+
+  /// Returns the surface color for a specific depth layer.
+  Color surfaceColorForDepth(GlassDepth depth) {
+    final opacity = opacityForDepth(depth);
+    return Colors.white.withValues(alpha: opacity);
   }
 }
 

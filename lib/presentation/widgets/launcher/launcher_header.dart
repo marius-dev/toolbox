@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+import '../../../core/theme/design_tokens.dart';
 import '../../../core/theme/theme_extensions.dart';
 import '../../../domain/models/workspace.dart';
 import '../app_menu.dart';
@@ -39,14 +40,15 @@ class LauncherHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
-    final labelColor = textTheme.bodySmall!.color!.withOpacity(0.8);
+    final labelColor = textTheme.bodySmall!.color!.withValues(alpha: 0.75);
 
+    // Reduced padding for minimal look
     return Container(
       padding: context.compactPaddingOnly(
-        left: 10,
-        top: 16,
-        right: 10,
-        bottom: 8,
+        left: DesignTokens.space3,
+        top: DesignTokens.space4 - 2,
+        right: DesignTokens.space3,
+        bottom: DesignTokens.space2,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -69,17 +71,17 @@ class LauncherHeader extends StatelessWidget {
                 onSelect: onWorkspaceSelected,
                 onManage: onManageWorkspaces,
               ),
-              SizedBox(width: context.compactValue(6)),
+              SizedBox(width: context.compactValue(DesignTokens.space1 + 2)),
               _SyncButton(
                 onPressed: onSyncMetadata,
                 isSyncing: isSyncing,
                 hasSyncErrors: hasSyncErrors,
               ),
-              SizedBox(width: context.compactValue(8)),
+              SizedBox(width: context.compactValue(DesignTokens.space2)),
               _PreferencesButton(onPressed: onPreferencesPressed),
             ],
           ),
-          SizedBox(height: context.compactValue(10)),
+          SizedBox(height: context.compactValue(DesignTokens.space2)),
           Text(
             selectedTab == LauncherTab.projects
                 ? 'Projects toolbox'
@@ -88,7 +90,7 @@ class LauncherHeader extends StatelessWidget {
               fontWeight: FontWeight.w700,
             ),
           ),
-          SizedBox(height: context.compactValue(2)),
+          SizedBox(height: context.compactValue(1)),
           Text(
             selectedTab == LauncherTab.projects
                 ? 'Search and open projects instantly'

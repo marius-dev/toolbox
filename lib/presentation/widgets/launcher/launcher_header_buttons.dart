@@ -41,6 +41,7 @@ class _WorkspaceSelector extends StatelessWidget {
 
     return AppMenuButton<_WorkspaceMenuAction>(
       tooltip: 'Switch workspace',
+      openOnHover: true,
       padding: EdgeInsets.zero,
       onSelected: (action) {
         switch (action.type) {
@@ -119,9 +120,7 @@ class _WorkspaceSelector extends StatelessWidget {
         message: label,
         waitDuration: const Duration(milliseconds: 120),
         child: Container(
-          padding: EdgeInsets.symmetric(
-            horizontal: context.compactValue(10),
-          ),
+          padding: EdgeInsets.symmetric(horizontal: context.compactValue(10)),
           height: context.compactValue(28),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(12),

@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:project_launcher/core/services/storage/theme_storage_service.dart';
-import 'package:project_launcher/core/theme/glass_style.dart';
 
 import '../../../test_helpers/path_provider_stub.dart';
 
@@ -45,7 +44,6 @@ void main() {
           themeMode: ThemeMode.dark,
           accentColor: 0xFFFF0000,
           appScale: 1.2,
-          glassStyle: GlassStyle.clear,
         );
 
         final prefs = await service.getThemePreferences();
@@ -53,7 +51,6 @@ void main() {
         expect(prefs['themeMode'], equals('dark'));
         expect(prefs['accentColor'], equals(0xFFFF0000));
         expect(prefs['scale'], equals(1.2));
-        expect(prefs['glassStyle'], equals('clear'));
       },
     );
 
@@ -63,7 +60,6 @@ void main() {
         themeMode: ThemeMode.dark,
         accentColor: 0xFF000000,
         appScale: 1.0,
-        glassStyle: GlassStyle.tinted,
       );
       var prefs = await service.getThemePreferences();
       expect(prefs['themeMode'], equals('dark'));
@@ -73,7 +69,6 @@ void main() {
         themeMode: ThemeMode.light,
         accentColor: 0xFF000000,
         appScale: 1.0,
-        glassStyle: GlassStyle.tinted,
       );
       prefs = await service.getThemePreferences();
       expect(prefs['themeMode'], equals('light'));
@@ -83,32 +78,9 @@ void main() {
         themeMode: ThemeMode.system,
         accentColor: 0xFF000000,
         appScale: 1.0,
-        glassStyle: GlassStyle.tinted,
       );
       prefs = await service.getThemePreferences();
       expect(prefs['themeMode'], equals('system'));
-    });
-
-    test('supports all GlassStyle values', () async {
-      // Test clear
-      await service.saveThemePreferences(
-        themeMode: ThemeMode.system,
-        accentColor: 0xFF000000,
-        appScale: 1.0,
-        glassStyle: GlassStyle.clear,
-      );
-      var prefs = await service.getThemePreferences();
-      expect(prefs['glassStyle'], equals('clear'));
-
-      // Test tinted
-      await service.saveThemePreferences(
-        themeMode: ThemeMode.system,
-        accentColor: 0xFF000000,
-        appScale: 1.0,
-        glassStyle: GlassStyle.tinted,
-      );
-      prefs = await service.getThemePreferences();
-      expect(prefs['glassStyle'], equals('tinted'));
     });
 
     test('legacy isDark flag is converted to themeMode', () async {
@@ -132,7 +104,6 @@ void main() {
         themeMode: ThemeMode.light,
         accentColor: 0xFF000000,
         appScale: 1.0,
-        glassStyle: GlassStyle.tinted,
       );
 
       // Verify isDark is removed

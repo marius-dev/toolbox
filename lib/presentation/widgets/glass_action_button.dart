@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/theme/design_tokens.dart';
 import '../../core/theme/theme_extensions.dart';
 
 class GlassActionButton extends StatelessWidget {
@@ -25,50 +26,60 @@ class GlassActionButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final palette = context.glassColors();
-    final accent = danger ? context.theme.colorScheme.error : context.accentColor;
+    final accent =
+        danger ? context.theme.colorScheme.error : context.accentColor;
     final base = palette.innerColor;
 
+    // Subtler gradients for modern minimal aesthetic
     final gradient = primary
         ? [
-            accent.withOpacity(_enabled ? 0.95 : 0.6),
-            accent.withOpacity(_enabled ? 0.78 : 0.4),
+            accent.withValues(alpha: _enabled ? 0.90 : 0.55),
+            accent.withValues(alpha: _enabled ? 0.70 : 0.35),
           ]
         : [
             base,
-            Color.alphaBlend(accent.withOpacity(_enabled ? 0.12 : 0.08), base),
+            Color.alphaBlend(
+              accent.withValues(alpha: _enabled ? 0.08 : 0.05),
+              base,
+            ),
           ];
 
     final borderColor = primary
-        ? Colors.white.withOpacity(_enabled ? 0.45 : 0.25)
-        : palette.borderColor.withOpacity(_enabled ? 0.9 : 0.6);
+        ? Colors.white.withValues(alpha: _enabled ? 0.35 : 0.18)
+        : palette.borderColor.withValues(
+            alpha: palette.borderColor.a * (_enabled ? 0.85 : 0.55),
+          );
 
+    // Reduced shadows for minimal look
     final shadow = primary
         ? [
             BoxShadow(
-              color: accent.withOpacity(_enabled ? 0.35 : 0.18),
-              blurRadius: 20,
-              offset: const Offset(0, 10),
+              color: accent.withValues(alpha: _enabled ? 0.25 : 0.12),
+              blurRadius: 14, // Reduced from 20
+              offset: const Offset(0, 6), // Reduced from 10
             ),
           ]
         : [
             BoxShadow(
               color: context.surfaceColor(
-                opacity: context.isDark ? 0.22 : 0.08,
+                opacity: context.isDark ? 0.16 : 0.06,
               ),
-              blurRadius: 14,
-              offset: const Offset(0, 8),
+              blurRadius: 10, // Reduced from 14
+              offset: const Offset(0, 5), // Reduced from 8
             ),
           ];
 
     final defaultIconColor = primary
         ? Colors.white
-        : context.theme.iconTheme.color?.withOpacity(_enabled ? 0.9 : 0.5) ??
-              Colors.white;
+        : context.theme.iconTheme.color?.withValues(
+              alpha: _enabled ? 0.9 : 0.5,
+            ) ??
+            Colors.white;
     final iconColor = foregroundColor ?? defaultIconColor;
     final textColor =
         foregroundColor ?? (primary ? Colors.white : defaultIconColor);
-    final radius = BorderRadius.circular(10);
-    final height = context.compactValue(46);
+    final radius = BorderRadius.circular(DesignTokens.radiusSm);
+    final height = context.compactValue(DesignTokens.buttonHeight + 8);
 
     return Opacity(
       opacity: _enabled ? 1 : 0.65,
@@ -77,11 +88,11 @@ class GlassActionButton extends StatelessWidget {
         child: InkWell(
           onTap: onPressed,
           borderRadius: radius,
-          splashColor: accent.withOpacity(0.12),
+          splashColor: accent.withValues(alpha: 0.10),
           highlightColor: Colors.transparent,
           child: Ink(
             height: height,
-            padding: context.compactPadding(horizontal: 16),
+            padding: context.compactPadding(horizontal: DesignTokens.space4),
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
@@ -97,15 +108,15 @@ class GlassActionButton extends StatelessWidget {
               children: [
                 Icon(
                   icon,
-                  size: context.compactValue(18),
+                  size: context.compactValue(DesignTokens.iconLg),
                   color: iconColor,
                 ),
-                SizedBox(width: context.compactValue(10)),
+                SizedBox(width: context.compactValue(DesignTokens.space3)),
                 Text(
                   label,
                   style: context.theme.textTheme.bodyMedium!.copyWith(
                     color: textColor,
-                    fontWeight: FontWeight.w700,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ],
