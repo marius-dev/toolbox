@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import '../../core/theme/theme_extensions.dart';
 
 import '../../domain/models/tool.dart';
 

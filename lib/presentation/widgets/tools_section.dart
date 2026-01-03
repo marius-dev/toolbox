@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../../core/theme/theme_extensions.dart';
-import '../../core/utils/compact_layout.dart';
 import '../../domain/models/tool.dart';
 import 'launcher/project_list_scroll_behavior.dart';
 import 'tools/tool_list_item.dart';

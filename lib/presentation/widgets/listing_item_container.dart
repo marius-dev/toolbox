@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/theme_extensions.dart';
 
-import '../../core/theme/theme_provider.dart';
-
 class ListingItemContainer extends StatelessWidget {
   final Widget child;
   final EdgeInsetsGeometry padding;

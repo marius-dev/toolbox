@@ -8,8 +8,6 @@ import '../../core/theme/theme_extensions.dart';
 
 import '../../core/di/service_locator.dart';
 import '../../core/services/window_service.dart';
-import '../../core/theme/theme_provider.dart';
-import '../../core/utils/compact_layout.dart';
 import '../../domain/models/project.dart';
 import '../../domain/models/tool.dart';
 import '../../domain/models/workspace.dart';
@@ -369,8 +367,7 @@ class _WorkspacesScreenState extends State<WorkspacesScreen>
   }
 
   Widget _buildContent(BuildContext context, Duration duration, Curve curve) {
-    final horizontalPadding =
-        context.compactPadding(horizontal: 18);
+    final horizontalPadding = context.compactPadding(horizontal: 18);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -407,9 +404,7 @@ class _WorkspacesScreenState extends State<WorkspacesScreen>
       builder: (context, _) {
         if (widget.workspaceProvider.isLoading) {
           return Center(
-            child: CircularProgressIndicator(
-              color: context.accentColor,
-            ),
+            child: CircularProgressIndicator(color: context.accentColor),
           );
         }
         final workspaces = widget.workspaceProvider.workspaces;
@@ -437,10 +432,7 @@ class _WorkspacesScreenState extends State<WorkspacesScreen>
                 thickness: 4,
                 child: ListView.builder(
                   controller: _scrollController,
-                  padding: context.compactPadding(
-                    horizontal: 12,
-                    vertical: 12,
-                  ),
+                  padding: context.compactPadding(horizontal: 12, vertical: 12),
                   itemCount: workspaces.length,
                   itemBuilder: (context, index) {
                     final workspace = workspaces[index];
@@ -566,9 +558,7 @@ class _WorkspaceRowState extends State<_WorkspaceRow> {
           duration: const Duration(milliseconds: 200),
           curve: Curves.easeOutCubic,
           margin: EdgeInsets.only(bottom: context.compactValue(6)),
-          padding: EdgeInsets.symmetric(
-            horizontal: context.compactValue(12),
-          ),
+          padding: EdgeInsets.symmetric(horizontal: context.compactValue(12)),
           decoration: BoxDecoration(
             color: background,
             borderRadius: BorderRadius.circular(16),

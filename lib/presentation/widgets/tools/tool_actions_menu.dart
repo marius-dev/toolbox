@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/theme_extensions.dart';
-import '../../../core/utils/compact_layout.dart';
 import '../../../domain/models/tool.dart';
 import '../app_menu.dart';
 

@@ -63,7 +63,9 @@ class StackState {
     add('kotlin', (extCounts['.kt'] ?? 0));
     add('swift', (extCounts['.swift'] ?? 0));
 
-    for (final l in languages) add(l, 50);
+    for (final l in languages) {
+      add(l, 50);
+    }
 
     if (weights.isNotEmpty) {
       final best = weights.entries.toList()

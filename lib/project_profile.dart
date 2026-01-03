@@ -348,7 +348,7 @@ class ProjectScanner {
     if (!gitignorePresent) {
       try {
         gitignorePresent = await File(
-          '${rootPath}${Platform.pathSeparator}.gitignore',
+          '$rootPath${Platform.pathSeparator}.gitignore',
         ).exists();
       } catch (_) {
         gitignorePresent = false;
@@ -470,10 +470,11 @@ class ProjectScanner {
             .map((l) => l.trimRight())
             .where((l) => l.isNotEmpty);
         for (final l in lines) {
-          if (l.startsWith('??'))
+          if (l.startsWith('??')) {
             untracked = (untracked ?? 0) + 1;
-          else
+          } else {
             modified = (modified ?? 0) + 1;
+          }
         }
         dirty = (modified ?? 0) + (untracked ?? 0) > 0;
       } else {
@@ -485,7 +486,7 @@ class ProjectScanner {
       // Submodules
       final submodules = <Map<String, dynamic>>[];
       if (repoRoot.exitCode == 0 && repoRootOut.isNotEmpty) {
-        final gm = File('${repoRootOut}${Platform.pathSeparator}.gitmodules');
+        final gm = File('$repoRootOut${Platform.pathSeparator}.gitmodules');
         try {
           if (await gm.exists()) {
             final text = await gm.readAsString();
@@ -583,8 +584,9 @@ class ProjectScanner {
     // Docs / ADR / CI dirs
     if (name.toLowerCase() == 'docs') docs.hasArchitectureDocs = true;
     if (name.toLowerCase() == 'adr') docs.hasArchitectureDocs = true;
-    if (name == '.github')
+    if (name == '.github') {
       process.ciSystems.add('github_actions?'); // refined by workflows dir
+    }
     if (name == '.circleci') {
       process.hasCi = true;
       process.ciSystems.add('circleci');
@@ -594,11 +596,13 @@ class ProjectScanner {
     }
 
     // IaC dirs
-    if (name.toLowerCase() == 'helm' || name.toLowerCase() == 'charts')
+    if (name.toLowerCase() == 'helm' || name.toLowerCase() == 'charts') {
       stack.kubernetesHelm = true;
+    }
     if (name.toLowerCase() == 'kustomize') stack.kubernetesKustomize = true;
-    if (name.toLowerCase() == 'manifests' || name.toLowerCase() == 'k8s')
+    if (name.toLowerCase() == 'manifests' || name.toLowerCase() == 'k8s') {
       stack.kubernetesManifests = true;
+    }
   }
 
   void _updateMarkersForFile(
@@ -726,10 +730,12 @@ class ProjectScanner {
     if (name == 'symfony.lock') stack.frameworks.add('symfony');
     if (lower == 'artisan') stack.frameworks.add('laravel');
     if (name == 'angular.json') stack.frameworks.add('angular');
-    if (name == 'next.config.js' || name == 'next.config.mjs')
+    if (name == 'next.config.js' || name == 'next.config.mjs') {
       stack.frameworks.add('nextjs');
-    if (name == 'vite.config.js' || name == 'vite.config.ts')
+    }
+    if (name == 'vite.config.js' || name == 'vite.config.ts') {
       stack.buildTools.add('vite');
+    }
     if (name == 'webpack.config.js') stack.buildTools.add('webpack');
     if (name == 'tsconfig.json') {
       stack.languages.add('typescript');
@@ -761,9 +767,9 @@ class ProjectScanner {
     final hasDocker = stack.containerDockerfile || stack.containerCompose;
 
     String type = 'unknown';
-    if (hasInfra || hasHelm)
+    if (hasInfra || hasHelm) {
       type = 'infra';
-    else if (hasSrc)
+    } else if (hasSrc)
       type = 'app';
     else if (topLevelEntries.contains('packages') ||
         topLevelEntries.contains('services'))
@@ -794,8 +800,9 @@ class ProjectScanner {
     if (hasDocker) score += 10;
     if (stack.kubernetesHelm ||
         stack.kubernetesManifests ||
-        stack.kubernetesKustomize)
+        stack.kubernetesKustomize) {
       score += 10;
+    }
     if (score > 100) score = 100;
 
     final domainGuess = _domainGuessFromName(rootBasename);

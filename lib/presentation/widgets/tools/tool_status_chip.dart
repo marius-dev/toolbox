@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/theme_extensions.dart';
-import '../../../core/utils/compact_layout.dart';
 
 class ToolStatusChip extends StatelessWidget {
   final String label;

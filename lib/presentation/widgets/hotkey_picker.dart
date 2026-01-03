@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:hotkey_manager/hotkey_manager.dart';
-import '../../core/theme/theme_extensions.dart';
 
 import '../../core/di/service_locator.dart';
 import '../../core/services/hotkey_service.dart';

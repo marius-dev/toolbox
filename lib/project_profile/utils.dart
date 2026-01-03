@@ -45,7 +45,8 @@ String relPath(String root, String full) {
   final rp = root.endsWith(Platform.pathSeparator)
       ? root
       : '$root${Platform.pathSeparator}';
-  if (full.startsWith(rp))
+  if (full.startsWith(rp)) {
     return full.substring(rp.length).replaceAll('\\', '/');
+  }
   return full.replaceAll('\\', '/');
 }

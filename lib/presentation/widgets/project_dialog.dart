@@ -6,7 +6,6 @@ import '../../core/di/service_locator.dart';
 import '../../core/services/tool_discovery_service.dart';
 import '../../core/services/window_service.dart';
 import '../../core/theme/glass_style.dart';
-import '../../core/utils/compact_layout.dart';
 import '../../domain/models/project.dart';
 import '../../domain/models/tool.dart';
 import 'tool_icon.dart';
@@ -14,11 +13,8 @@ import 'tool_icon.dart';
 class ProjectDialog extends StatefulWidget {
   final Project? project;
   final ToolId? defaultToolId;
-  final Future<void> Function(
-    String name,
-    String path,
-    ToolId? preferredToolId,
-  ) onSave;
+  final Future<void> Function(String name, String path, ToolId? preferredToolId)
+  onSave;
 
   const ProjectDialog({
     super.key,
@@ -79,7 +75,8 @@ class _ProjectDialogState extends State<ProjectDialog> {
       ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
 
     ToolId? initialId;
-    final preferredToolId = widget.project?.lastUsedToolId ?? widget.defaultToolId;
+    final preferredToolId =
+        widget.project?.lastUsedToolId ?? widget.defaultToolId;
     if (preferredToolId != null &&
         installed.any((tool) => tool.id == preferredToolId)) {
       initialId = preferredToolId;
@@ -118,8 +115,7 @@ class _ProjectDialogState extends State<ProjectDialog> {
 
   Future<void> _save() async {
     if (!_canSave) return;
-    final preferredToolId =
-        _selectedToolId ?? widget.project?.lastUsedToolId;
+    final preferredToolId = _selectedToolId ?? widget.project?.lastUsedToolId;
     await widget.onSave(
       _nameController.text.trim(),
       _pathController.text.trim(),
@@ -257,9 +253,7 @@ class _ProjectDialogState extends State<ProjectDialog> {
       return SizedBox(
         height: context.compactValue(100),
         child: Center(
-          child: CircularProgressIndicator(
-            color: context.accentColor,
-          ),
+          child: CircularProgressIndicator(color: context.accentColor),
         ),
       );
     }
@@ -272,9 +266,7 @@ class _ProjectDialogState extends State<ProjectDialog> {
     }
 
     return ConstrainedBox(
-      constraints: BoxConstraints(
-        maxHeight: context.compactValue(220),
-      ),
+      constraints: BoxConstraints(maxHeight: context.compactValue(220)),
       child: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -295,11 +287,15 @@ class _ProjectDialogState extends State<ProjectDialog> {
     final accentColor = context.accentColor;
     final isSelected = tool.id == _selectedToolId;
     final background = isSelected
-        ? accentColor.withOpacity(theme.brightness == Brightness.dark ? 0.2 : 0.12)
+        ? accentColor.withOpacity(
+            theme.brightness == Brightness.dark ? 0.2 : 0.12,
+          )
         : Colors.transparent;
     final borderColor = isSelected
         ? accentColor.withOpacity(0.7)
-        : theme.dividerColor.withOpacity(theme.brightness == Brightness.dark ? 0.4 : 0.2);
+        : theme.dividerColor.withOpacity(
+            theme.brightness == Brightness.dark ? 0.4 : 0.2,
+          );
 
     return InkWell(
       borderRadius: BorderRadius.circular(context.compactValue(14)),
@@ -316,17 +312,9 @@ class _ProjectDialogState extends State<ProjectDialog> {
         ),
         child: Row(
           children: [
-            ToolIcon(
-              tool: tool,
-              size: context.compactValue(28),
-            ),
+            ToolIcon(tool: tool, size: context.compactValue(28)),
             SizedBox(width: context.compactValue(10)),
-            Expanded(
-              child: Text(
-                tool.name,
-                style: theme.textTheme.bodyLarge,
-              ),
-            ),
+            Expanded(child: Text(tool.name, style: theme.textTheme.bodyLarge)),
             Radio<ToolId>(
               value: tool.id,
               groupValue: _selectedToolId,
@@ -429,9 +417,7 @@ class _ProjectDialogState extends State<ProjectDialog> {
         ],
       ),
       content: ConstrainedBox(
-        constraints: BoxConstraints(
-          minWidth: context.compactValue(380),
-        ),
+        constraints: BoxConstraints(minWidth: context.compactValue(380)),
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,

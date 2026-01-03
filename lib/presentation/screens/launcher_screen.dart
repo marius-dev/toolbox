@@ -197,16 +197,10 @@ class _LauncherScreenState extends State<LauncherScreen> {
   Widget build(BuildContext context) {
     final isMac = defaultTargetPlatform == TargetPlatform.macOS;
     final shortcuts = <ShortcutActivator, Intent>{
-      SingleActivator(
-        LogicalKeyboardKey.keyN,
-        control: !isMac,
-        meta: isMac,
-      ): const AddProjectIntent(),
-      SingleActivator(
-        LogicalKeyboardKey.comma,
-        control: !isMac,
-        meta: isMac,
-      ): const TogglePreferencesIntent(),
+      SingleActivator(LogicalKeyboardKey.keyN, control: !isMac, meta: isMac):
+          const AddProjectIntent(),
+      SingleActivator(LogicalKeyboardKey.comma, control: !isMac, meta: isMac):
+          const TogglePreferencesIntent(),
     };
 
     return Shortcuts(
@@ -214,7 +208,7 @@ class _LauncherScreenState extends State<LauncherScreen> {
       child: Actions(
         actions: {
           AddProjectIntent: CallbackAction<AddProjectIntent>(
-            onInvoke: (_intent) {
+            onInvoke: (intent) {
               if (_showPreferences || _selectedTab != LauncherTab.projects) {
                 return null;
               }
@@ -222,9 +216,8 @@ class _LauncherScreenState extends State<LauncherScreen> {
               return null;
             },
           ),
-          TogglePreferencesIntent:
-              CallbackAction<TogglePreferencesIntent>(
-            onInvoke: (_intent) {
+          TogglePreferencesIntent: CallbackAction<TogglePreferencesIntent>(
+            onInvoke: (intent) {
               _togglePreferences();
               return null;
             },

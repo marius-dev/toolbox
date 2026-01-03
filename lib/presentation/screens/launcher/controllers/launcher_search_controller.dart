@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../launcher_screen.dart';
 import '../../../providers/project_provider.dart';
 
 /// Controller responsible for search state management in the launcher.
@@ -64,7 +63,8 @@ class LauncherSearchController {
     final text = _searchController.text;
     final selection = _searchController.selection;
 
-    final hasSelection = selection.isValid &&
+    final hasSelection =
+        selection.isValid &&
         selection.start >= 0 &&
         selection.end <= text.length;
 

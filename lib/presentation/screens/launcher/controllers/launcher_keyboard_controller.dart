@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../../launcher_screen.dart';
-
 /// Controller responsible for handling keyboard events in the launcher.
 ///
 /// Handles:

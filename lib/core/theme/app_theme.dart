@@ -40,7 +40,6 @@ class AppTheme {
       fontFamily: 'SF Pro',
       useMaterial3: true,
       scaffoldBackgroundColor: backgroundColor,
-      dialogBackgroundColor: elevatedSurface,
       canvasColor: Colors.transparent,
       dividerColor: faintOutline,
       popupMenuTheme: PopupMenuThemeData(
@@ -161,8 +160,9 @@ class AppTheme {
           borderRadius: BorderRadius.circular(DesignTokens.radiusLg),
         ),
         tileColor: surfaceColor,
-        selectedTileColor:
-            colorScheme.primary.withValues(alpha: isDark ? 0.12 : 0.08),
+        selectedTileColor: colorScheme.primary.withValues(
+          alpha: isDark ? 0.12 : 0.08,
+        ),
       ),
     );
   }

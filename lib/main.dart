@@ -81,7 +81,7 @@ class _ProjectLauncherAppState extends State<ProjectLauncherApp> {
   ) {
     final mediaQuery = MediaQuery.of(context);
     return MediaQuery(
-      data: mediaQuery.copyWith(textScaleFactor: scale),
+      data: mediaQuery.copyWith(textScaler: TextScaler.linear(scale)),
       child: child ?? const SizedBox.shrink(),
     );
   }

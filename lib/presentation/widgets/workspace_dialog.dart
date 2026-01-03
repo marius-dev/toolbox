@@ -3,8 +3,6 @@ import 'package:flutter/services.dart';
 import '../../core/theme/theme_extensions.dart';
 
 import '../../core/theme/glass_style.dart';
-import '../../core/theme/theme_provider.dart';
-import '../../core/utils/compact_layout.dart';
 import '../../domain/models/workspace.dart';
 
 class WorkspaceDialog extends StatefulWidget {
@@ -105,9 +103,7 @@ class _WorkspaceDialogState extends State<WorkspaceDialog> {
         ],
       ),
       content: ConstrainedBox(
-        constraints: BoxConstraints(
-          minWidth: context.compactValue(360),
-        ),
+        constraints: BoxConstraints(minWidth: context.compactValue(360)),
         child: TextField(
           controller: _nameController,
           autofocus: true,
@@ -127,21 +123,15 @@ class _WorkspaceDialogState extends State<WorkspaceDialog> {
               color: theme.colorScheme.error,
             ),
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(
-                context.compactValue(10),
-              ),
+              borderRadius: BorderRadius.circular(context.compactValue(10)),
               borderSide: BorderSide(color: borderColor),
             ),
             enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(
-                context.compactValue(10),
-              ),
+              borderRadius: BorderRadius.circular(context.compactValue(10)),
               borderSide: BorderSide(color: borderColor),
             ),
             focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(
-                context.compactValue(10),
-              ),
+              borderRadius: BorderRadius.circular(context.compactValue(10)),
               borderSide: BorderSide(color: accentColor, width: 1.5),
             ),
           ),
@@ -163,9 +153,7 @@ class _WorkspaceDialogState extends State<WorkspaceDialog> {
             disabledBackgroundColor: accentColor.withOpacity(0.3),
             disabledForegroundColor: Colors.white.withOpacity(0.7),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(
-                context.compactValue(8),
-              ),
+              borderRadius: BorderRadius.circular(context.compactValue(8)),
             ),
           ),
           child: Text(
@@ -254,9 +242,7 @@ class WorkspaceDeleteDialog extends StatelessWidget {
             backgroundColor: Colors.redAccent,
             foregroundColor: Colors.white,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(
-                context.compactValue(8),
-              ),
+              borderRadius: BorderRadius.circular(context.compactValue(8)),
             ),
           ),
           child: const Text(

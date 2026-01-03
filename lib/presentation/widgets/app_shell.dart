@@ -3,7 +3,6 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 
 import '../../core/di/service_locator.dart';
-import '../../core/theme/design_tokens.dart';
 import '../../core/theme/glass_style.dart';
 import '../../core/theme/theme_extensions.dart';
 import '../../core/theme/theme_provider.dart';
@@ -249,7 +248,9 @@ class _AuroraBand extends StatelessWidget {
               begin: const Alignment(-0.8, -1.2),
               end: const Alignment(0.8, 1.0),
               colors: [
-                Colors.white.withValues(alpha: opacity * (isDark ? 0.06 : 0.04)),
+                Colors.white.withValues(
+                  alpha: opacity * (isDark ? 0.06 : 0.04),
+                ),
                 Colors.transparent,
               ],
             ),
