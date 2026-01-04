@@ -354,14 +354,26 @@ jobs:
         run: python3 -m pip install --break-system-packages Pillow
 
       - name: Generate DMG background
-        run: python3 scripts/installers/generate-dmg-background.py
+        run: |
+          python3 scripts/installers/generate-dmg-background.py
+
+          # Verify background was created
+          if [ -f "scripts/installers/dmg-background.png" ]; then
+            echo "✓ DMG background generated successfully"
+            ls -lh scripts/installers/dmg-background.png
+            file scripts/installers/dmg-background.png
+          else
+            echo "Warning: DMG background generation failed"
+            exit 1
+          fi
 
       - name: Create DMG installer
         run: |
           # Install create-dmg
           npm install -g create-dmg || brew install create-dmg
 
-          # Create DMG
+          # Create DMG (create-dmg sometimes returns error even on success)
+          set +e  # Don't exit on error
           create-dmg \
             --volname "${{ env.APP_DISPLAY_NAME }}" \
             --volicon "assets/icon.png" \
@@ -373,8 +385,21 @@ jobs:
             --app-drop-link 600 185 \
             --background "scripts/installers/dmg-background.png" \
             "${{ env.APP_NAME }}-macos-universal.dmg" \
-            "build/macos/Build/Products/Release/" \
-            || true  # create-dmg sometimes fails but creates valid DMG
+            "build/macos/Build/Products/Release/"
+
+          DMG_EXIT_CODE=$?
+          set -e  # Re-enable exit on error
+
+          # Check if DMG was created (create-dmg often returns non-zero even on success)
+          if [ -f "${{ env.APP_NAME }}-macos-universal.dmg" ]; then
+            echo "✓ DMG created successfully"
+            ls -lh "${{ env.APP_NAME }}-macos-universal.dmg"
+          else
+            echo "Error: DMG creation failed (exit code: $DMG_EXIT_CODE)"
+            echo "Checking for app bundle..."
+            ls -la "build/macos/Build/Products/Release/"
+            exit 1
+          fi
 
       # - name: Notarize macOS application
       #   env:
@@ -387,6 +412,15 @@ jobs:
       #       --password "$APPLE_ID_PASSWORD" \
       #       --team-id "$APPLE_TEAM_ID" \
       #       --wait
+
+      - name: Verify macOS artifacts
+        run: |
+          echo "Verifying macOS build artifacts..."
+          ls -lh ${{ env.APP_NAME }}-macos-universal.*
+          echo "ZIP file:"
+          file ${{ env.APP_NAME }}-macos-universal.zip
+          echo "DMG file:"
+          file ${{ env.APP_NAME }}-macos-universal.dmg
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
@@ -544,7 +578,18 @@ jobs:
           path: artifacts
 
       - name: Display artifact structure
-        run: ls -R artifacts
+        run: |
+          echo "=== Artifact directory structure ==="
+          ls -R artifacts
+          echo ""
+          echo "=== All DMG files ==="
+          find artifacts -name "*.dmg" -ls
+          echo ""
+          echo "=== All ZIP files ==="
+          find artifacts -name "*.zip" -ls
+          echo ""
+          echo "=== macOS packages specifically ==="
+          ls -lh artifacts/macos-universal-packages/ || echo "macOS packages directory not found"
 
       - name: Create release
         uses: softprops/action-gh-release@v1
