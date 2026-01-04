@@ -3,6 +3,16 @@ set -e
 
 # Build Linux packages (DEB, RPM, AppImage)
 # Usage: ./build-linux-packages.sh [version]
+#
+# Prerequisites:
+# - Flutter build must be completed first: flutter build linux --release
+# - System dependencies required:
+#   sudo apt-get install -y \
+#     clang cmake ninja-build pkg-config \
+#     libgtk-3-dev liblzma-dev \
+#     libkeybinder-3.0-dev \
+#     libayatana-appindicator3-dev \
+#     dpkg-deb alien rpm
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"

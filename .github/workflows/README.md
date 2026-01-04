@@ -470,9 +470,12 @@ ci: update workflows
 ```bash
 # Install missing dependencies
 sudo apt-get update
-sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev libkeybinder-3.0-dev
+sudo apt-get install -y \
+  clang cmake ninja-build pkg-config \
+  libgtk-3-dev libkeybinder-3.0-dev \
+  libayatana-appindicator3-dev
 ```
-**Note**: `libkeybinder-3.0-dev` is required for the hotkey_manager plugin
+**Note**: `libkeybinder-3.0-dev` is required for hotkey_manager, `libayatana-appindicator3-dev` for tray_manager
 
 **macOS:**
 ```bash

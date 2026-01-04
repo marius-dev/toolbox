@@ -334,7 +334,9 @@ Enable notifications:
 ```bash
 sudo apt-get install -y \
   clang cmake ninja-build pkg-config \
-  libgtk-3-dev liblzma-dev libkeybinder-3.0-dev
+  libgtk-3-dev liblzma-dev \
+  libkeybinder-3.0-dev \
+  libayatana-appindicator3-dev
 ```
 
 **macOS:**

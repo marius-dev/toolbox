@@ -159,6 +159,7 @@ jobs:
             liblzma-dev \
             libstdc++-12-dev \
             libkeybinder-3.0-dev \
+            libayatana-appindicator3-dev \
             rpm \
             alien \
             libfuse2
