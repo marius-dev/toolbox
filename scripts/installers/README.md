@@ -8,9 +8,11 @@ This directory contains scripts to build professional installers for all support
 ```bash
 sudo apt-get install -y \
   clang cmake ninja-build pkg-config \
-  libgtk-3-dev liblzma-dev \
+  libgtk-3-dev liblzma-dev libkeybinder-3.0-dev \
   dpkg-deb alien rpm
 ```
+
+**Note**: `libkeybinder-3.0-dev` is required for the hotkey_manager plugin.
 
 ### macOS
 ```bash

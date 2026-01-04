@@ -328,7 +328,24 @@ Enable notifications:
 **Check:**
 1. Flutter version in workflows (currently 3.38.5)
 2. Dependencies: `flutter pub get`
-3. Platform-specific requirements (see installer scripts README)
+3. Platform-specific requirements:
+
+**Linux:**
+```bash
+sudo apt-get install -y \
+  clang cmake ninja-build pkg-config \
+  libgtk-3-dev liblzma-dev libkeybinder-3.0-dev
+```
+
+**macOS:**
+```bash
+xcode-select --install
+```
+
+**Windows:**
+- Ensure Visual Studio 2022 with C++ tools installed
+
+See `scripts/installers/README.md` for complete details.
 
 ---
 
