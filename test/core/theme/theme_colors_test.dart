@@ -13,7 +13,7 @@ void main() {
           home: Builder(
             builder: (context) {
               final color = ThemeColors.surfaceColor(context, opacity: 0.5);
-              expect(color, equals(Colors.white.withOpacity(0.5)));
+              expect(color, equals(Colors.white.withValues(alpha: 0.5)));
               return Container();
             },
           ),
@@ -30,7 +30,7 @@ void main() {
           home: Builder(
             builder: (context) {
               final color = ThemeColors.surfaceColor(context, opacity: 0.5);
-              expect(color, equals(Colors.black.withOpacity(0.5)));
+              expect(color, equals(Colors.black.withValues(alpha: 0.5)));
               return Container();
             },
           ),
@@ -47,7 +47,7 @@ void main() {
           home: Builder(
             builder: (context) {
               final color = ThemeColors.baseSurface(context);
-              expect(color, equals(Colors.white.withOpacity(0.05)));
+              expect(color, equals(Colors.white.withValues(alpha: 0.03)));
               return Container();
             },
           ),
@@ -64,7 +64,7 @@ void main() {
           home: Builder(
             builder: (context) {
               final color = ThemeColors.baseSurface(context);
-              expect(color, equals(Colors.black.withOpacity(0.02)));
+              expect(color, equals(Colors.black.withValues(alpha: 0.015)));
               return Container();
             },
           ),
@@ -81,7 +81,7 @@ void main() {
           home: Builder(
             builder: (context) {
               final color = ThemeColors.borderColor(context);
-              expect(color, equals(Colors.white.withOpacity(0.12)));
+              expect(color, equals(Colors.white.withValues(alpha: 0.08)));
               return Container();
             },
           ),
@@ -98,7 +98,7 @@ void main() {
           home: Builder(
             builder: (context) {
               final color = ThemeColors.borderColor(context);
-              expect(color, equals(Colors.black.withOpacity(0.08)));
+              expect(color, equals(Colors.black.withValues(alpha: 0.05)));
               return Container();
             },
           ),
@@ -115,7 +115,7 @@ void main() {
           home: Builder(
             builder: (context) {
               final color = ThemeColors.borderColor(context, opacity: 0.5);
-              expect(color, equals(Colors.white.withOpacity(0.5)));
+              expect(color, equals(Colors.white.withValues(alpha: 0.5)));
               return Container();
             },
           ),
@@ -138,7 +138,7 @@ void main() {
                 darkOpacity: 0.9,
                 lightOpacity: 0.7,
               );
-              expect(color, equals(accent.withOpacity(0.9)));
+              expect(color, equals(accent.withValues(alpha: 0.9)));
               return Container();
             },
           ),
@@ -161,7 +161,7 @@ void main() {
                 darkOpacity: 0.9,
                 lightOpacity: 0.7,
               );
-              expect(color, equals(accent.withOpacity(0.7)));
+              expect(color, equals(accent.withValues(alpha: 0.7)));
               return Container();
             },
           ),
@@ -178,7 +178,7 @@ void main() {
           home: Builder(
             builder: (context) {
               final color = ThemeColors.iconColor(context);
-              expect(color, equals(Colors.white.withOpacity(0.9)));
+              expect(color, equals(Colors.white.withValues(alpha: 0.9)));
               return Container();
             },
           ),
@@ -195,7 +195,7 @@ void main() {
           home: Builder(
             builder: (context) {
               final color = ThemeColors.iconColor(context);
-              expect(color, equals(Colors.black.withOpacity(0.65)));
+              expect(color, equals(Colors.black.withValues(alpha: 0.65)));
               return Container();
             },
           ),
@@ -212,7 +212,7 @@ void main() {
           home: Builder(
             builder: (context) {
               final color = ThemeColors.textColor(context);
-              expect(color, equals(Colors.white.withOpacity(0.9)));
+              expect(color, equals(Colors.white.withValues(alpha: 0.9)));
               return Container();
             },
           ),
@@ -229,7 +229,7 @@ void main() {
           home: Builder(
             builder: (context) {
               final color = ThemeColors.textColor(context);
-              expect(color, equals(Colors.black.withOpacity(0.85)));
+              expect(color, equals(Colors.black.withValues(alpha: 0.85)));
               return Container();
             },
           ),
@@ -246,7 +246,7 @@ void main() {
           home: Builder(
             builder: (context) {
               final color = ThemeColors.secondaryTextColor(context);
-              expect(color, equals(Colors.white.withOpacity(0.6)));
+              expect(color, equals(Colors.white.withValues(alpha: 0.6)));
               return Container();
             },
           ),
@@ -263,7 +263,7 @@ void main() {
           home: Builder(
             builder: (context) {
               final color = ThemeColors.secondaryTextColor(context);
-              expect(color, equals(Colors.black.withOpacity(0.5)));
+              expect(color, equals(Colors.black.withValues(alpha: 0.5)));
               return Container();
             },
           ),
@@ -280,7 +280,7 @@ void main() {
           home: Builder(
             builder: (context) {
               final color = ThemeColors.dividerColor(context);
-              expect(color, equals(Colors.white.withOpacity(0.08)));
+              expect(color, equals(Colors.white.withValues(alpha: 0.08)));
               return Container();
             },
           ),
@@ -297,7 +297,7 @@ void main() {
           home: Builder(
             builder: (context) {
               final color = ThemeColors.dividerColor(context);
-              expect(color, equals(Colors.black.withOpacity(0.06)));
+              expect(color, equals(Colors.black.withValues(alpha: 0.06)));
               return Container();
             },
           ),
@@ -307,7 +307,7 @@ void main() {
 
     test('dialogBarrierColor returns consistent color', () {
       final color = ThemeColors.dialogBarrierColor();
-      expect(color, equals(Colors.black.withOpacity(0.78)));
+      expect(color, equals(Colors.black.withValues(alpha: 0.78)));
     });
 
     testWidgets('shadowColor returns correct color', (
@@ -315,7 +315,7 @@ void main() {
     ) async {
       final accent = Colors.blue;
       final color = ThemeColors.shadowColor(accent);
-      expect(color, equals(accent.withOpacity(0.2)));
+      expect(color, equals(accent.withValues(alpha: 0.15)));
     });
 
     testWidgets('shadowColor accepts custom opacity', (
@@ -323,7 +323,7 @@ void main() {
     ) async {
       final accent = Colors.blue;
       final color = ThemeColors.shadowColor(accent, opacity: 0.5);
-      expect(color, equals(accent.withOpacity(0.5)));
+      expect(color, equals(accent.withValues(alpha: 0.5)));
     });
   });
 }

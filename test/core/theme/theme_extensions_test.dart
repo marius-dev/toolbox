@@ -92,7 +92,7 @@ void main() {
           home: Builder(
             builder: (context) {
               final color = context.surfaceColor(opacity: 0.5);
-              expect(color, equals(Colors.white.withOpacity(0.5)));
+              expect(color, equals(Colors.white.withValues(alpha: 0.5)));
               return Container();
             },
           ),
@@ -109,7 +109,7 @@ void main() {
           home: Builder(
             builder: (context) {
               final color = context.baseSurface;
-              expect(color, equals(Colors.white.withOpacity(0.05)));
+              expect(color, equals(Colors.white.withValues(alpha: 0.03)));
               return Container();
             },
           ),
@@ -126,7 +126,7 @@ void main() {
           home: Builder(
             builder: (context) {
               final color = context.borderColor();
-              expect(color, equals(Colors.white.withOpacity(0.12)));
+              expect(color, equals(Colors.white.withValues(alpha: 0.08)));
               return Container();
             },
           ),
@@ -143,7 +143,7 @@ void main() {
           home: Builder(
             builder: (context) {
               final color = context.iconColor();
-              expect(color, equals(Colors.white.withOpacity(0.9)));
+              expect(color, equals(Colors.white.withValues(alpha: 0.9)));
               return Container();
             },
           ),
@@ -160,7 +160,7 @@ void main() {
           home: Builder(
             builder: (context) {
               final color = context.textColor();
-              expect(color, equals(Colors.white.withOpacity(0.9)));
+              expect(color, equals(Colors.white.withValues(alpha: 0.9)));
               return Container();
             },
           ),
@@ -177,7 +177,7 @@ void main() {
           home: Builder(
             builder: (context) {
               final color = context.secondaryTextColor;
-              expect(color, equals(Colors.white.withOpacity(0.6)));
+              expect(color, equals(Colors.white.withValues(alpha: 0.6)));
               return Container();
             },
           ),
@@ -194,7 +194,7 @@ void main() {
           home: Builder(
             builder: (context) {
               final color = context.dividerColor;
-              expect(color, equals(Colors.white.withOpacity(0.08)));
+              expect(color, equals(Colors.white.withValues(alpha: 0.08)));
               return Container();
             },
           ),

@@ -33,9 +33,12 @@ void main() {
     }
   });
 
-  testWidgets('Launcher renders the toolbox header', (tester) async {
+  testWidgets('Launcher renders the header with tabs', (tester) async {
     await tester.pumpWidget(const ProjectLauncherApp());
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
 
-    expect(find.textContaining('toolbox'), findsWidgets);
+    expect(find.text('Tools'), findsOneWidget);
+    expect(find.text('Projects'), findsOneWidget);
   });
 }

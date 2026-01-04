@@ -15,15 +15,15 @@ void main() {
       });
 
       test('has correct blur sigma', () {
-        expect(strategy.blurSigma, equals(16.0));
+        expect(strategy.blurSigma, equals(10.0));
       });
 
       test('returns correct surface opacity for dark theme', () {
-        expect(strategy.surfaceOpacity(true), equals(0.08));
+        expect(strategy.surfaceOpacity(true), equals(0.12));
       });
 
       test('returns correct surface opacity for light theme', () {
-        expect(strategy.surfaceOpacity(false), equals(0.24));
+        expect(strategy.surfaceOpacity(false), equals(0.30));
       });
 
       test('returns zero accent opacity (no tint)', () {
@@ -36,23 +36,23 @@ void main() {
       });
 
       test('returns correct border opacity for light theme', () {
-        expect(strategy.borderOpacity(false), equals(0.04));
+        expect(strategy.borderOpacity(false), equals(0.06));
       });
 
       test('returns correct background gradient opacities for dark theme', () {
         final opacities = strategy.backgroundGradientOpacities(true);
         expect(opacities, hasLength(3));
-        expect(opacities[0], equals(0.32)); // start
-        expect(opacities[1], equals(0.3)); // middle
-        expect(opacities[2], equals(0.42)); // end
+        expect(opacities[0], equals(0.65)); // start
+        expect(opacities[1], equals(0.70)); // middle
+        expect(opacities[2], equals(0.80)); // end
       });
 
       test('returns correct background gradient opacities for light theme', () {
         final opacities = strategy.backgroundGradientOpacities(false);
         expect(opacities, hasLength(3));
-        expect(opacities[0], equals(0.55)); // start
-        expect(opacities[1], equals(0.5)); // middle
-        expect(opacities[2], equals(0.38)); // end
+        expect(opacities[0], equals(0.85)); // start
+        expect(opacities[1], equals(0.90)); // middle
+        expect(opacities[2], equals(0.95)); // end
       });
 
       test('returns zero background accent opacity (no accent overlay)', () {
@@ -61,21 +61,21 @@ void main() {
       });
 
       test('returns correct glow opacity', () {
-        expect(strategy.glowOpacity(), equals(0.25));
+        expect(strategy.glowOpacity(), equals(0.18));
       });
 
       test('returns correct shadow config for dark theme', () {
         final config = strategy.shadowConfig(true);
-        expect(config.opacity, equals(0.25));
-        expect(config.blurRadius, equals(18.0));
-        expect(config.offsetY, equals(10.0));
+        expect(config.opacity, equals(0.12));
+        expect(config.blurRadius, equals(12.0));
+        expect(config.offsetY, equals(6.0));
       });
 
       test('returns correct shadow config for light theme', () {
         final config = strategy.shadowConfig(false);
-        expect(config.opacity, equals(0.08));
-        expect(config.blurRadius, equals(18.0));
-        expect(config.offsetY, equals(10.0));
+        expect(config.opacity, equals(0.04));
+        expect(config.blurRadius, equals(12.0));
+        expect(config.offsetY, equals(6.0));
       });
     });
 
@@ -91,27 +91,27 @@ void main() {
       });
 
       test('has correct blur sigma', () {
-        expect(strategy.blurSigma, equals(24.0));
+        expect(strategy.blurSigma, equals(12.0));
       });
 
       test('returns correct surface opacity for dark theme', () {
-        expect(strategy.surfaceOpacity(true), equals(0.12));
+        expect(strategy.surfaceOpacity(true), equals(0.15));
       });
 
       test('returns correct surface opacity for light theme', () {
-        expect(strategy.surfaceOpacity(false), equals(0.32));
+        expect(strategy.surfaceOpacity(false), equals(0.35));
       });
 
       test('returns correct accent opacity for dark theme', () {
-        expect(strategy.accentOpacity(true), equals(0.2));
+        expect(strategy.accentOpacity(true), equals(0.04));
       });
 
       test('returns correct accent opacity for light theme', () {
-        expect(strategy.accentOpacity(false), equals(0.15));
+        expect(strategy.accentOpacity(false), equals(0.05));
       });
 
       test('returns correct border opacity for dark theme', () {
-        expect(strategy.borderOpacity(true), equals(0.2));
+        expect(strategy.borderOpacity(true), equals(0.14));
       });
 
       test('returns correct border opacity for light theme', () {
@@ -121,43 +121,43 @@ void main() {
       test('returns correct background gradient opacities for dark theme', () {
         final opacities = strategy.backgroundGradientOpacities(true);
         expect(opacities, hasLength(3));
-        expect(opacities[0], equals(0.45)); // start
-        expect(opacities[1], equals(0.38)); // middle
-        expect(opacities[2], equals(0.6)); // end
+        expect(opacities[0], equals(0.75)); // start
+        expect(opacities[1], equals(0.80)); // middle
+        expect(opacities[2], equals(0.85)); // end
       });
 
       test('returns correct background gradient opacities for light theme', () {
         final opacities = strategy.backgroundGradientOpacities(false);
         expect(opacities, hasLength(3));
-        expect(opacities[0], equals(0.82)); // start
-        expect(opacities[1], equals(0.8)); // middle
-        expect(opacities[2], equals(0.65)); // end
+        expect(opacities[0], equals(0.90)); // start
+        expect(opacities[1], equals(0.92)); // middle
+        expect(opacities[2], equals(0.95)); // end
       });
 
       test('returns correct background accent opacity for dark theme', () {
-        expect(strategy.backgroundAccentOpacity(true), equals(0.18));
+        expect(strategy.backgroundAccentOpacity(true), equals(0.03));
       });
 
       test('returns correct background accent opacity for light theme', () {
-        expect(strategy.backgroundAccentOpacity(false), equals(0.08));
+        expect(strategy.backgroundAccentOpacity(false), equals(0.02));
       });
 
       test('returns correct glow opacity', () {
-        expect(strategy.glowOpacity(), equals(0.6));
+        expect(strategy.glowOpacity(), equals(0.20));
       });
 
       test('returns correct shadow config for dark theme', () {
         final config = strategy.shadowConfig(true);
-        expect(config.opacity, equals(0.55));
-        expect(config.blurRadius, equals(30.0));
-        expect(config.offsetY, equals(16.0));
+        expect(config.opacity, equals(0.20));
+        expect(config.blurRadius, equals(14.0));
+        expect(config.offsetY, equals(6.0));
       });
 
       test('returns correct shadow config for light theme', () {
         final config = strategy.shadowConfig(false);
-        expect(config.opacity, equals(0.18));
-        expect(config.blurRadius, equals(30.0));
-        expect(config.offsetY, equals(16.0));
+        expect(config.opacity, equals(0.08));
+        expect(config.blurRadius, equals(14.0));
+        expect(config.offsetY, equals(6.0));
       });
     });
 
