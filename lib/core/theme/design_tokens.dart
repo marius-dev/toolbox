@@ -112,49 +112,49 @@ enum GlassDepth {
 abstract class GlassShadows {
   /// Subtle shadow for minimal depth
   static List<BoxShadow> subtle(bool isDark) => [
-        BoxShadow(
-          color: Colors.black.withValues(alpha: isDark ? 0.08 : 0.04),
-          blurRadius: 6,
-          offset: const Offset(0, 2),
-        ),
-      ];
+    BoxShadow(
+      color: Colors.black.withValues(alpha: isDark ? 0.08 : 0.04),
+      blurRadius: 6,
+      offset: const Offset(0, 2),
+    ),
+  ];
 
   /// Low elevation shadow
   static List<BoxShadow> low(bool isDark) => [
-        BoxShadow(
-          color: Colors.black.withValues(alpha: isDark ? 0.12 : 0.06),
-          blurRadius: 8,
-          offset: const Offset(0, 4),
-        ),
-      ];
+    BoxShadow(
+      color: Colors.black.withValues(alpha: isDark ? 0.12 : 0.06),
+      blurRadius: 8,
+      offset: const Offset(0, 4),
+    ),
+  ];
 
   /// Medium elevation shadow
   static List<BoxShadow> medium(bool isDark) => [
-        BoxShadow(
-          color: Colors.black.withValues(alpha: isDark ? 0.16 : 0.08),
-          blurRadius: 12,
-          offset: const Offset(0, 6),
-        ),
-      ];
+    BoxShadow(
+      color: Colors.black.withValues(alpha: isDark ? 0.16 : 0.08),
+      blurRadius: 12,
+      offset: const Offset(0, 6),
+    ),
+  ];
 
   /// High elevation shadow
   static List<BoxShadow> high(bool isDark) => [
-        BoxShadow(
-          color: Colors.black.withValues(alpha: isDark ? 0.20 : 0.10),
-          blurRadius: 16,
-          offset: const Offset(0, 8),
-        ),
-      ];
+    BoxShadow(
+      color: Colors.black.withValues(alpha: isDark ? 0.20 : 0.10),
+      blurRadius: 16,
+      offset: const Offset(0, 8),
+    ),
+  ];
 
   /// Accent glow shadow
   static List<BoxShadow> glow(Color accent, {double intensity = 0.3}) => [
-        BoxShadow(
-          color: accent.withValues(alpha: intensity),
-          blurRadius: 20,
-          spreadRadius: -4,
-          offset: const Offset(0, 8),
-        ),
-      ];
+    BoxShadow(
+      color: accent.withValues(alpha: intensity),
+      blurRadius: 20,
+      spreadRadius: -4,
+      offset: const Offset(0, 8),
+    ),
+  ];
 }
 
 /// Animation presets for glass transitions.

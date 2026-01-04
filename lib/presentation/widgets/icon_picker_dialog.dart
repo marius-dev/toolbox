@@ -7,10 +7,7 @@ import '../../core/theme/theme_extensions.dart';
 class IconPickerDialog extends StatefulWidget {
   final int initialIconIndex;
 
-  const IconPickerDialog({
-    super.key,
-    required this.initialIconIndex,
-  });
+  const IconPickerDialog({super.key, required this.initialIconIndex});
 
   @override
   State<IconPickerDialog> createState() => _IconPickerDialogState();
@@ -47,7 +44,9 @@ class _IconPickerDialogState extends State<IconPickerDialog> {
         vertical: context.compactValue(18),
       ),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(context.compactValue(DesignTokens.radiusLg)),
+        borderRadius: BorderRadius.circular(
+          context.compactValue(DesignTokens.radiusLg),
+        ),
         side: BorderSide(color: borderColor),
       ),
       titlePadding: EdgeInsets.fromLTRB(
@@ -98,13 +97,17 @@ class _IconPickerDialogState extends State<IconPickerDialog> {
 
             return InkWell(
               onTap: () => setState(() => _selectedIconIndex = index),
-              borderRadius: BorderRadius.circular(context.compactValue(DesignTokens.radiusSm)),
+              borderRadius: BorderRadius.circular(
+                context.compactValue(DesignTokens.radiusSm),
+              ),
               child: Container(
                 decoration: BoxDecoration(
                   color: isSelected
                       ? accentColor.withValues(alpha: isDark ? 0.2 : 0.12)
                       : Colors.transparent,
-                  borderRadius: BorderRadius.circular(context.compactValue(DesignTokens.radiusSm)),
+                  borderRadius: BorderRadius.circular(
+                    context.compactValue(DesignTokens.radiusSm),
+                  ),
                   border: Border.all(
                     color: isSelected
                         ? accentColor
@@ -115,9 +118,7 @@ class _IconPickerDialogState extends State<IconPickerDialog> {
                 child: Icon(
                   icon,
                   size: context.compactValue(24),
-                  color: isSelected
-                      ? accentColor
-                      : theme.iconTheme.color,
+                  color: isSelected ? accentColor : theme.iconTheme.color,
                 ),
               ),
             );
@@ -138,7 +139,9 @@ class _IconPickerDialogState extends State<IconPickerDialog> {
             backgroundColor: accentColor,
             foregroundColor: Colors.white,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(context.compactValue(DesignTokens.radiusSm)),
+              borderRadius: BorderRadius.circular(
+                context.compactValue(DesignTokens.radiusSm),
+              ),
             ),
           ),
           child: const Text(

@@ -106,7 +106,11 @@ class _WorkspacesScreenState extends State<WorkspacesScreen>
     final name = (result['name'] as String?)?.trim();
     if (name == null || name.isEmpty) return;
     final iconIndex = result['iconIndex'] as int?;
-    await widget.workspaceProvider.renameWorkspace(workspace, name, iconIndex: iconIndex);
+    await widget.workspaceProvider.renameWorkspace(
+      workspace,
+      name,
+      iconIndex: iconIndex,
+    );
   }
 
   Future<void> _deleteWorkspace(Workspace workspace) async {
@@ -141,7 +145,9 @@ class _WorkspacesScreenState extends State<WorkspacesScreen>
       newIndex -= 1;
     }
 
-    final workspaces = List<Workspace>.from(widget.workspaceProvider.workspaces);
+    final workspaces = List<Workspace>.from(
+      widget.workspaceProvider.workspaces,
+    );
     final workspace = workspaces.removeAt(oldIndex);
     workspaces.insert(newIndex, workspace);
 
@@ -194,7 +200,9 @@ class _WorkspacesScreenState extends State<WorkspacesScreen>
     if (_selectedWorkspaceIds.isEmpty) return;
 
     // Check if deleting would leave no workspaces
-    final remainingCount = widget.workspaceProvider.workspaces.length - _selectedWorkspaceIds.length;
+    final remainingCount =
+        widget.workspaceProvider.workspaces.length -
+        _selectedWorkspaceIds.length;
     if (remainingCount < 1) {
       _showMessage('Cannot delete all workspaces. At least one must remain.');
       return;
@@ -450,7 +458,9 @@ class _WorkspacesScreenState extends State<WorkspacesScreen>
           LogicalKeyboardKey(0x00000030 + i), // Key codes for 1-9
           control: !isMac,
           meta: isMac,
-        ): SwitchWorkspaceIntent(i - 1),
+        ): SwitchWorkspaceIntent(
+          i - 1,
+        ),
       // Create workspace shortcut
       SingleActivator(LogicalKeyboardKey.keyN, control: !isMac, meta: isMac):
           const CreateWorkspaceIntent(),
@@ -471,7 +481,9 @@ class _WorkspacesScreenState extends State<WorkspacesScreen>
               final workspaces = widget.workspaceProvider.workspaces;
               if (intent.index < workspaces.length) {
                 final workspace = workspaces[intent.index];
-                await widget.workspaceProvider.setSelectedWorkspace(workspace.id);
+                await widget.workspaceProvider.setSelectedWorkspace(
+                  workspace.id,
+                );
                 widget.projectProvider.setWorkspaceId(workspace.id);
               }
               return null;
@@ -486,7 +498,8 @@ class _WorkspacesScreenState extends State<WorkspacesScreen>
           DeleteWorkspaceIntent: CallbackAction<DeleteWorkspaceIntent>(
             onInvoke: (intent) {
               final selected = widget.workspaceProvider.selectedWorkspace;
-              if (selected != null && widget.workspaceProvider.canDeleteWorkspace) {
+              if (selected != null &&
+                  widget.workspaceProvider.canDeleteWorkspace) {
                 _deleteWorkspace(selected);
               }
               return null;
@@ -500,7 +513,10 @@ class _WorkspacesScreenState extends State<WorkspacesScreen>
             blurSigma: 40,
             builder: (context, _) {
               return FadeTransition(
-                opacity: CurvedAnimation(parent: _introController, curve: curve),
+                opacity: CurvedAnimation(
+                  parent: _introController,
+                  curve: curve,
+                ),
                 child: _buildContent(context, duration, curve),
               );
             },
@@ -547,7 +563,9 @@ class _WorkspacesScreenState extends State<WorkspacesScreen>
                             : Colors.white.withValues(alpha: 0.5),
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: Theme.of(context).dividerColor.withValues(alpha: 0.3),
+                          color: Theme.of(
+                            context,
+                          ).dividerColor.withValues(alpha: 0.3),
                         ),
                       ),
                       child: Row(
@@ -647,10 +665,13 @@ class _WorkspacesScreenState extends State<WorkspacesScreen>
                         child: Transform.scale(
                           scale: 0.85,
                           child: Checkbox(
-                            value: _selectedWorkspaceIds.length == workspaces.length &&
+                            value:
+                                _selectedWorkspaceIds.length ==
+                                    workspaces.length &&
                                 workspaces.isNotEmpty,
                             onChanged: (_) {
-                              if (_selectedWorkspaceIds.length == workspaces.length) {
+                              if (_selectedWorkspaceIds.length ==
+                                  workspaces.length) {
                                 _deselectAllWorkspaces();
                               } else {
                                 _selectAllWorkspaces();
@@ -665,7 +686,9 @@ class _WorkspacesScreenState extends State<WorkspacesScreen>
                         'Select All',
                         style: theme.textTheme.bodySmall!.copyWith(
                           fontSize: context.compactValue(13),
-                          color: theme.textTheme.bodySmall!.color!.withValues(alpha: 0.6),
+                          color: theme.textTheme.bodySmall!.color!.withValues(
+                            alpha: 0.6,
+                          ),
                         ),
                       ),
                     ],
@@ -687,7 +710,9 @@ class _WorkspacesScreenState extends State<WorkspacesScreen>
                         itemCount: workspaces.length,
                         itemBuilder: (context, index) {
                           final workspace = workspaces[index];
-                          final projectCount = widget.projectProvider.allProjects
+                          final projectCount = widget
+                              .projectProvider
+                              .allProjects
                               .where((p) => p.workspaceId == workspace.id)
                               .length;
                           return _WorkspaceRow(
@@ -695,13 +720,17 @@ class _WorkspacesScreenState extends State<WorkspacesScreen>
                             workspace: workspace,
                             index: index,
                             isActive: workspace.id == selectedId,
-                            canDelete: widget.workspaceProvider.canDeleteWorkspace,
-                            isChecked: _selectedWorkspaceIds.contains(workspace.id),
+                            canDelete:
+                                widget.workspaceProvider.canDeleteWorkspace,
+                            isChecked: _selectedWorkspaceIds.contains(
+                              workspace.id,
+                            ),
                             projectCount: projectCount,
                             onExport: _exportWorkspace,
                             onRename: _renameWorkspace,
                             onDelete: _deleteWorkspace,
-                            onToggleSelection: () => _toggleWorkspaceSelection(workspace.id),
+                            onToggleSelection: () =>
+                                _toggleWorkspaceSelection(workspace.id),
                           );
                         },
                       ),
@@ -718,7 +747,9 @@ class _WorkspacesScreenState extends State<WorkspacesScreen>
                       'Drag items to reorder • Click checkbox to select',
                       style: theme.textTheme.bodySmall!.copyWith(
                         fontSize: context.compactValue(11),
-                        color: theme.textTheme.bodySmall!.color!.withValues(alpha: 0.5),
+                        color: theme.textTheme.bodySmall!.color!.withValues(
+                          alpha: 0.5,
+                        ),
                       ),
                     ),
                   ),
@@ -783,7 +814,9 @@ class _WorkspacesScreenState extends State<WorkspacesScreen>
         backgroundColor: accentColor,
         foregroundColor: Colors.white,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(context.compactValue(DesignTokens.radiusSm)),
+          borderRadius: BorderRadius.circular(
+            context.compactValue(DesignTokens.radiusSm),
+          ),
         ),
       ),
       child: const Text(
@@ -886,7 +919,9 @@ class _WorkspaceRowState extends State<_WorkspaceRow> {
               width: context.compactValue(40),
               height: context.compactValue(40),
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(context.compactValue(DesignTokens.radiusSm)),
+                borderRadius: BorderRadius.circular(
+                  context.compactValue(DesignTokens.radiusSm),
+                ),
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
@@ -895,9 +930,7 @@ class _WorkspaceRowState extends State<_WorkspaceRow> {
                     accent.withValues(alpha: 0.1),
                   ],
                 ),
-                border: Border.all(
-                  color: accent.withValues(alpha: 0.3),
-                ),
+                border: Border.all(color: accent.withValues(alpha: 0.3)),
               ),
               child: Icon(
                 WorkspaceIcons.getIcon(workspace.iconIndex),
@@ -925,14 +958,17 @@ class _WorkspaceRowState extends State<_WorkspaceRow> {
                   SizedBox(width: context.compactValue(8)),
                   // Project count badge with tooltip
                   Tooltip(
-                    message: '${widget.projectCount} project${widget.projectCount != 1 ? 's' : ''}',
+                    message:
+                        '${widget.projectCount} project${widget.projectCount != 1 ? 's' : ''}',
                     child: Container(
                       padding: EdgeInsets.symmetric(
                         horizontal: context.compactValue(6),
                         vertical: context.compactValue(2),
                       ),
                       decoration: BoxDecoration(
-                        color: theme.dividerColor.withValues(alpha: isDark ? 0.15 : 0.1),
+                        color: theme.dividerColor.withValues(
+                          alpha: isDark ? 0.15 : 0.1,
+                        ),
                         borderRadius: BorderRadius.circular(
                           context.compactValue(6),
                         ),
@@ -942,7 +978,9 @@ class _WorkspaceRowState extends State<_WorkspaceRow> {
                         style: theme.textTheme.bodySmall!.copyWith(
                           fontSize: context.compactValue(11),
                           fontWeight: FontWeight.w600,
-                          color: theme.textTheme.bodySmall!.color!.withValues(alpha: 0.7),
+                          color: theme.textTheme.bodySmall!.color!.withValues(
+                            alpha: 0.7,
+                          ),
                         ),
                       ),
                     ),
@@ -1050,19 +1088,23 @@ class _ActionButtonState extends State<_ActionButton> {
         decoration: BoxDecoration(
           color: _isHovered
               ? (isError
-                  ? widget.hoverColor.withValues(alpha: 0.1)
-                  : (isDark
-                      ? Colors.white.withValues(alpha: 0.1)
-                      : Colors.black.withValues(alpha: 0.05)))
+                    ? widget.hoverColor.withValues(alpha: 0.1)
+                    : (isDark
+                          ? Colors.white.withValues(alpha: 0.1)
+                          : Colors.black.withValues(alpha: 0.05)))
               : Colors.transparent,
-          borderRadius: BorderRadius.circular(context.compactValue(DesignTokens.radiusSm)),
+          borderRadius: BorderRadius.circular(
+            context.compactValue(DesignTokens.radiusSm),
+          ),
         ),
         child: IconButton(
           onPressed: widget.onPressed,
           icon: Icon(
             widget.icon,
             size: context.compactValue(18),
-            color: _isHovered ? widget.hoverColor : widget.color.withValues(alpha: 0.6),
+            color: _isHovered
+                ? widget.hoverColor
+                : widget.color.withValues(alpha: 0.6),
           ),
           constraints: BoxConstraints(
             minWidth: context.compactValue(36),
@@ -1107,7 +1149,9 @@ class _BatchDeleteConfirmDialog extends StatelessWidget {
         vertical: context.compactValue(18),
       ),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(context.compactValue(DesignTokens.radiusLg)),
+        borderRadius: BorderRadius.circular(
+          context.compactValue(DesignTokens.radiusLg),
+        ),
         side: BorderSide(color: borderColor),
       ),
       titlePadding: EdgeInsets.fromLTRB(
@@ -1152,7 +1196,9 @@ class _BatchDeleteConfirmDialog extends StatelessWidget {
             backgroundColor: Colors.redAccent,
             foregroundColor: Colors.white,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(context.compactValue(DesignTokens.radiusSm)),
+              borderRadius: BorderRadius.circular(
+                context.compactValue(DesignTokens.radiusSm),
+              ),
             ),
           ),
           child: const Text(

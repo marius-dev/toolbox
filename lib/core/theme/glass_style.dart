@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 import 'design_tokens.dart';
 import 'glass_style_strategy.dart';
 
-export 'design_tokens.dart' show GlassDepth, GlassShadows, GlassTransitions, DesignTokens;
+export 'design_tokens.dart'
+    show GlassDepth, GlassShadows, GlassTransitions, DesignTokens;
 
 /// Glass style enumeration for UI theming.
 ///
@@ -155,8 +156,7 @@ class GlassStylePalette {
   }
 
   /// Returns the glow color for ambient effects.
-  Color get glowColor =>
-      accentColor.withOpacity(_strategy.glowOpacity());
+  Color get glowColor => accentColor.withOpacity(_strategy.glowOpacity());
 
   /// Returns the shadow configuration for glass elements.
   List<BoxShadow>? get shadow {

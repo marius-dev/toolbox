@@ -24,7 +24,9 @@ class GlassPanel extends StatelessWidget {
     required this.child,
     this.padding = const EdgeInsets.all(DesignTokens.space4),
     this.margin,
-    this.borderRadius = const BorderRadius.all(Radius.circular(DesignTokens.radiusLg)),
+    this.borderRadius = const BorderRadius.all(
+      Radius.circular(DesignTokens.radiusLg),
+    ),
     this.duration = DesignTokens.durationMedium,
     this.curve = DesignTokens.curveDefault,
     this.withShadow = true,

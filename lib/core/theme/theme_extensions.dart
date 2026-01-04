@@ -29,10 +29,7 @@ extension ThemeContextExtensions on BuildContext {
   /// Returns a GlassStylePalette for the current context.
   ///
   /// Optionally accepts custom style and accent color.
-  GlassStylePalette glassColors({
-    GlassStyle? style,
-    Color? accentColor,
-  }) {
+  GlassStylePalette glassColors({GlassStyle? style, Color? accentColor}) {
     final themeProvider = getIt<ThemeProvider>();
     return GlassStylePalette.fromContext(
       this,
@@ -144,15 +141,13 @@ extension LayoutContextExtensions on BuildContext {
   }
 
   /// Creates symmetric EdgeInsets scaled for compact layout.
-  EdgeInsets compactPadding({
-    double horizontal = 0,
-    double vertical = 0,
-  }) {
+  EdgeInsets compactPadding({double horizontal = 0, double vertical = 0}) {
     return CompactLayout.symmetric(
-      this,
-      horizontal: horizontal,
-      vertical: vertical,
-    ) as EdgeInsets;
+          this,
+          horizontal: horizontal,
+          vertical: vertical,
+        )
+        as EdgeInsets;
   }
 
   /// Creates EdgeInsets with only specified sides scaled for compact layout.
@@ -163,11 +158,12 @@ extension LayoutContextExtensions on BuildContext {
     double bottom = 0,
   }) {
     return CompactLayout.only(
-      this,
-      left: left,
-      top: top,
-      right: right,
-      bottom: bottom,
-    ) as EdgeInsets;
+          this,
+          left: left,
+          top: top,
+          right: right,
+          bottom: bottom,
+        )
+        as EdgeInsets;
   }
 }

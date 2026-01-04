@@ -142,8 +142,12 @@ class ProjectItemState extends State<ProjectItem> {
       child: AnimatedContainer(
         duration: GlassTransitions.hoverDuration,
         curve: GlassTransitions.hoverCurve,
-        margin: EdgeInsets.only(bottom: context.compactValue(DesignTokens.space1)),
-        padding: EdgeInsets.symmetric(horizontal: context.compactValue(DesignTokens.space3)),
+        margin: EdgeInsets.only(
+          bottom: context.compactValue(DesignTokens.space1),
+        ),
+        padding: EdgeInsets.symmetric(
+          horizontal: context.compactValue(DesignTokens.space3),
+        ),
         // Subtle lift on hover
         transform: Matrix4.identity()
           ..setTranslationRaw(0.0, isHighlighted ? -1.0 : 0.0, 0.0),

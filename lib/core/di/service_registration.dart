@@ -68,15 +68,11 @@ Future<void> _registerServices() async {
   getIt.registerLazySingleton<WorkspaceStorageService>(
     () => WorkspaceStorageService(),
   );
-  getIt.registerLazySingleton<ThemeStorageService>(
-    () => ThemeStorageService(),
-  );
+  getIt.registerLazySingleton<ThemeStorageService>(() => ThemeStorageService());
   getIt.registerLazySingleton<HotkeyStorageService>(
     () => HotkeyStorageService(),
   );
-  getIt.registerLazySingleton<ToolStorageService>(
-    () => ToolStorageService(),
-  );
+  getIt.registerLazySingleton<ToolStorageService>(() => ToolStorageService());
 
   // Window service (no dependencies)
   getIt.registerLazySingleton<WindowService>(() => WindowService());
@@ -156,7 +152,10 @@ void _registerProviders() {
     () => ProjectProvider(getIt<ProjectUseCases>()),
   );
   getIt.registerLazySingleton<WorkspaceProvider>(
-    () => WorkspaceProvider(getIt<WorkspaceUseCases>(), getIt<WorkspaceStorageService>()),
+    () => WorkspaceProvider(
+      getIt<WorkspaceUseCases>(),
+      getIt<WorkspaceStorageService>(),
+    ),
   );
   getIt.registerLazySingleton<ToolsProvider>(
     () => ToolsProvider(getIt<ToolUseCases>(), getIt<ToolStorageService>()),

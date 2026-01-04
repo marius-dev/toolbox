@@ -26,9 +26,9 @@ class LauncherProjectActions {
     required this.onSearchFieldFocus,
     required this.dismissPopupMenus,
     required this.showMessage,
-  })  : _projectProvider = projectProvider,
-        _toolsProvider = toolsProvider,
-        _workspaceProvider = workspaceProvider;
+  }) : _projectProvider = projectProvider,
+       _toolsProvider = toolsProvider,
+       _workspaceProvider = workspaceProvider;
 
   final ProjectProvider _projectProvider;
   final ToolsProvider _toolsProvider;

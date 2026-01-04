@@ -226,7 +226,10 @@ class ProjectProvider extends ChangeNotifier {
     await loadProjects(fallbackWorkspaceId: toWorkspaceId);
   }
 
-  Future<void> moveProjectToWorkspace(Project project, String workspaceId) async {
+  Future<void> moveProjectToWorkspace(
+    Project project,
+    String workspaceId,
+  ) async {
     if (project.workspaceId == workspaceId) return;
     final updated = project.copyWith(workspaceId: workspaceId);
     await _useCases.updateProject(updated);

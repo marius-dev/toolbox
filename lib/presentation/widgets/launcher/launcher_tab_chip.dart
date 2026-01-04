@@ -32,14 +32,14 @@ class _ModeChipState extends State<_ModeChip> {
     final backgroundColor = widget.isActive
         ? widget.accent
         : _isHovered
-            ? widget.accent.withValues(alpha: 0.12)
-            : Colors.transparent;
+        ? widget.accent.withValues(alpha: 0.12)
+        : Colors.transparent;
 
     final borderColor = widget.isActive
         ? widget.accent
         : _isHovered
-            ? widget.accent.withValues(alpha: 0.3)
-            : widget.textColor.withValues(alpha: 0.2);
+        ? widget.accent.withValues(alpha: 0.3)
+        : widget.textColor.withValues(alpha: 0.2);
 
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),

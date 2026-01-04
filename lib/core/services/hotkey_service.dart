@@ -32,9 +32,7 @@ class HotkeyService extends ChangeNotifier {
     if (hotKey != null) {
       _launcherHotKey!.scope = HotKeyScope.system;
       await _registerHotkey(_launcherHotKey!);
-      await _storageService.saveHotkeyPreference(
-        _launcherHotKey!.toJson(),
-      );
+      await _storageService.saveHotkeyPreference(_launcherHotKey!.toJson());
     } else {
       await _storageService.saveHotkeyPreference(null);
     }

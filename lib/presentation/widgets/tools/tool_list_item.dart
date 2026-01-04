@@ -42,13 +42,13 @@ class _ToolListItemState extends State<ToolListItem> {
     final background = widget.isDefault
         ? accent.withValues(alpha: isDark ? 0.16 : 0.08)
         : _isHovering
-            ? theme.dividerColor.withValues(alpha: isDark ? 0.08 : 0.05)
-            : Colors.transparent;
+        ? theme.dividerColor.withValues(alpha: isDark ? 0.08 : 0.05)
+        : Colors.transparent;
     final borderColor = widget.isDefault
         ? accent.withValues(alpha: 0.65)
         : _isHovering
-            ? theme.dividerColor.withValues(alpha: isDark ? 0.28 : 0.22)
-            : Colors.transparent;
+        ? theme.dividerColor.withValues(alpha: isDark ? 0.28 : 0.22)
+        : Colors.transparent;
 
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovering = true),

@@ -7,10 +7,7 @@ import '../repositories/project_repository.dart';
 
 /// Service responsible for launching projects and related external actions.
 class ProjectLaunchService {
-  ProjectLaunchService(
-    this._repository,
-    this._discoveryService,
-  );
+  ProjectLaunchService(this._repository, this._discoveryService);
 
   final ProjectRepository _repository;
   final ToolDiscoveryService _discoveryService;
@@ -30,7 +27,10 @@ class ProjectLaunchService {
     );
 
     if (resolved != null) {
-      await _discoveryService.launchTool(resolved.tool, targetPath: project.path);
+      await _discoveryService.launchTool(
+        resolved.tool,
+        targetPath: project.path,
+      );
       final updated = project.copyWith(
         lastOpened: DateTime.now(),
         lastUsedToolId: resolved.tool.id,
@@ -142,7 +142,9 @@ class ProjectLaunchService {
           (t) => t.id == project.lastUsedToolId,
         );
       } catch (_) {
-        candidate = await _discoveryService.discoverTool(project.lastUsedToolId!);
+        candidate = await _discoveryService.discoverTool(
+          project.lastUsedToolId!,
+        );
       }
 
       if ((!candidate.isInstalled || candidate.path == null)) {

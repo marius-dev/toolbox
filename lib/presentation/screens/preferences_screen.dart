@@ -33,9 +33,7 @@ class PreferencesScreen extends StatelessWidget {
               subtitle: 'Customize how the launcher looks and behaves.',
               padding: context.compactPadding(horizontal: 18),
               child: ListView(
-                padding: EdgeInsets.only(
-                  bottom: context.compactValue(16),
-                ),
+                padding: EdgeInsets.only(bottom: context.compactValue(16)),
                 children: [
                   const HotkeyPicker(),
                   SizedBox(height: context.compactValue(10)),
@@ -74,9 +72,7 @@ class PreferencesScreen extends StatelessWidget {
               vertical: context.compactValue(4),
             ),
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(
-                context.compactValue(10),
-              ),
+              borderRadius: BorderRadius.circular(context.compactValue(10)),
               border: Border.all(color: borderColor),
             ),
             child: ToggleButtons(
@@ -135,9 +131,7 @@ class PreferencesScreen extends StatelessWidget {
                   value: scale,
                   child: Text(
                     label,
-                    style: TextStyle(
-                      fontSize: context.compactValue(12),
-                    ),
+                    style: TextStyle(fontSize: context.compactValue(12)),
                   ),
                 );
               }).toList(),
@@ -180,13 +174,17 @@ class PreferencesScreen extends StatelessWidget {
 
     return InkWell(
       onTap: () => _showColorPicker(context),
-      borderRadius: BorderRadius.circular(context.compactValue(DesignTokens.radiusMd)),
+      borderRadius: BorderRadius.circular(
+        context.compactValue(DesignTokens.radiusMd),
+      ),
       child: Container(
         width: context.compactValue(34),
         height: context.compactValue(34),
         decoration: BoxDecoration(
           color: currentColor,
-          borderRadius: BorderRadius.circular(context.compactValue(DesignTokens.radiusMd)),
+          borderRadius: BorderRadius.circular(
+            context.compactValue(DesignTokens.radiusMd),
+          ),
           border: Border.all(color: borderColor),
         ),
       ),

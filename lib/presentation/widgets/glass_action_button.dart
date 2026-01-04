@@ -27,8 +27,9 @@ class GlassActionButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final palette = context.glassColors();
     final isDark = context.isDark;
-    final accent =
-        danger ? context.theme.colorScheme.error : context.accentColor;
+    final accent = danger
+        ? context.theme.colorScheme.error
+        : context.accentColor;
     final base = palette.innerColor;
 
     // Subtler gradients for modern minimal aesthetic
@@ -79,9 +80,9 @@ class GlassActionButton extends StatelessWidget {
     final defaultIconColor = primary
         ? Colors.white
         : context.theme.iconTheme.color?.withValues(
-              alpha: _enabled ? 0.9 : 0.5,
-            ) ??
-            Colors.white;
+                alpha: _enabled ? 0.9 : 0.5,
+              ) ??
+              Colors.white;
     final iconColor = foregroundColor ?? defaultIconColor;
     final textColor =
         foregroundColor ?? (primary ? Colors.white : defaultIconColor);

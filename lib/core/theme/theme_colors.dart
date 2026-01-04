@@ -143,10 +143,7 @@ class ThemeColors {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final base = baseBorder ?? borderColor(context);
     final accentOpacity = isDark ? 0.20 : 0.12;
-    return Color.alphaBlend(
-      accentColor.withValues(alpha: accentOpacity),
-      base,
-    );
+    return Color.alphaBlend(accentColor.withValues(alpha: accentOpacity), base);
   }
 
   /// Returns shadow color for the given accent.

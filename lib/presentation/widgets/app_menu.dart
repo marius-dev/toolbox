@@ -163,12 +163,12 @@ class PillMenuItem<T> extends PopupMenuItem<T> {
     super.enabled,
     required Widget child,
   }) : super(
-          padding: const EdgeInsets.symmetric(
-            horizontal: DesignTokens.space2,
-            vertical: DesignTokens.space1,
-          ),
-          child: _PillMenuItemContent(child: child),
-        );
+         padding: const EdgeInsets.symmetric(
+           horizontal: DesignTokens.space2,
+           vertical: DesignTokens.space1,
+         ),
+         child: _PillMenuItemContent(child: child),
+       );
 }
 
 class _PillMenuItemContent extends StatefulWidget {

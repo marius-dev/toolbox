@@ -450,7 +450,8 @@ class _ProjectListState extends State<ProjectList> {
             onOpenInTerminal: () => _handleOpenInTerminal(project),
             onOpenWith: (toolId) => _handleOpenWith(project, toolId),
             onMoveToWorkspace: widget.onMoveToWorkspace != null
-                ? (workspaceId) => widget.onMoveToWorkspace!(project, workspaceId)
+                ? (workspaceId) =>
+                      widget.onMoveToWorkspace!(project, workspaceId)
                 : null,
             onDelete: () => widget.onDelete(project),
           ),

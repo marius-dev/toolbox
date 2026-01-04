@@ -34,12 +34,17 @@ class _GlassButtonState extends State<GlassButton> {
     final accent = widget.tintColor ?? context.accentColor;
     final baseColor = context.baseSurface;
     final highlight = context.highlightColor(accentColor: accent);
-    final baseBorder =
-        context.borderColor(opacity: context.isDark ? 0.08 : 0.05);
+    final baseBorder = context.borderColor(
+      opacity: context.isDark ? 0.08 : 0.05,
+    );
     final borderColor = widget.tintColor == null
         ? baseBorder
-        : context.accentBorderColor(accentColor: accent, baseBorder: baseBorder);
-    final resolvedIconColor = widget.iconColor ??
+        : context.accentBorderColor(
+            accentColor: accent,
+            baseBorder: baseBorder,
+          );
+    final resolvedIconColor =
+        widget.iconColor ??
         (widget.tintColor == null
             ? context.iconColor()
             : context.accentWithOpacity(
@@ -72,10 +77,7 @@ class _GlassButtonState extends State<GlassButton> {
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
-                  colors: [
-                    baseColor,
-                    Color.alphaBlend(highlight, baseColor),
-                  ],
+                  colors: [baseColor, Color.alphaBlend(highlight, baseColor)],
                 ),
                 border: Border.all(
                   color: _isHovered

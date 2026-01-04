@@ -282,7 +282,9 @@ class _GitBadge extends StatelessWidget {
       ),
       decoration: BoxDecoration(
         color: color.withOpacity(0.12),
-        borderRadius: BorderRadius.circular(context.compactValue(DesignTokens.radiusSm)),
+        borderRadius: BorderRadius.circular(
+          context.compactValue(DesignTokens.radiusSm),
+        ),
         border: Border.all(color: color.withOpacity(0.4)),
       ),
       child: Row(
@@ -358,10 +360,7 @@ class _ProjectAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final accentColor = _softAccentColor(
-      context.accentColor,
-      context.isDark,
-    );
+    final accentColor = _softAccentColor(context.accentColor, context.isDark);
     final textColor = Theme.of(context).textTheme.bodyLarge!.color!;
     final avatarSize = context.compactValue(38);
     final gradient = _projectAvatarGradient(project.name, accentColor);
@@ -381,7 +380,9 @@ class _ProjectAvatar extends StatelessWidget {
                 colors: [Colors.grey.shade800, Colors.grey.shade700],
               )
             : gradient,
-        borderRadius: BorderRadius.circular(context.compactValue(DesignTokens.radiusMd)),
+        borderRadius: BorderRadius.circular(
+          context.compactValue(DesignTokens.radiusMd),
+        ),
         boxShadow: [
           if (!isDisabled)
             BoxShadow(
@@ -471,7 +472,11 @@ Gradient _projectAvatarGradient(String name, Color accentColor) {
   final angle = (name.hashCode % 360) * (math.pi / 180);
   final startAlignment = Alignment(math.cos(angle), math.sin(angle));
   final endAlignment = Alignment(-startAlignment.x, -startAlignment.y);
-  final midColor = Color.lerp(colors.first, colors.last, 0.5)!.withValues(alpha: 0.9);
+  final midColor = Color.lerp(
+    colors.first,
+    colors.last,
+    0.5,
+  )!.withValues(alpha: 0.9);
 
   return LinearGradient(
     begin: startAlignment,

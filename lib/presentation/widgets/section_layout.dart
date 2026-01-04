@@ -58,7 +58,8 @@ class SectionLayout extends StatelessWidget {
                   children: [
                     Text(
                       title,
-                      style: textTheme.titleLarge?.copyWith(
+                      style:
+                          textTheme.titleLarge?.copyWith(
                             fontWeight: FontWeight.w800,
                           ) ??
                           const TextStyle(fontWeight: FontWeight.w800),
@@ -66,7 +67,8 @@ class SectionLayout extends StatelessWidget {
                     SizedBox(height: context.compactValue(DesignTokens.space1)),
                     Text(
                       subtitle,
-                      style: textTheme.bodyMedium?.copyWith(
+                      style:
+                          textTheme.bodyMedium?.copyWith(
                             color: secondaryColor,
                           ) ??
                           TextStyle(color: secondaryColor),

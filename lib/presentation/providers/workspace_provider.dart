@@ -98,13 +98,11 @@ class WorkspaceProvider extends ChangeNotifier {
     // Allow renaming all workspaces, including the default one
     final sanitized = _sanitizeName(name);
     if (sanitized.isEmpty) return;
-    final hasChanges = sanitized != workspace.name ||
+    final hasChanges =
+        sanitized != workspace.name ||
         (iconIndex != null && iconIndex != workspace.iconIndex);
     if (!hasChanges) return;
-    final updated = workspace.copyWith(
-      name: sanitized,
-      iconIndex: iconIndex,
-    );
+    final updated = workspace.copyWith(name: sanitized, iconIndex: iconIndex);
     await _useCases.updateWorkspace(updated);
     final index = _workspaces.indexWhere(
       (element) => element.id == workspace.id,

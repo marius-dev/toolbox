@@ -23,16 +23,13 @@ abstract class BaseStorageService {
   }
 
   /// Returns the projects file.
-  Future<File> get projectsFile =>
-      getFile(StorageKeys.projectsFile);
+  Future<File> get projectsFile => getFile(StorageKeys.projectsFile);
 
   /// Returns the workspaces file.
-  Future<File> get workspacesFile =>
-      getFile(StorageKeys.workspacesFile);
+  Future<File> get workspacesFile => getFile(StorageKeys.workspacesFile);
 
   /// Returns the preferences file.
-  Future<File> get preferencesFile =>
-      getFile(StorageKeys.preferencesFile);
+  Future<File> get preferencesFile => getFile(StorageKeys.preferencesFile);
 
   /// Reads and returns the preferences JSON as a Map.
   ///

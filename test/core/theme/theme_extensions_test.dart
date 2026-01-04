@@ -4,8 +4,9 @@ import 'package:project_launcher/core/theme/theme_extensions.dart';
 
 void main() {
   group('ThemeContextExtensions', () {
-    testWidgets('isDark returns true for dark theme',
-        (WidgetTester tester) async {
+    testWidgets('isDark returns true for dark theme', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           theme: ThemeData.dark(),
@@ -19,8 +20,9 @@ void main() {
       );
     });
 
-    testWidgets('isDark returns false for light theme',
-        (WidgetTester tester) async {
+    testWidgets('isDark returns false for light theme', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           theme: ThemeData.light(),
@@ -34,8 +36,9 @@ void main() {
       );
     });
 
-    testWidgets('isLight returns true for light theme',
-        (WidgetTester tester) async {
+    testWidgets('isLight returns true for light theme', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           theme: ThemeData.light(),
@@ -49,8 +52,9 @@ void main() {
       );
     });
 
-    testWidgets('isLight returns false for dark theme',
-        (WidgetTester tester) async {
+    testWidgets('isLight returns false for dark theme', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           theme: ThemeData.dark(),
@@ -79,8 +83,9 @@ void main() {
       );
     });
 
-    testWidgets('surfaceColor extension works correctly',
-        (WidgetTester tester) async {
+    testWidgets('surfaceColor extension works correctly', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           theme: ThemeData.dark(),
@@ -95,8 +100,9 @@ void main() {
       );
     });
 
-    testWidgets('baseSurface extension works correctly',
-        (WidgetTester tester) async {
+    testWidgets('baseSurface extension works correctly', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           theme: ThemeData.dark(),
@@ -111,8 +117,9 @@ void main() {
       );
     });
 
-    testWidgets('borderColor extension works correctly',
-        (WidgetTester tester) async {
+    testWidgets('borderColor extension works correctly', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           theme: ThemeData.dark(),
@@ -127,8 +134,9 @@ void main() {
       );
     });
 
-    testWidgets('iconColor extension works correctly',
-        (WidgetTester tester) async {
+    testWidgets('iconColor extension works correctly', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           theme: ThemeData.dark(),
@@ -143,8 +151,9 @@ void main() {
       );
     });
 
-    testWidgets('textColor extension works correctly',
-        (WidgetTester tester) async {
+    testWidgets('textColor extension works correctly', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           theme: ThemeData.dark(),
@@ -159,8 +168,9 @@ void main() {
       );
     });
 
-    testWidgets('secondaryTextColor extension works correctly',
-        (WidgetTester tester) async {
+    testWidgets('secondaryTextColor extension works correctly', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           theme: ThemeData.dark(),
@@ -175,8 +185,9 @@ void main() {
       );
     });
 
-    testWidgets('dividerColor extension works correctly',
-        (WidgetTester tester) async {
+    testWidgets('dividerColor extension works correctly', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           theme: ThemeData.dark(),
@@ -193,8 +204,9 @@ void main() {
   });
 
   group('LayoutContextExtensions', () {
-    testWidgets('compactScale returns scale factor',
-        (WidgetTester tester) async {
+    testWidgets('compactScale returns scale factor', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Builder(
@@ -210,8 +222,9 @@ void main() {
       );
     });
 
-    testWidgets('compactValue scales values correctly',
-        (WidgetTester tester) async {
+    testWidgets('compactValue scales values correctly', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Builder(
@@ -226,8 +239,9 @@ void main() {
       );
     });
 
-    testWidgets('compactRadius creates BorderRadius correctly',
-        (WidgetTester tester) async {
+    testWidgets('compactRadius creates BorderRadius correctly', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Builder(
@@ -241,8 +255,9 @@ void main() {
       );
     });
 
-    testWidgets('compactPadding creates EdgeInsets correctly',
-        (WidgetTester tester) async {
+    testWidgets('compactPadding creates EdgeInsets correctly', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Builder(
@@ -259,8 +274,9 @@ void main() {
       );
     });
 
-    testWidgets('compactPaddingOnly creates EdgeInsets correctly',
-        (WidgetTester tester) async {
+    testWidgets('compactPaddingOnly creates EdgeInsets correctly', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Builder(

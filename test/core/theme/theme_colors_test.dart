@@ -4,8 +4,9 @@ import 'package:project_launcher/core/theme/theme_colors.dart';
 
 void main() {
   group('ThemeColors', () {
-    testWidgets('surfaceColor returns correct opacity for dark theme',
-        (WidgetTester tester) async {
+    testWidgets('surfaceColor returns correct opacity for dark theme', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           theme: ThemeData.dark(),
@@ -20,8 +21,9 @@ void main() {
       );
     });
 
-    testWidgets('surfaceColor returns correct opacity for light theme',
-        (WidgetTester tester) async {
+    testWidgets('surfaceColor returns correct opacity for light theme', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           theme: ThemeData.light(),
@@ -36,8 +38,9 @@ void main() {
       );
     });
 
-    testWidgets('baseSurface returns correct color for dark theme',
-        (WidgetTester tester) async {
+    testWidgets('baseSurface returns correct color for dark theme', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           theme: ThemeData.dark(),
@@ -52,8 +55,9 @@ void main() {
       );
     });
 
-    testWidgets('baseSurface returns correct color for light theme',
-        (WidgetTester tester) async {
+    testWidgets('baseSurface returns correct color for light theme', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           theme: ThemeData.light(),
@@ -68,8 +72,9 @@ void main() {
       );
     });
 
-    testWidgets('borderColor returns correct default color for dark theme',
-        (WidgetTester tester) async {
+    testWidgets('borderColor returns correct default color for dark theme', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           theme: ThemeData.dark(),
@@ -84,8 +89,9 @@ void main() {
       );
     });
 
-    testWidgets('borderColor returns correct default color for light theme',
-        (WidgetTester tester) async {
+    testWidgets('borderColor returns correct default color for light theme', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           theme: ThemeData.light(),
@@ -100,8 +106,9 @@ void main() {
       );
     });
 
-    testWidgets('borderColor accepts custom opacity',
-        (WidgetTester tester) async {
+    testWidgets('borderColor accepts custom opacity', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           theme: ThemeData.dark(),
@@ -116,8 +123,9 @@ void main() {
       );
     });
 
-    testWidgets('accentWithOpacity returns correct color for dark theme',
-        (WidgetTester tester) async {
+    testWidgets('accentWithOpacity returns correct color for dark theme', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           theme: ThemeData.dark(),
@@ -138,8 +146,9 @@ void main() {
       );
     });
 
-    testWidgets('accentWithOpacity returns correct color for light theme',
-        (WidgetTester tester) async {
+    testWidgets('accentWithOpacity returns correct color for light theme', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           theme: ThemeData.light(),
@@ -160,8 +169,9 @@ void main() {
       );
     });
 
-    testWidgets('iconColor returns default color for dark theme',
-        (WidgetTester tester) async {
+    testWidgets('iconColor returns default color for dark theme', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           theme: ThemeData.dark(),
@@ -176,8 +186,9 @@ void main() {
       );
     });
 
-    testWidgets('iconColor returns default color for light theme',
-        (WidgetTester tester) async {
+    testWidgets('iconColor returns default color for light theme', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           theme: ThemeData.light(),
@@ -192,8 +203,9 @@ void main() {
       );
     });
 
-    testWidgets('textColor returns default color for dark theme',
-        (WidgetTester tester) async {
+    testWidgets('textColor returns default color for dark theme', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           theme: ThemeData.dark(),
@@ -208,8 +220,9 @@ void main() {
       );
     });
 
-    testWidgets('textColor returns default color for light theme',
-        (WidgetTester tester) async {
+    testWidgets('textColor returns default color for light theme', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           theme: ThemeData.light(),
@@ -224,8 +237,9 @@ void main() {
       );
     });
 
-    testWidgets('secondaryTextColor returns correct color for dark theme',
-        (WidgetTester tester) async {
+    testWidgets('secondaryTextColor returns correct color for dark theme', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           theme: ThemeData.dark(),
@@ -240,8 +254,9 @@ void main() {
       );
     });
 
-    testWidgets('secondaryTextColor returns correct color for light theme',
-        (WidgetTester tester) async {
+    testWidgets('secondaryTextColor returns correct color for light theme', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           theme: ThemeData.light(),
@@ -256,8 +271,9 @@ void main() {
       );
     });
 
-    testWidgets('dividerColor returns correct color for dark theme',
-        (WidgetTester tester) async {
+    testWidgets('dividerColor returns correct color for dark theme', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           theme: ThemeData.dark(),
@@ -272,8 +288,9 @@ void main() {
       );
     });
 
-    testWidgets('dividerColor returns correct color for light theme',
-        (WidgetTester tester) async {
+    testWidgets('dividerColor returns correct color for light theme', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           theme: ThemeData.light(),
@@ -293,15 +310,17 @@ void main() {
       expect(color, equals(Colors.black.withOpacity(0.78)));
     });
 
-    testWidgets('shadowColor returns correct color',
-        (WidgetTester tester) async {
+    testWidgets('shadowColor returns correct color', (
+      WidgetTester tester,
+    ) async {
       final accent = Colors.blue;
       final color = ThemeColors.shadowColor(accent);
       expect(color, equals(accent.withOpacity(0.2)));
     });
 
-    testWidgets('shadowColor accepts custom opacity',
-        (WidgetTester tester) async {
+    testWidgets('shadowColor accepts custom opacity', (
+      WidgetTester tester,
+    ) async {
       final accent = Colors.blue;
       final color = ThemeColors.shadowColor(accent, opacity: 0.5);
       expect(color, equals(accent.withOpacity(0.5)));

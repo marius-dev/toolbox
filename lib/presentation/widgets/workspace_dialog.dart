@@ -27,7 +27,8 @@ class _WorkspaceDialogState extends State<WorkspaceDialog> {
     _nameController = TextEditingController(
       text: _limitName(widget.workspace?.name ?? ''),
     );
-    _selectedIconIndex = widget.workspace?.iconIndex ?? Workspace.defaultIconIndex;
+    _selectedIconIndex =
+        widget.workspace?.iconIndex ?? Workspace.defaultIconIndex;
   }
 
   @override
@@ -40,10 +41,7 @@ class _WorkspaceDialogState extends State<WorkspaceDialog> {
   void _save() {
     final name = _nameController.text.trim();
     if (name.isEmpty) return;
-    Navigator.of(context).pop({
-      'name': name,
-      'iconIndex': _selectedIconIndex,
-    });
+    Navigator.of(context).pop({'name': name, 'iconIndex': _selectedIconIndex});
   }
 
   @override
@@ -72,7 +70,9 @@ class _WorkspaceDialogState extends State<WorkspaceDialog> {
         vertical: context.compactValue(18),
       ),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(context.compactValue(DesignTokens.radiusLg)),
+        borderRadius: BorderRadius.circular(
+          context.compactValue(DesignTokens.radiusLg),
+        ),
         side: BorderSide(color: borderColor),
       ),
       titlePadding: EdgeInsets.fromLTRB(
@@ -127,9 +127,7 @@ class _WorkspaceDialogState extends State<WorkspaceDialog> {
               ],
               decoration: InputDecoration(
                 labelText: 'Workspace name',
-                prefixIcon: Icon(
-                  WorkspaceIcons.getIcon(_selectedIconIndex),
-                ),
+                prefixIcon: Icon(WorkspaceIcons.getIcon(_selectedIconIndex)),
                 filled: true,
                 fillColor: fieldFill,
                 helperText: isLimitReached
@@ -139,15 +137,21 @@ class _WorkspaceDialogState extends State<WorkspaceDialog> {
                   color: theme.colorScheme.error,
                 ),
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(context.compactValue(DesignTokens.radiusMd)),
+                  borderRadius: BorderRadius.circular(
+                    context.compactValue(DesignTokens.radiusMd),
+                  ),
                   borderSide: BorderSide(color: borderColor),
                 ),
                 enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(context.compactValue(DesignTokens.radiusMd)),
+                  borderRadius: BorderRadius.circular(
+                    context.compactValue(DesignTokens.radiusMd),
+                  ),
                   borderSide: BorderSide(color: borderColor),
                 ),
                 focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(context.compactValue(DesignTokens.radiusMd)),
+                  borderRadius: BorderRadius.circular(
+                    context.compactValue(DesignTokens.radiusMd),
+                  ),
                   borderSide: BorderSide(color: accentColor, width: 1.5),
                 ),
               ),
@@ -188,37 +192,43 @@ class _WorkspaceDialogState extends State<WorkspaceDialog> {
                     ),
                     itemCount: WorkspaceIcons.iconCount,
                     itemBuilder: (context, index) {
-                    final icon = WorkspaceIcons.icons[index];
-                    final isSelected = index == _selectedIconIndex;
-                    final isDark = theme.brightness == Brightness.dark;
+                      final icon = WorkspaceIcons.icons[index];
+                      final isSelected = index == _selectedIconIndex;
+                      final isDark = theme.brightness == Brightness.dark;
 
-                    return InkWell(
-                      onTap: () => setState(() => _selectedIconIndex = index),
-                      borderRadius: BorderRadius.circular(context.compactValue(DesignTokens.radiusSm)),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: isSelected
-                              ? accentColor.withValues(alpha: isDark ? 0.2 : 0.12)
-                              : Colors.transparent,
-                          borderRadius: BorderRadius.circular(context.compactValue(DesignTokens.radiusSm)),
-                          border: Border.all(
+                      return InkWell(
+                        onTap: () => setState(() => _selectedIconIndex = index),
+                        borderRadius: BorderRadius.circular(
+                          context.compactValue(DesignTokens.radiusSm),
+                        ),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? accentColor.withValues(
+                                    alpha: isDark ? 0.2 : 0.12,
+                                  )
+                                : Colors.transparent,
+                            borderRadius: BorderRadius.circular(
+                              context.compactValue(DesignTokens.radiusSm),
+                            ),
+                            border: Border.all(
+                              color: isSelected
+                                  ? accentColor
+                                  : borderColor.withValues(alpha: 0.5),
+                              width: isSelected ? 2 : 1,
+                            ),
+                          ),
+                          child: Icon(
+                            icon,
+                            size: context.compactValue(24),
                             color: isSelected
                                 ? accentColor
-                                : borderColor.withValues(alpha: 0.5),
-                            width: isSelected ? 2 : 1,
+                                : theme.iconTheme.color,
                           ),
                         ),
-                        child: Icon(
-                          icon,
-                          size: context.compactValue(24),
-                          color: isSelected
-                              ? accentColor
-                              : theme.iconTheme.color,
-                        ),
-                      ),
-                    );
-                  },
-                ),
+                      );
+                    },
+                  ),
                 ),
               ),
             ),
@@ -241,7 +251,9 @@ class _WorkspaceDialogState extends State<WorkspaceDialog> {
             disabledBackgroundColor: accentColor.withValues(alpha: 0.3),
             disabledForegroundColor: Colors.white.withValues(alpha: 0.7),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(context.compactValue(DesignTokens.radiusSm)),
+              borderRadius: BorderRadius.circular(
+                context.compactValue(DesignTokens.radiusSm),
+              ),
             ),
           ),
           child: Text(
@@ -288,7 +300,9 @@ class WorkspaceDeleteDialog extends StatelessWidget {
         vertical: context.compactValue(18),
       ),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(context.compactValue(DesignTokens.radiusLg)),
+        borderRadius: BorderRadius.circular(
+          context.compactValue(DesignTokens.radiusLg),
+        ),
         side: BorderSide(color: borderColor),
       ),
       titlePadding: EdgeInsets.fromLTRB(
@@ -330,7 +344,9 @@ class WorkspaceDeleteDialog extends StatelessWidget {
             backgroundColor: Colors.redAccent,
             foregroundColor: Colors.white,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(context.compactValue(DesignTokens.radiusSm)),
+              borderRadius: BorderRadius.circular(
+                context.compactValue(DesignTokens.radiusSm),
+              ),
             ),
           ),
           child: const Text(

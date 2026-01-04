@@ -174,9 +174,7 @@ class _MenuActionTileState extends State<_MenuActionTile> {
           onEnter: (_) => setState(() => _hovered = true),
           onExit: (_) => setState(() => _hovered = false),
           child: Container(
-            height: context.compactValue(
-              _kProjectMenuActionTileBaseHeight,
-            ),
+            height: context.compactValue(_kProjectMenuActionTileBaseHeight),
             padding: EdgeInsets.only(
               left: leftPadding,
               right: context.compactValue(12),
@@ -184,8 +182,8 @@ class _MenuActionTileState extends State<_MenuActionTile> {
             decoration: BoxDecoration(
               color: widget.action.enabled && _hovered
                   ? (isDark
-                      ? Colors.white.withValues(alpha: 0.08)
-                      : Colors.black.withValues(alpha: 0.05))
+                        ? Colors.white.withValues(alpha: 0.08)
+                        : Colors.black.withValues(alpha: 0.05))
                   : Colors.transparent,
             ),
             child: Row(
@@ -195,9 +193,7 @@ class _MenuActionTileState extends State<_MenuActionTile> {
                 ] else ...[
                   Icon(
                     widget.action.icon,
-                    size: context.compactValue(
-                      _kProjectMenuIconBaseSize,
-                    ),
+                    size: context.compactValue(_kProjectMenuIconBaseSize),
                     color: textColor,
                   ),
                 ],

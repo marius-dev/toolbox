@@ -43,7 +43,7 @@ void main() {
         final opacities = strategy.backgroundGradientOpacities(true);
         expect(opacities, hasLength(3));
         expect(opacities[0], equals(0.32)); // start
-        expect(opacities[1], equals(0.3));  // middle
+        expect(opacities[1], equals(0.3)); // middle
         expect(opacities[2], equals(0.42)); // end
       });
 
@@ -51,7 +51,7 @@ void main() {
         final opacities = strategy.backgroundGradientOpacities(false);
         expect(opacities, hasLength(3));
         expect(opacities[0], equals(0.55)); // start
-        expect(opacities[1], equals(0.5));  // middle
+        expect(opacities[1], equals(0.5)); // middle
         expect(opacities[2], equals(0.38)); // end
       });
 
@@ -123,14 +123,14 @@ void main() {
         expect(opacities, hasLength(3));
         expect(opacities[0], equals(0.45)); // start
         expect(opacities[1], equals(0.38)); // middle
-        expect(opacities[2], equals(0.6));  // end
+        expect(opacities[2], equals(0.6)); // end
       });
 
       test('returns correct background gradient opacities for light theme', () {
         final opacities = strategy.backgroundGradientOpacities(false);
         expect(opacities, hasLength(3));
         expect(opacities[0], equals(0.82)); // start
-        expect(opacities[1], equals(0.8));  // middle
+        expect(opacities[1], equals(0.8)); // middle
         expect(opacities[2], equals(0.65)); // end
       });
 

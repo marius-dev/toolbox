@@ -7,10 +7,7 @@ import '../repositories/project_repository.dart';
 /// It fetches repository metadata using [ProjectMetadataService] and persists
 /// the enriched project data via [ProjectRepository].
 class ProjectMetadataSyncService {
-  ProjectMetadataSyncService(
-    this._repository,
-    this._metadataService,
-  );
+  ProjectMetadataSyncService(this._repository, this._metadataService);
 
   final ProjectRepository _repository;
   final ProjectMetadataService _metadataService;

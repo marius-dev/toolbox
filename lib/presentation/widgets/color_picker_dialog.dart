@@ -51,7 +51,9 @@ class _ColorPickerDialogState extends State<ColorPickerDialog> {
       backgroundColor: background,
       elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(context.compactValue(DesignTokens.radiusLg)),
+        borderRadius: BorderRadius.circular(
+          context.compactValue(DesignTokens.radiusLg),
+        ),
         side: BorderSide(color: borderColor),
       ),
       child: Container(
@@ -79,10 +81,14 @@ class _ColorPickerDialogState extends State<ColorPickerDialog> {
               child: Container(
                 decoration: BoxDecoration(
                   color: Color.alphaBlend(
-                    isDark ? Colors.white.withValues(alpha: 0.04) : Colors.black.withValues(alpha: 0.02),
+                    isDark
+                        ? Colors.white.withValues(alpha: 0.04)
+                        : Colors.black.withValues(alpha: 0.02),
                     background,
                   ),
-                  borderRadius: BorderRadius.circular(context.compactValue(DesignTokens.radiusMd)),
+                  borderRadius: BorderRadius.circular(
+                    context.compactValue(DesignTokens.radiusMd),
+                  ),
                   border: Border.all(color: borderColor),
                 ),
                 padding: EdgeInsets.symmetric(
@@ -114,14 +120,14 @@ class _ColorPickerDialogState extends State<ColorPickerDialog> {
                     backgroundColor: _selectedColor,
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(context.compactValue(DesignTokens.radiusSm)),
+                      borderRadius: BorderRadius.circular(
+                        context.compactValue(DesignTokens.radiusSm),
+                      ),
                     ),
                   ),
                   child: const Text(
                     'Apply',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w600,
-                    ),
+                    style: TextStyle(fontWeight: FontWeight.w600),
                   ),
                 ),
               ],

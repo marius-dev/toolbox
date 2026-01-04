@@ -65,11 +65,15 @@ class _SettingsTileState extends State<SettingsTile> {
               sigmaY: DesignTokens.blurSubtle,
             ),
             child: Padding(
-              padding: EdgeInsets.all(context.compactValue(DesignTokens.space3)),
+              padding: EdgeInsets.all(
+                context.compactValue(DesignTokens.space3),
+              ),
               child: Row(
                 children: [
                   Container(
-                    padding: EdgeInsets.all(context.compactValue(DesignTokens.space1 + 2)),
+                    padding: EdgeInsets.all(
+                      context.compactValue(DesignTokens.space1 + 2),
+                    ),
                     decoration: BoxDecoration(
                       // Subtle neutral background instead of accent tint
                       color: isDark

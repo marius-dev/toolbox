@@ -178,7 +178,9 @@ class _ProjectDialogState extends State<ProjectDialog> {
     final borderColor = theme.dividerColor.withOpacity(0.24);
     return BoxDecoration(
       color: background,
-      borderRadius: BorderRadius.circular(context.compactValue(DesignTokens.radiusLg)),
+      borderRadius: BorderRadius.circular(
+        context.compactValue(DesignTokens.radiusLg),
+      ),
       border: Border.all(color: borderColor),
     );
   }
@@ -299,7 +301,9 @@ class _ProjectDialogState extends State<ProjectDialog> {
           );
 
     return InkWell(
-      borderRadius: BorderRadius.circular(context.compactValue(DesignTokens.radiusMd)),
+      borderRadius: BorderRadius.circular(
+        context.compactValue(DesignTokens.radiusMd),
+      ),
       onTap: () => _selectTool(tool),
       child: Container(
         padding: EdgeInsets.symmetric(
@@ -308,7 +312,9 @@ class _ProjectDialogState extends State<ProjectDialog> {
         ),
         decoration: BoxDecoration(
           color: background,
-          borderRadius: BorderRadius.circular(context.compactValue(DesignTokens.radiusMd)),
+          borderRadius: BorderRadius.circular(
+            context.compactValue(DesignTokens.radiusMd),
+          ),
           border: Border.all(color: borderColor),
         ),
         child: Row(
@@ -346,7 +352,9 @@ class _ProjectDialogState extends State<ProjectDialog> {
           disabledBackgroundColor: accentColor.withOpacity(0.3),
           disabledForegroundColor: Colors.white.withOpacity(0.7),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(context.compactValue(DesignTokens.radiusSm)),
+            borderRadius: BorderRadius.circular(
+              context.compactValue(DesignTokens.radiusSm),
+            ),
           ),
         ),
         child: Text(
@@ -378,7 +386,9 @@ class _ProjectDialogState extends State<ProjectDialog> {
         vertical: context.compactValue(18),
       ),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(context.compactValue(DesignTokens.radiusLg)),
+        borderRadius: BorderRadius.circular(
+          context.compactValue(DesignTokens.radiusLg),
+        ),
         side: BorderSide(color: borderColor),
       ),
       titlePadding: EdgeInsets.fromLTRB(
