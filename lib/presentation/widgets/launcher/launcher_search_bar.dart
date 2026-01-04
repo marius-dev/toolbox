@@ -52,13 +52,14 @@ class LauncherSearchBar extends StatelessWidget {
 
   Widget _buildSearchField(BuildContext context, bool hasActions) {
     final baseColor = Theme.of(context).textTheme.bodyLarge!.color!;
-    // Glass-style input background
-    final fillColor = context.isDark
-        ? Colors.black.withValues(alpha: 0.35)
-        : Colors.white.withValues(alpha: 0.85);
-    final borderColor = baseColor.withValues(
-      alpha: context.isDark ? 0.18 : 0.08,
-    );
+    final isDark = context.isDark;
+    // Pill-style input background (matching tools/projects toggle)
+    final fillColor = isDark
+        ? Colors.white.withValues(alpha: 0.04)
+        : Colors.black.withValues(alpha: 0.04);
+    final borderColor = isDark
+        ? Colors.white.withValues(alpha: 0.06)
+        : Colors.black.withValues(alpha: 0.06);
     final accentColor = context.accentColor;
     final isMac = defaultTargetPlatform == TargetPlatform.macOS;
 
@@ -143,11 +144,11 @@ class LauncherSearchBar extends StatelessWidget {
                     vertical: DesignTokens.space5 - 2,
                   ),
                   enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(DesignTokens.radiusLg),
+                    borderRadius: BorderRadius.circular(DesignTokens.radiusMd),
                     borderSide: BorderSide(color: borderColor),
                   ),
                   focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(DesignTokens.radiusLg),
+                    borderRadius: BorderRadius.circular(DesignTokens.radiusMd),
                     borderSide: BorderSide(color: accentColor, width: 1.2),
                   ),
                 ),

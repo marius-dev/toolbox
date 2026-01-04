@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/theme/design_tokens.dart';
 import '../../core/theme/glass_style.dart';
 import '../../core/theme/theme_extensions.dart';
 
@@ -50,7 +51,7 @@ class _ColorPickerDialogState extends State<ColorPickerDialog> {
       backgroundColor: background,
       elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(context.compactValue(22)),
+        borderRadius: BorderRadius.circular(context.compactValue(DesignTokens.radiusLg)),
         side: BorderSide(color: borderColor),
       ),
       child: Container(
@@ -81,7 +82,7 @@ class _ColorPickerDialogState extends State<ColorPickerDialog> {
                     isDark ? Colors.white.withValues(alpha: 0.04) : Colors.black.withValues(alpha: 0.02),
                     background,
                   ),
-                  borderRadius: BorderRadius.circular(context.compactValue(12)),
+                  borderRadius: BorderRadius.circular(context.compactValue(DesignTokens.radiusMd)),
                   border: Border.all(color: borderColor),
                 ),
                 padding: EdgeInsets.symmetric(
@@ -113,7 +114,7 @@ class _ColorPickerDialogState extends State<ColorPickerDialog> {
                     backgroundColor: _selectedColor,
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(context.compactValue(8)),
+                      borderRadius: BorderRadius.circular(context.compactValue(DesignTokens.radiusSm)),
                     ),
                   ),
                   child: const Text(

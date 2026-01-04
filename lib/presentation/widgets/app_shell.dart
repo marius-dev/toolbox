@@ -52,7 +52,7 @@ class AppShell extends StatelessWidget {
           style: context.glassStyle,
           accentColor: context.accentColor,
         );
-        final borderRadius = BorderRadius.circular(DesignTokens.radius2xl);
+        final borderRadius = BorderRadius.circular(DesignTokens.radiusLg);
         final sigma = blurSigma ?? palette.blurSigma;
         // Minimal aurora glows - very subtle ambient effect
         final glowSpecs =

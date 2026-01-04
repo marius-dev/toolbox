@@ -61,7 +61,7 @@ class _ToolListItemState extends State<ToolListItem> {
         ),
         decoration: BoxDecoration(
           color: background,
-          borderRadius: BorderRadius.circular(DesignTokens.radiusLg),
+          borderRadius: BorderRadius.circular(DesignTokens.radiusNone),
           border: Border.all(
             color: borderColor,
             width: widget.isDefault ? 1.2 : 1,

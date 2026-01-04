@@ -69,8 +69,9 @@ class _GradientAddButtonState extends State<_GradientAddButton> {
 
     return AppMenuButton<_ActionMenuOption>(
       tooltip: 'Add new items',
-      openOnHover: false,
+      openOnHover: true,
       padding: EdgeInsets.zero,
+      offset: const Offset(0, 40),
       onSelected: (option) {
         switch (option) {
           case _ActionMenuOption.addProject:
@@ -108,7 +109,7 @@ class _GradientAddButtonState extends State<_GradientAddButton> {
               break;
           }
 
-          return PopupMenuItem<_ActionMenuOption>(
+          return PillMenuItem<_ActionMenuOption>(
             value: option,
             enabled: enabled,
             child: Row(

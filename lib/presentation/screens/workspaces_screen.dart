@@ -11,13 +11,13 @@ import '../../core/theme/theme_extensions.dart';
 import '../../core/constants/workspace_icons.dart';
 import '../../core/di/service_locator.dart';
 import '../../core/services/window_service.dart';
+import '../../core/theme/design_tokens.dart';
 import '../../domain/models/project.dart';
 import '../../domain/models/tool.dart';
 import '../../domain/models/workspace.dart';
 import '../providers/project_provider.dart';
 import '../providers/workspace_provider.dart';
 import '../widgets/app_shell.dart';
-import '../widgets/glass_action_button.dart';
 import '../widgets/glass_panel.dart';
 import '../widgets/launcher/project_list_scroll_behavior.dart';
 import '../widgets/section_layout.dart';
@@ -765,21 +765,31 @@ class _WorkspacesScreenState extends State<WorkspacesScreen>
   }
 
   Widget _buildImportButton(BuildContext context) {
-    return GlassActionButton(
-      label: 'Import',
-      icon: Icons.upload_file_rounded,
+    final theme = Theme.of(context);
+    return TextButton(
       onPressed: _importWorkspace,
-      primary: false,
-      foregroundColor: Colors.white,
+      child: Text(
+        'Import',
+        style: TextStyle(color: theme.textTheme.bodyMedium!.color),
+      ),
     );
   }
 
   Widget _buildCreateButton(BuildContext context) {
-    return GlassActionButton(
-      label: 'Create',
-      icon: Icons.add_rounded,
+    final accentColor = context.accentColor;
+    return ElevatedButton(
       onPressed: _createWorkspace,
-      primary: true,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: accentColor,
+        foregroundColor: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(context.compactValue(DesignTokens.radiusSm)),
+        ),
+      ),
+      child: const Text(
+        'Create',
+        style: TextStyle(fontWeight: FontWeight.w600),
+      ),
     );
   }
 }
@@ -876,7 +886,7 @@ class _WorkspaceRowState extends State<_WorkspaceRow> {
               width: context.compactValue(40),
               height: context.compactValue(40),
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(context.compactValue(8)),
+                borderRadius: BorderRadius.circular(context.compactValue(DesignTokens.radiusSm)),
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
@@ -1045,7 +1055,7 @@ class _ActionButtonState extends State<_ActionButton> {
                       ? Colors.white.withValues(alpha: 0.1)
                       : Colors.black.withValues(alpha: 0.05)))
               : Colors.transparent,
-          borderRadius: BorderRadius.circular(context.compactValue(8)),
+          borderRadius: BorderRadius.circular(context.compactValue(DesignTokens.radiusSm)),
         ),
         child: IconButton(
           onPressed: widget.onPressed,
@@ -1097,7 +1107,7 @@ class _BatchDeleteConfirmDialog extends StatelessWidget {
         vertical: context.compactValue(18),
       ),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(context.compactValue(22)),
+        borderRadius: BorderRadius.circular(context.compactValue(DesignTokens.radiusLg)),
         side: BorderSide(color: borderColor),
       ),
       titlePadding: EdgeInsets.fromLTRB(
@@ -1142,7 +1152,7 @@ class _BatchDeleteConfirmDialog extends StatelessWidget {
             backgroundColor: Colors.redAccent,
             foregroundColor: Colors.white,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(context.compactValue(8)),
+              borderRadius: BorderRadius.circular(context.compactValue(DesignTokens.radiusSm)),
             ),
           ),
           child: const Text(

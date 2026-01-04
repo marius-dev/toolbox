@@ -123,7 +123,7 @@ class _RemoveProjectButtonState extends State<_RemoveProjectButton> {
                 color: _isHovered
                     ? accentColor.withOpacity(0.12)
                     : Colors.transparent,
-                borderRadius: BorderRadius.circular(context.compactValue(10)),
+                borderRadius: BorderRadius.circular(context.compactValue(DesignTokens.radiusMd)),
               ),
               child: Icon(
                 Icons.close_rounded,

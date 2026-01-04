@@ -43,6 +43,7 @@ class _WorkspaceSelector extends StatelessWidget {
       tooltip: 'Switch workspace',
       openOnHover: true,
       padding: EdgeInsets.zero,
+      offset: const Offset(0, 40),
       onSelected: (action) {
         switch (action.type) {
           case _WorkspaceMenuActionType.select:
@@ -65,7 +66,7 @@ class _WorkspaceSelector extends StatelessWidget {
         for (final workspace in workspaces) {
           final isSelected = selectedWorkspace?.id == workspace.id;
           items.add(
-            PopupMenuItem<_WorkspaceMenuAction>(
+            PillMenuItem<_WorkspaceMenuAction>(
               value: _WorkspaceMenuAction.select(workspace.id),
               child: Row(
                 children: [
@@ -99,7 +100,7 @@ class _WorkspaceSelector extends StatelessWidget {
         }
 
         items.add(
-          PopupMenuItem<_WorkspaceMenuAction>(
+          PillMenuItem<_WorkspaceMenuAction>(
             value: const _WorkspaceMenuAction.manage(),
             child: Row(
               children: [

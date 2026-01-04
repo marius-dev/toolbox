@@ -27,7 +27,7 @@ class LauncherTabBar extends StatelessWidget {
     return Container(
       padding: EdgeInsets.all(context.compactValue(DesignTokens.space1)),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(DesignTokens.radiusXl),
+        borderRadius: BorderRadius.circular(DesignTokens.radiusMd),
         border: Border.all(color: outline),
       ),
       child: Row(

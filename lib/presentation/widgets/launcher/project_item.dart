@@ -149,7 +149,7 @@ class ProjectItemState extends State<ProjectItem> {
           ..setTranslationRaw(0.0, isHighlighted ? -1.0 : 0.0, 0.0),
         decoration: BoxDecoration(
           color: background,
-          borderRadius: BorderRadius.circular(DesignTokens.radiusLg),
+          borderRadius: BorderRadius.circular(DesignTokens.radiusNone),
           border: Border.all(color: borderColor, width: 1),
         ),
         child: SizedBox(

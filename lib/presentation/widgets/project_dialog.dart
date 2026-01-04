@@ -5,6 +5,7 @@ import '../../core/theme/theme_extensions.dart';
 import '../../core/di/service_locator.dart';
 import '../../core/services/tool_discovery_service.dart';
 import '../../core/services/window_service.dart';
+import '../../core/theme/design_tokens.dart';
 import '../../core/theme/glass_style.dart';
 import '../../domain/models/project.dart';
 import '../../domain/models/tool.dart';
@@ -177,7 +178,7 @@ class _ProjectDialogState extends State<ProjectDialog> {
     final borderColor = theme.dividerColor.withOpacity(0.24);
     return BoxDecoration(
       color: background,
-      borderRadius: BorderRadius.circular(context.compactValue(20)),
+      borderRadius: BorderRadius.circular(context.compactValue(DesignTokens.radiusLg)),
       border: Border.all(color: borderColor),
     );
   }
@@ -298,7 +299,7 @@ class _ProjectDialogState extends State<ProjectDialog> {
           );
 
     return InkWell(
-      borderRadius: BorderRadius.circular(context.compactValue(14)),
+      borderRadius: BorderRadius.circular(context.compactValue(DesignTokens.radiusMd)),
       onTap: () => _selectTool(tool),
       child: Container(
         padding: EdgeInsets.symmetric(
@@ -307,7 +308,7 @@ class _ProjectDialogState extends State<ProjectDialog> {
         ),
         decoration: BoxDecoration(
           color: background,
-          borderRadius: BorderRadius.circular(context.compactValue(14)),
+          borderRadius: BorderRadius.circular(context.compactValue(DesignTokens.radiusMd)),
           border: Border.all(color: borderColor),
         ),
         child: Row(
@@ -345,7 +346,7 @@ class _ProjectDialogState extends State<ProjectDialog> {
           disabledBackgroundColor: accentColor.withOpacity(0.3),
           disabledForegroundColor: Colors.white.withOpacity(0.7),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(context.compactValue(8)),
+            borderRadius: BorderRadius.circular(context.compactValue(DesignTokens.radiusSm)),
           ),
         ),
         child: Text(
@@ -377,7 +378,7 @@ class _ProjectDialogState extends State<ProjectDialog> {
         vertical: context.compactValue(18),
       ),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(context.compactValue(22)),
+        borderRadius: BorderRadius.circular(context.compactValue(DesignTokens.radiusLg)),
         side: BorderSide(color: borderColor),
       ),
       titlePadding: EdgeInsets.fromLTRB(

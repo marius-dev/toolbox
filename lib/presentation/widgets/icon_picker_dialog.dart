@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/constants/workspace_icons.dart';
+import '../../core/theme/design_tokens.dart';
 import '../../core/theme/glass_style.dart';
 import '../../core/theme/theme_extensions.dart';
 
@@ -46,7 +47,7 @@ class _IconPickerDialogState extends State<IconPickerDialog> {
         vertical: context.compactValue(18),
       ),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(context.compactValue(22)),
+        borderRadius: BorderRadius.circular(context.compactValue(DesignTokens.radiusLg)),
         side: BorderSide(color: borderColor),
       ),
       titlePadding: EdgeInsets.fromLTRB(
@@ -97,13 +98,13 @@ class _IconPickerDialogState extends State<IconPickerDialog> {
 
             return InkWell(
               onTap: () => setState(() => _selectedIconIndex = index),
-              borderRadius: BorderRadius.circular(context.compactValue(8)),
+              borderRadius: BorderRadius.circular(context.compactValue(DesignTokens.radiusSm)),
               child: Container(
                 decoration: BoxDecoration(
                   color: isSelected
                       ? accentColor.withValues(alpha: isDark ? 0.2 : 0.12)
                       : Colors.transparent,
-                  borderRadius: BorderRadius.circular(context.compactValue(8)),
+                  borderRadius: BorderRadius.circular(context.compactValue(DesignTokens.radiusSm)),
                   border: Border.all(
                     color: isSelected
                         ? accentColor
@@ -137,7 +138,7 @@ class _IconPickerDialogState extends State<IconPickerDialog> {
             backgroundColor: accentColor,
             foregroundColor: Colors.white,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(context.compactValue(8)),
+              borderRadius: BorderRadius.circular(context.compactValue(DesignTokens.radiusSm)),
             ),
           ),
           child: const Text(

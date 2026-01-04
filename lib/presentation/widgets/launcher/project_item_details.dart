@@ -282,7 +282,7 @@ class _GitBadge extends StatelessWidget {
       ),
       decoration: BoxDecoration(
         color: color.withOpacity(0.12),
-        borderRadius: BorderRadius.circular(context.compactValue(6)),
+        borderRadius: BorderRadius.circular(context.compactValue(DesignTokens.radiusSm)),
         border: Border.all(color: color.withOpacity(0.4)),
       ),
       child: Row(
@@ -381,7 +381,7 @@ class _ProjectAvatar extends StatelessWidget {
                 colors: [Colors.grey.shade800, Colors.grey.shade700],
               )
             : gradient,
-        borderRadius: BorderRadius.circular(context.compactValue(10)),
+        borderRadius: BorderRadius.circular(context.compactValue(DesignTokens.radiusMd)),
         boxShadow: [
           if (!isDisabled)
             BoxShadow(

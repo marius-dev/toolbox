@@ -22,16 +22,14 @@ abstract class DesignTokens {
   static const double space10 = 64; // 8x
 
   // ============================================================
-  // BORDER RADIUS
+  // BORDER RADIUS (standardized from tools/projects toggle)
   // ============================================================
 
   static const double radiusNone = 0;
-  static const double radiusXs = 4; // Chips, tags
-  static const double radiusSm = 8; // Buttons, inputs
-  static const double radiusMd = 12; // Cards, panels
-  static const double radiusLg = 16; // List items, tiles
-  static const double radiusXl = 20; // Tab bars, dialogs
-  static const double radius2xl = 24; // Main containers
+  static const double radiusXs = 4; // Small chips, tags
+  static const double radiusSm = 8; // Buttons, inputs, inner pills, menu items
+  static const double radiusMd = 10; // Containers, panels, outer wrappers
+  static const double radiusLg = 22; // Dialogs, modals
   static const double radiusFull = 999; // Pills, avatars
 
   // ============================================================

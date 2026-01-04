@@ -7,6 +7,7 @@ import '../widgets/color_picker_dialog.dart';
 import '../widgets/hotkey_picker.dart';
 import '../widgets/section_layout.dart';
 import '../widgets/settings_tile.dart';
+import '../../core/theme/design_tokens.dart';
 
 class PreferencesScreen extends StatelessWidget {
   final VoidCallback onBack;
@@ -179,13 +180,13 @@ class PreferencesScreen extends StatelessWidget {
 
     return InkWell(
       onTap: () => _showColorPicker(context),
-      borderRadius: BorderRadius.circular(context.compactValue(10)),
+      borderRadius: BorderRadius.circular(context.compactValue(DesignTokens.radiusMd)),
       child: Container(
         width: context.compactValue(34),
         height: context.compactValue(34),
         decoration: BoxDecoration(
           color: currentColor,
-          borderRadius: BorderRadius.circular(context.compactValue(10)),
+          borderRadius: BorderRadius.circular(context.compactValue(DesignTokens.radiusMd)),
           border: Border.all(color: borderColor),
         ),
       ),

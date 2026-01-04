@@ -55,7 +55,7 @@ class ToolActionsMenu extends StatelessWidget {
       },
       itemBuilder: (context) => [
         if (hasOpenAction)
-          PopupMenuItem<ToolMenuAction>(
+          PillMenuItem<ToolMenuAction>(
             value: ToolMenuAction.open,
             child: Row(
               children: [
@@ -70,7 +70,7 @@ class ToolActionsMenu extends StatelessWidget {
             ),
           ),
         if (hasDefaultAction)
-          PopupMenuItem<ToolMenuAction>(
+          PillMenuItem<ToolMenuAction>(
             value: ToolMenuAction.setDefault,
             child: Row(
               children: [

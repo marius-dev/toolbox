@@ -106,7 +106,9 @@ class _PillTabBar extends StatelessWidget {
         color: isDark
             ? Colors.white.withValues(alpha: 0.04)
             : Colors.black.withValues(alpha: 0.04),
-        borderRadius: BorderRadius.circular(context.compactValue(10)),
+        borderRadius: BorderRadius.circular(
+          context.compactValue(DesignTokens.radiusMd),
+        ),
       ),
       padding: EdgeInsets.all(context.compactValue(3)),
       child: Row(
@@ -158,7 +160,9 @@ class _PillTab extends StatelessWidget {
             color: isSelected
                 ? accent.withValues(alpha: 0.9)
                 : Colors.transparent,
-            borderRadius: BorderRadius.circular(context.compactValue(8)),
+            borderRadius: BorderRadius.circular(
+              context.compactValue(DesignTokens.radiusSm),
+            ),
           ),
           child: Center(
             child: Text(
@@ -199,7 +203,9 @@ class _LogoBox extends StatelessWidget {
           end: Alignment.bottomRight,
           colors: [brighterAccent, accent],
         ),
-        borderRadius: BorderRadius.circular(context.compactValue(10)),
+        borderRadius: BorderRadius.circular(
+          context.compactValue(DesignTokens.radiusMd),
+        ),
         boxShadow: [
           BoxShadow(
             color: accent.withValues(alpha: 0),
@@ -210,7 +216,9 @@ class _LogoBox extends StatelessWidget {
       ),
       padding: EdgeInsets.all(context.compactValue(8)),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(context.compactValue(4)),
+        borderRadius: BorderRadius.circular(
+          context.compactValue(DesignTokens.radiusXs),
+        ),
         child: Image.asset('assets/icon.png', fit: BoxFit.cover),
       ),
     );
@@ -253,6 +261,8 @@ class _PillWorkspaceSelector extends StatelessWidget {
 
     return AppMenuButton<String>(
       padding: EdgeInsets.zero,
+      offset: const Offset(0, 40),
+      openOnHover: true,
       onSelected: (workspaceId) {
         if (workspaceId == '__manage__') {
           onManage();
@@ -267,7 +277,7 @@ class _PillWorkspaceSelector extends StatelessWidget {
         return [
           ...workspaces.map((workspace) {
             final isSelected = workspace.id == selectedWorkspace?.id;
-            return PopupMenuItem<String>(
+            return PillMenuItem<String>(
               value: workspace.id,
               child: Row(
                 children: [
@@ -298,7 +308,7 @@ class _PillWorkspaceSelector extends StatelessWidget {
             );
           }),
           const PopupMenuDivider(),
-          PopupMenuItem<String>(
+          PillMenuItem<String>(
             value: '__manage__',
             child: Row(
               children: [
@@ -324,7 +334,9 @@ class _PillWorkspaceSelector extends StatelessWidget {
           color: isDark
               ? Colors.white.withValues(alpha: 0.04)
               : Colors.black.withValues(alpha: 0.04),
-          borderRadius: BorderRadius.circular(context.compactValue(10)),
+          borderRadius: BorderRadius.circular(
+            context.compactValue(DesignTokens.radiusMd),
+          ),
           border: Border.all(
             color: isDark
                 ? Colors.white.withValues(alpha: 0.06)

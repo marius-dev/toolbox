@@ -2,6 +2,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/theme/design_tokens.dart';
+import '../../core/theme/theme_extensions.dart';
 
 class AppMenuStyle {
   final Color backgroundColor;
@@ -51,7 +52,7 @@ class AppMenuStyle {
         borderRadius: BorderRadius.circular(DesignTokens.radiusMd),
         side: BorderSide(color: borderColor, width: 1),
       ),
-      offset: const Offset(0, 6),
+      offset: const Offset(0, 8),
       elevation: isDark ? 12 : 8, // Proper shadow for depth
     );
   }
@@ -149,6 +150,61 @@ class _AppMenuButtonState<T> extends State<AppMenuButton<T>> {
       onEnter: _handleHoverEnter,
       // onExit: _handleHoverExit,
       child: menuButton,
+    );
+  }
+}
+
+/// Pill-styled menu item that matches the design system
+class PillMenuItem<T> extends PopupMenuItem<T> {
+  PillMenuItem({
+    super.key,
+    super.value,
+    super.onTap,
+    super.enabled,
+    required Widget child,
+  }) : super(
+          padding: const EdgeInsets.symmetric(
+            horizontal: DesignTokens.space2,
+            vertical: DesignTokens.space1,
+          ),
+          child: _PillMenuItemContent(child: child),
+        );
+}
+
+class _PillMenuItemContent extends StatefulWidget {
+  final Widget child;
+
+  const _PillMenuItemContent({required this.child});
+
+  @override
+  State<_PillMenuItemContent> createState() => _PillMenuItemContentState();
+}
+
+class _PillMenuItemContentState extends State<_PillMenuItemContent> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = context.isDark;
+    final hoverColor = isDark
+        ? Colors.white.withValues(alpha: 0.08)
+        : Colors.black.withValues(alpha: 0.08);
+
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        padding: const EdgeInsets.symmetric(
+          horizontal: DesignTokens.space2,
+          vertical: DesignTokens.space2,
+        ),
+        decoration: BoxDecoration(
+          color: _isHovered ? hoverColor : Colors.transparent,
+          borderRadius: BorderRadius.circular(DesignTokens.radiusSm),
+        ),
+        child: widget.child,
+      ),
     );
   }
 }

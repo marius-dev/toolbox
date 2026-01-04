@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import '../../core/theme/theme_extensions.dart';
 
 import '../../core/constants/workspace_icons.dart';
+import '../../core/theme/design_tokens.dart';
 import '../../core/theme/glass_style.dart';
 import '../../domain/models/workspace.dart';
 
@@ -71,7 +72,7 @@ class _WorkspaceDialogState extends State<WorkspaceDialog> {
         vertical: context.compactValue(18),
       ),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(context.compactValue(22)),
+        borderRadius: BorderRadius.circular(context.compactValue(DesignTokens.radiusLg)),
         side: BorderSide(color: borderColor),
       ),
       titlePadding: EdgeInsets.fromLTRB(
@@ -138,15 +139,15 @@ class _WorkspaceDialogState extends State<WorkspaceDialog> {
                   color: theme.colorScheme.error,
                 ),
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(context.compactValue(10)),
+                  borderRadius: BorderRadius.circular(context.compactValue(DesignTokens.radiusMd)),
                   borderSide: BorderSide(color: borderColor),
                 ),
                 enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(context.compactValue(10)),
+                  borderRadius: BorderRadius.circular(context.compactValue(DesignTokens.radiusMd)),
                   borderSide: BorderSide(color: borderColor),
                 ),
                 focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(context.compactValue(10)),
+                  borderRadius: BorderRadius.circular(context.compactValue(DesignTokens.radiusMd)),
                   borderSide: BorderSide(color: accentColor, width: 1.5),
                 ),
               ),
@@ -193,13 +194,13 @@ class _WorkspaceDialogState extends State<WorkspaceDialog> {
 
                     return InkWell(
                       onTap: () => setState(() => _selectedIconIndex = index),
-                      borderRadius: BorderRadius.circular(context.compactValue(8)),
+                      borderRadius: BorderRadius.circular(context.compactValue(DesignTokens.radiusSm)),
                       child: Container(
                         decoration: BoxDecoration(
                           color: isSelected
                               ? accentColor.withValues(alpha: isDark ? 0.2 : 0.12)
                               : Colors.transparent,
-                          borderRadius: BorderRadius.circular(context.compactValue(8)),
+                          borderRadius: BorderRadius.circular(context.compactValue(DesignTokens.radiusSm)),
                           border: Border.all(
                             color: isSelected
                                 ? accentColor
@@ -240,7 +241,7 @@ class _WorkspaceDialogState extends State<WorkspaceDialog> {
             disabledBackgroundColor: accentColor.withValues(alpha: 0.3),
             disabledForegroundColor: Colors.white.withValues(alpha: 0.7),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(context.compactValue(8)),
+              borderRadius: BorderRadius.circular(context.compactValue(DesignTokens.radiusSm)),
             ),
           ),
           child: Text(
@@ -287,7 +288,7 @@ class WorkspaceDeleteDialog extends StatelessWidget {
         vertical: context.compactValue(18),
       ),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(context.compactValue(22)),
+        borderRadius: BorderRadius.circular(context.compactValue(DesignTokens.radiusLg)),
         side: BorderSide(color: borderColor),
       ),
       titlePadding: EdgeInsets.fromLTRB(
@@ -329,7 +330,7 @@ class WorkspaceDeleteDialog extends StatelessWidget {
             backgroundColor: Colors.redAccent,
             foregroundColor: Colors.white,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(context.compactValue(8)),
+              borderRadius: BorderRadius.circular(context.compactValue(DesignTokens.radiusSm)),
             ),
           ),
           child: const Text(

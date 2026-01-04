@@ -155,11 +155,35 @@ class AppTheme {
 
       listTileTheme: ListTileThemeData(
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(DesignTokens.radiusLg),
+          borderRadius: BorderRadius.circular(DesignTokens.radiusSm),
         ),
         tileColor: surfaceColor,
         selectedTileColor: colorScheme.primary.withValues(
           alpha: isDark ? 0.12 : 0.08,
+        ),
+      ),
+
+      // Menu item theme - pill style
+      menuButtonTheme: MenuButtonThemeData(
+        style: ButtonStyle(
+          backgroundColor: WidgetStateProperty.resolveWith((states) {
+            if (states.contains(WidgetState.hovered)) {
+              return isDark
+                  ? Colors.white.withValues(alpha: 0.08)
+                  : Colors.black.withValues(alpha: 0.08);
+            }
+            if (states.contains(WidgetState.pressed)) {
+              return isDark
+                  ? Colors.white.withValues(alpha: 0.12)
+                  : Colors.black.withValues(alpha: 0.12);
+            }
+            return Colors.transparent;
+          }),
+          shape: WidgetStateProperty.all(
+            RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(DesignTokens.radiusSm),
+            ),
+          ),
         ),
       ),
     );
