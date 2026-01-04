@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/theme/glass_style.dart';
 import '../../core/theme/theme_extensions.dart';
 
 class ColorPickerDialog extends StatefulWidget {
@@ -32,30 +33,32 @@ class _ColorPickerDialogState extends State<ColorPickerDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final isDark = context.isDark;
-    final pickerBg = isDark ? const Color(0xFF11131A) : Colors.white;
-    final borderColor = isDark
-        ? Colors.white.withOpacity(0.08)
-        : Colors.black.withOpacity(0.06);
-    final textPrimary = Theme.of(context).textTheme.bodyLarge!.color!;
-    final textSecondary = Theme.of(context).textTheme.bodyMedium!.color!;
+    final accentColor = context.accentColor;
+    final palette = GlassStylePalette(
+      style: context.glassStyle,
+      isDark: isDark,
+      accentColor: accentColor,
+    );
+    final borderColor = palette.borderColor;
+    final background = solidDialogBackground(palette, theme);
+    final textPrimary = theme.textTheme.bodyLarge!.color!;
+    final textSecondary = theme.textTheme.bodyMedium!.color!;
 
     return Dialog(
-      backgroundColor: Colors.transparent,
+      backgroundColor: background,
       elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(context.compactValue(22)),
+        side: BorderSide(color: borderColor),
+      ),
       child: Container(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
-        decoration: BoxDecoration(
-          color: pickerBg,
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: borderColor),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.4),
-              blurRadius: 30,
-              offset: const Offset(0, 12),
-            ),
-          ],
+        padding: EdgeInsets.fromLTRB(
+          context.compactValue(24),
+          context.compactValue(18),
+          context.compactValue(24),
+          context.compactValue(12),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -74,10 +77,17 @@ class _ColorPickerDialogState extends State<ColorPickerDialog> {
               alignment: Alignment.center,
               child: Container(
                 decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF161B24) : Colors.white,
-                  borderRadius: BorderRadius.circular(12),
+                  color: Color.alphaBlend(
+                    isDark ? Colors.white.withValues(alpha: 0.04) : Colors.black.withValues(alpha: 0.02),
+                    background,
+                  ),
+                  borderRadius: BorderRadius.circular(context.compactValue(12)),
+                  border: Border.all(color: borderColor),
                 ),
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+                padding: EdgeInsets.symmetric(
+                  horizontal: context.compactValue(6),
+                  vertical: context.compactValue(6),
+                ),
                 child: BlockPicker(
                   pickerColor: _selectedColor,
                   availableColors: AppColors.accentPresets,
@@ -101,14 +111,14 @@ class _ColorPickerDialogState extends State<ColorPickerDialog> {
                   onPressed: widget.onApply,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: _selectedColor,
+                    foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(context.compactValue(8)),
                     ),
                   ),
                   child: const Text(
                     'Apply',
                     style: TextStyle(
-                      color: Colors.white,
                       fontWeight: FontWeight.w600,
                     ),
                   ),

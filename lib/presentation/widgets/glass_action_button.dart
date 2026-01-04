@@ -26,15 +26,22 @@ class GlassActionButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final palette = context.glassColors();
+    final isDark = context.isDark;
     final accent =
         danger ? context.theme.colorScheme.error : context.accentColor;
     final base = palette.innerColor;
 
     // Subtler gradients for modern minimal aesthetic
+    // In dark mode, use neutral colors for non-primary buttons
     final gradient = primary
         ? [
             accent.withValues(alpha: _enabled ? 0.90 : 0.55),
             accent.withValues(alpha: _enabled ? 0.70 : 0.35),
+          ]
+        : isDark
+        ? [
+            Colors.white.withValues(alpha: _enabled ? 0.08 : 0.04),
+            Colors.white.withValues(alpha: _enabled ? 0.05 : 0.02),
           ]
         : [
             base,
@@ -54,18 +61,18 @@ class GlassActionButton extends StatelessWidget {
     final shadow = primary
         ? [
             BoxShadow(
-              color: accent.withValues(alpha: _enabled ? 0.25 : 0.12),
-              blurRadius: 14, // Reduced from 20
-              offset: const Offset(0, 6), // Reduced from 10
+              color: accent.withValues(alpha: _enabled ? 0.15 : 0.08),
+              blurRadius: 10, // Further reduced
+              offset: const Offset(0, 4), // Further reduced
             ),
           ]
         : [
             BoxShadow(
               color: context.surfaceColor(
-                opacity: context.isDark ? 0.16 : 0.06,
+                opacity: context.isDark ? 0.08 : 0.04,
               ),
-              blurRadius: 10, // Reduced from 14
-              offset: const Offset(0, 5), // Reduced from 8
+              blurRadius: 6, // Further reduced
+              offset: const Offset(0, 3), // Further reduced
             ),
           ];
 

@@ -1,10 +1,8 @@
-import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:project_launcher/core/theme/theme_provider.dart';
 
 import '../di/service_locator.dart';
-import 'design_tokens.dart';
 import 'glass_style.dart';
 
 class AppTheme {
@@ -17,16 +15,16 @@ class AppTheme {
     final glassStyle = getIt<ThemeProvider>().glassStyle;
     final isClearGlass = glassStyle == GlassStyle.clear;
 
-    // Refined colors for modern minimal aesthetic
+    // Refined colors for modern minimal aesthetic - fully opaque containers
     final backgroundColor = isDark
         ? (isClearGlass ? const Color(0xFF02040A) : const Color(0xFF040810))
         : (isClearGlass ? const Color(0xFFFEFEFE) : const Color(0xFFF8F9FC));
     final surfaceColor = isDark
         ? (isClearGlass ? const Color(0xFF0E1220) : const Color(0xFF121828))
-        : (isClearGlass ? Colors.white.withValues(alpha: 0.98) : Colors.white);
+        : Colors.white; // Fully opaque
     final elevatedSurface = isDark
         ? (isClearGlass ? const Color(0xFF161A2C) : const Color(0xFF1A2038))
-        : Colors.white.withValues(alpha: isClearGlass ? 0.95 : 0.98);
+        : Colors.white; // Fully opaque
     final outlineColor = isDark
         ? Colors.white.withValues(alpha: isClearGlass ? 0.05 : 0.06)
         : Colors.black.withValues(alpha: isClearGlass ? 0.03 : 0.05);

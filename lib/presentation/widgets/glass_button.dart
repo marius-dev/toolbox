@@ -86,9 +86,9 @@ class _GlassButtonState extends State<GlassButton> {
                 boxShadow: [
                   if (context.isDark)
                     BoxShadow(
-                      color: ThemeColors.shadowColor(accent, opacity: 0.15),
-                      blurRadius: 8, // Reduced from 12
-                      offset: const Offset(0, 4), // Reduced from 6
+                      color: ThemeColors.shadowColor(accent, opacity: 0.08),
+                      blurRadius: 4, // Further reduced for minimal glow
+                      offset: const Offset(0, 2), // Further reduced
                     ),
                 ],
               ),

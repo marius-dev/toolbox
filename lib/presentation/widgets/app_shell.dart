@@ -54,7 +54,7 @@ class AppShell extends StatelessWidget {
         );
         final borderRadius = BorderRadius.circular(DesignTokens.radius2xl);
         final sigma = blurSigma ?? palette.blurSigma;
-        // Very subtle aurora glows - vibrant but not overwhelming
+        // Minimal aurora glows - very subtle ambient effect
         final glowSpecs =
             glows ??
             const [
@@ -62,25 +62,25 @@ class AppShell extends StatelessWidget {
                 alignment: Alignment.topLeft,
                 offset: Offset(-48, -180),
                 size: 260,
-                opacity: 0.25, // Much subtler
+                opacity: 0.12, // Further reduced
                 angle: -0.55,
-                thickness: 0.24,
+                thickness: 0.18,
               ),
               GlowSpec(
                 alignment: Alignment.topRight,
                 offset: Offset(160, -80),
                 size: 200,
-                opacity: 0.15, // Much subtler
+                opacity: 0.08, // Further reduced
                 angle: 0.48,
-                thickness: 0.20,
+                thickness: 0.14,
               ),
               GlowSpec(
                 alignment: Alignment.bottomRight,
                 offset: Offset(90, 240),
                 size: 300,
-                opacity: 0.30, // Much subtler
+                opacity: 0.15, // Further reduced
                 angle: -0.2,
-                thickness: 0.26,
+                thickness: 0.18,
               ),
             ];
 

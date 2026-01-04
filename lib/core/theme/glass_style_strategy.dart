@@ -71,11 +71,11 @@ abstract class GlassStyleStrategy {
       case GlassDepth.primary:
         return base;
       case GlassDepth.secondary:
-        return base * 0.6;
+        return base * 0.8;
       case GlassDepth.interactive:
-        return base * 1.2;
+        return base * 1.3;
       case GlassDepth.floating:
-        return isDark ? 0.88 : 0.92;
+        return isDark ? 0.95 : 0.98;
     }
   }
 }
@@ -109,20 +109,20 @@ class ClearGlassStrategy extends GlassStyleStrategy {
   double get blurSigma => 10.0; // Reduced from 16.0
 
   @override
-  double surfaceOpacity(bool isDark) => isDark ? 0.05 : 0.15; // Reduced from 0.08 : 0.24
+  double surfaceOpacity(bool isDark) => isDark ? 0.12 : 0.30; // Increased for less transparency
 
   @override
   double accentOpacity(bool isDark) => 0.0; // No accent tint
 
   @override
-  double borderOpacity(bool isDark) => isDark ? 0.08 : 0.03; // Reduced from 0.12 : 0.04
+  double borderOpacity(bool isDark) => isDark ? 0.12 : 0.06; // Increased for better visibility
 
   @override
   List<double> backgroundGradientOpacities(bool isDark) {
     if (isDark) {
-      return [0.28, 0.26, 0.35]; // Softer, more uniform (was 0.32, 0.3, 0.42)
+      return [0.65, 0.70, 0.80]; // Much more opaque
     } else {
-      return [0.45, 0.42, 0.32]; // Brighter, cleaner (was 0.55, 0.5, 0.38)
+      return [0.85, 0.90, 0.95]; // Nearly opaque
     }
   }
 
@@ -162,21 +162,21 @@ class TintedGlassStrategy extends GlassStyleStrategy {
   double get blurSigma => 12.0;
 
   @override
-  double surfaceOpacity(bool isDark) => isDark ? 0.06 : 0.18;
+  double surfaceOpacity(bool isDark) => isDark ? 0.15 : 0.35;
 
   @override
   // Significantly reduced accent - subtle hint instead of prominent color
   double accentOpacity(bool isDark) => isDark ? 0.04 : 0.05;
 
   @override
-  double borderOpacity(bool isDark) => isDark ? 0.10 : 0.04;
+  double borderOpacity(bool isDark) => isDark ? 0.14 : 0.08;
 
   @override
   List<double> backgroundGradientOpacities(bool isDark) {
     if (isDark) {
-      return [0.40, 0.35, 0.50]; // Slightly deeper for contrast
+      return [0.75, 0.80, 0.85]; // Much more opaque
     } else {
-      return [0.75, 0.72, 0.60];
+      return [0.90, 0.92, 0.95]; // Nearly opaque
     }
   }
 

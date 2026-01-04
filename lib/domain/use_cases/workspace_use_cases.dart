@@ -11,8 +11,13 @@ class WorkspaceUseCases {
   Future<Workspace> addWorkspace({
     required String name,
     bool isDefault = false,
+    int? iconIndex,
   }) async {
-    final workspace = Workspace.create(name: name, isDefault: isDefault);
+    final workspace = Workspace.create(
+      name: name,
+      isDefault: isDefault,
+      iconIndex: iconIndex,
+    );
     await _repository.addWorkspace(workspace);
     return workspace;
   }

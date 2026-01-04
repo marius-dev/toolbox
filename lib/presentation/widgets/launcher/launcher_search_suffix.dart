@@ -2,16 +2,13 @@ part of 'launcher_search_bar.dart';
 
 enum _ActionMenuOption { addProject, importFromGit }
 
-String _getAddProjectShortcutLabel() {
-  return defaultTargetPlatform == TargetPlatform.macOS ? '⌘N' : 'Ctrl+N';
-}
-
 class _SearchFieldSuffix extends StatelessWidget {
   final bool hasQuery;
   final VoidCallback onClear;
   final bool showActions;
   final VoidCallback? onAddProject;
   final VoidCallback? onImportFromGit;
+  final bool isMac;
 
   const _SearchFieldSuffix({
     required this.hasQuery,
@@ -19,6 +16,7 @@ class _SearchFieldSuffix extends StatelessWidget {
     required this.showActions,
     this.onAddProject,
     this.onImportFromGit,
+    required this.isMac,
   });
 
   bool get _hasActions =>
@@ -26,31 +24,19 @@ class _SearchFieldSuffix extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (!hasQuery && !_hasActions) {
-      return const SizedBox.shrink();
-    }
-
-    final iconColor =
-        Theme.of(context).iconTheme.color?.withOpacity(0.8) ?? Colors.grey;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Padding(
-      padding: const EdgeInsets.only(right: 4),
+      padding: const EdgeInsets.only(right: 10),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (hasQuery)
-            IconButton(
-              splashRadius: 18,
-              padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
-              icon: Icon(Icons.close_rounded, color: iconColor),
-              onPressed: onClear,
-            ),
-          if (hasQuery && _hasActions) const SizedBox(width: 4),
+          // Add button with gradient
           if (_hasActions)
-            _InlineActionMenuButton(
+            _GradientAddButton(
               onAddProject: onAddProject,
               onImportFromGit: onImportFromGit,
+              isMac: isMac,
             ),
         ],
       ),
@@ -58,34 +44,45 @@ class _SearchFieldSuffix extends StatelessWidget {
   }
 }
 
-class _InlineActionMenuButton extends StatelessWidget {
+class _GradientAddButton extends StatefulWidget {
   final VoidCallback? onAddProject;
   final VoidCallback? onImportFromGit;
+  final bool isMac;
 
-  const _InlineActionMenuButton({this.onAddProject, this.onImportFromGit});
+  const _GradientAddButton({
+    this.onAddProject,
+    this.onImportFromGit,
+    required this.isMac,
+  });
+
+  @override
+  State<_GradientAddButton> createState() => _GradientAddButtonState();
+}
+
+class _GradientAddButtonState extends State<_GradientAddButton> {
+  bool _isHovered = false;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final menuStyle = AppMenuStyle.of(context);
-    final iconColor =
-        theme.iconTheme.color?.withOpacity(0.85) ?? Colors.grey.shade700;
+    final accentColor = theme.colorScheme.primary;
 
     return AppMenuButton<_ActionMenuOption>(
       tooltip: 'Add new items',
-      openOnHover: true,
+      openOnHover: false,
       padding: EdgeInsets.zero,
       onSelected: (option) {
         switch (option) {
           case _ActionMenuOption.addProject:
-            onAddProject?.call();
+            widget.onAddProject?.call();
             break;
           case _ActionMenuOption.importFromGit:
-            onImportFromGit?.call();
+            widget.onImportFromGit?.call();
             break;
         }
       },
       itemBuilder: (context) {
+        final menuStyle = AppMenuStyle.of(context);
         final textStyle = menuStyle.textStyle;
         Color resolveColor(bool enabled) => menuStyle.resolveTextColor(enabled);
 
@@ -96,14 +93,16 @@ class _InlineActionMenuButton extends StatelessWidget {
           bool enabled;
           IconData icon;
           String label;
+          String? shortcut;
           switch (option) {
             case _ActionMenuOption.addProject:
-              enabled = onAddProject != null;
+              enabled = widget.onAddProject != null;
               icon = Icons.add_rounded;
-              label = 'Add project (${_getAddProjectShortcutLabel()})';
+              label = 'Add project';
+              shortcut = widget.isMac ? '⌘N' : 'Ctrl+N';
               break;
             case _ActionMenuOption.importFromGit:
-              enabled = onImportFromGit != null;
+              enabled = widget.onImportFromGit != null;
               icon = Icons.download_rounded;
               label = 'Import from Git';
               break;
@@ -116,18 +115,57 @@ class _InlineActionMenuButton extends StatelessWidget {
               children: [
                 Icon(icon, size: 18, color: resolveColor(enabled)),
                 const SizedBox(width: 10),
-                Text(
-                  label,
-                  style: textStyle.copyWith(color: resolveColor(enabled)),
+                Expanded(
+                  child: Text(
+                    label,
+                    style: textStyle.copyWith(color: resolveColor(enabled)),
+                  ),
                 ),
+                if (shortcut != null)
+                  Text(
+                    shortcut,
+                    style: textStyle.copyWith(
+                      fontSize: 11,
+                      color: resolveColor(enabled).withValues(alpha: 0.5),
+                      fontFamily: 'monospace',
+                    ),
+                  ),
               ],
             ),
           );
         }).toList();
       },
-      child: Padding(
-        padding: const EdgeInsets.only(left: 6, right: 12, top: 6, bottom: 6),
-        child: Icon(Icons.drive_folder_upload, size: 20, color: iconColor),
+      child: MouseRegion(
+        onEnter: (_) => setState(() => _isHovered = true),
+        onExit: (_) => setState(() => _isHovered = false),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          width: 32,
+          height: 32,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                accentColor,
+                accentColor.withValues(
+                  red: (accentColor.r * 0.8).clamp(0, 1),
+                  green: (accentColor.g * 0.8).clamp(0, 1),
+                  blue: (accentColor.b * 0.8).clamp(0, 1),
+                ),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(8),
+            boxShadow: [
+              BoxShadow(
+                color: accentColor.withValues(alpha: _isHovered ? 0.4 : 0.3),
+                blurRadius: _isHovered ? 12 : 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Icon(Icons.add, size: 18, color: Colors.white),
+        ),
       ),
     );
   }

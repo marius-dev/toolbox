@@ -123,18 +123,17 @@ class LauncherSearchBar extends StatelessWidget {
                     minWidth: 48,
                     minHeight: 48,
                   ),
-                  suffixIcon: (value.text.isNotEmpty || hasActions)
-                      ? _SearchFieldSuffix(
-                          hasQuery: value.text.isNotEmpty,
-                          onClear: () {
-                            controller.clear();
-                            onSearchChanged('');
-                          },
-                          showActions: hasActions,
-                          onAddProject: onAddProject,
-                          onImportFromGit: onImportFromGit,
-                        )
-                      : null,
+                  suffixIcon: _SearchFieldSuffix(
+                    hasQuery: value.text.isNotEmpty,
+                    onClear: () {
+                      controller.clear();
+                      onSearchChanged('');
+                    },
+                    showActions: hasActions,
+                    onAddProject: onAddProject,
+                    onImportFromGit: onImportFromGit,
+                    isMac: isMac,
+                  ),
                   suffixIconConstraints: const BoxConstraints(
                     minWidth: 0,
                     minHeight: 48,

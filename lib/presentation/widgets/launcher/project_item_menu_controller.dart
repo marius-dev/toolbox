@@ -124,6 +124,8 @@ class _CustomMenuOverlayState extends State<_CustomMenuOverlay>
   late AnimationController _animationController;
   late Animation<double> _scaleAnimation;
   late Animation<double> _fadeAnimation;
+  Timer? _closeTimer;
+  bool _isHovering = false;
 
   @override
   void initState() {
@@ -143,8 +145,24 @@ class _CustomMenuOverlayState extends State<_CustomMenuOverlay>
 
   @override
   void dispose() {
+    _closeTimer?.cancel();
     _animationController.dispose();
     super.dispose();
+  }
+
+  void _onMouseEnter() {
+    _closeTimer?.cancel();
+    setState(() => _isHovering = true);
+  }
+
+  void _onMouseExit() {
+    setState(() => _isHovering = false);
+    // Debounced close - wait 250ms before closing
+    _closeTimer = Timer(const Duration(milliseconds: 250), () {
+      if (!_isHovering && mounted) {
+        widget.onDismiss();
+      }
+    });
   }
 
   @override
@@ -161,25 +179,29 @@ class _CustomMenuOverlayState extends State<_CustomMenuOverlay>
           children: [
             Positioned.fromRect(
               rect: widget.menuRect,
-              child: FadeTransition(
-                opacity: _fadeAnimation,
-                child: ScaleTransition(
-                  scale: _scaleAnimation,
-                  alignment: Alignment.topCenter,
-                  child: SizedBox(
-                    width: widget.menuWidth,
-                    height: widget.menuHeight,
-                    child: Material(
-                      elevation: widget.menuBuilder.menuElevation(context),
-                      shadowColor: Colors.black.withValues(alpha: 0.3),
-                      color: widget.menuBuilder.menuColor(context),
-                      shape: widget.menuBuilder.menuShape(context),
-                      clipBehavior: Clip.antiAlias,
-                      child: widget.menuBuilder.buildMenuContent(
-                        context,
-                        openWithSectionHeight: widget.openWithSectionHeight,
-                        toolActions: widget.toolActions,
-                        onAction: widget.onAction,
+              child: MouseRegion(
+                onEnter: (_) => _onMouseEnter(),
+                onExit: (_) => _onMouseExit(),
+                child: FadeTransition(
+                  opacity: _fadeAnimation,
+                  child: ScaleTransition(
+                    scale: _scaleAnimation,
+                    alignment: Alignment.topCenter,
+                    child: SizedBox(
+                      width: widget.menuWidth,
+                      height: widget.menuHeight,
+                      child: Material(
+                        elevation: widget.menuBuilder.menuElevation(context),
+                        shadowColor: Colors.black.withValues(alpha: 0.3),
+                        color: widget.menuBuilder.menuColor(context),
+                        shape: widget.menuBuilder.menuShape(context),
+                        clipBehavior: Clip.antiAlias,
+                        child: widget.menuBuilder.buildMenuContent(
+                          context,
+                          openWithSectionHeight: widget.openWithSectionHeight,
+                          toolActions: widget.toolActions,
+                          onAction: widget.onAction,
+                        ),
                       ),
                     ),
                   ),

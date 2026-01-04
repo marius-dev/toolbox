@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:project_launcher/domain/models/project.dart';
 import 'package:project_launcher/presentation/screens/preferences_screen.dart';
 import 'package:project_launcher/presentation/screens/workspaces_screen.dart';
 import '../../core/theme/theme_extensions.dart';
@@ -20,7 +19,6 @@ import '../widgets/launcher/project_list.dart';
 import '../widgets/tools_section.dart';
 import '../../core/di/service_locator.dart';
 import '../../core/services/window_service.dart';
-import '../../core/utils/compact_layout.dart';
 import 'launcher/controllers/launcher_window_controller.dart';
 import 'launcher/controllers/launcher_keyboard_controller.dart';
 import 'launcher/controllers/launcher_search_controller.dart';
@@ -201,6 +199,8 @@ class _LauncherScreenState extends State<LauncherScreen> {
           const AddProjectIntent(),
       SingleActivator(LogicalKeyboardKey.comma, control: !isMac, meta: isMac):
           const TogglePreferencesIntent(),
+      const SingleActivator(LogicalKeyboardKey.escape):
+          const CloseWindowIntent(),
     };
 
     return Shortcuts(
@@ -219,6 +219,12 @@ class _LauncherScreenState extends State<LauncherScreen> {
           TogglePreferencesIntent: CallbackAction<TogglePreferencesIntent>(
             onInvoke: (intent) {
               _togglePreferences();
+              return null;
+            },
+          ),
+          CloseWindowIntent: CallbackAction<CloseWindowIntent>(
+            onInvoke: (intent) {
+              getIt<WindowService>().hide();
               return null;
             },
           ),

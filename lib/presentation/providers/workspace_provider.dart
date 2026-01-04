@@ -59,6 +59,8 @@ class WorkspaceProvider extends ChangeNotifier {
       } else {
         await _ensureDefaultWorkspace();
       }
+      // Sort workspaces by order field
+      _workspaces.sort((a, b) => a.order.compareTo(b.order));
       await _enforceNameLimit();
       await _loadSelectedWorkspace();
       await _ensureSelection();
@@ -75,21 +77,34 @@ class WorkspaceProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<Workspace> createWorkspace(String name) async {
+  Future<Workspace> createWorkspace(String name, {int? iconIndex}) async {
     final sanitized = _sanitizeName(name);
     final resolvedName = sanitized.isEmpty ? _defaultWorkspaceName : sanitized;
-    final workspace = await _useCases.addWorkspace(name: resolvedName);
+    final workspace = await _useCases.addWorkspace(
+      name: resolvedName,
+      iconIndex: iconIndex,
+    );
     _workspaces = await _useCases.getAllWorkspaces();
+    _workspaces.sort((a, b) => a.order.compareTo(b.order));
     notifyListeners();
     return workspace;
   }
 
-  Future<void> renameWorkspace(Workspace workspace, String name) async {
-    if (workspace.isDefault) return;
+  Future<void> renameWorkspace(
+    Workspace workspace,
+    String name, {
+    int? iconIndex,
+  }) async {
+    // Allow renaming all workspaces, including the default one
     final sanitized = _sanitizeName(name);
     if (sanitized.isEmpty) return;
-    if (sanitized == workspace.name) return;
-    final updated = workspace.copyWith(name: sanitized);
+    final hasChanges = sanitized != workspace.name ||
+        (iconIndex != null && iconIndex != workspace.iconIndex);
+    if (!hasChanges) return;
+    final updated = workspace.copyWith(
+      name: sanitized,
+      iconIndex: iconIndex,
+    );
     await _useCases.updateWorkspace(updated);
     final index = _workspaces.indexWhere(
       (element) => element.id == workspace.id,
@@ -101,12 +116,11 @@ class WorkspaceProvider extends ChangeNotifier {
   }
 
   Future<void> deleteWorkspace(String workspaceId) async {
-    final target = _workspaces
-        .where((workspace) => workspace.id == workspaceId)
-        .toList();
-    if (target.isNotEmpty && target.first.isDefault) {
+    // Prevent deletion of the last remaining workspace
+    if (_workspaces.length <= 1) {
       return;
     }
+
     await _useCases.deleteWorkspace(workspaceId);
     _workspaces = await _useCases.getAllWorkspaces();
     if (_workspaces.isEmpty) {
@@ -118,11 +132,29 @@ class WorkspaceProvider extends ChangeNotifier {
     } else {
       await _ensureDefaultWorkspace();
     }
+    _workspaces.sort((a, b) => a.order.compareTo(b.order));
     if (!_workspaces.any((w) => w.id == _selectedWorkspaceId)) {
       final fallback = defaultWorkspace ?? _workspaces.first;
       _selectedWorkspaceId = fallback.id;
       await _storage.saveSelectedWorkspaceId(_selectedWorkspaceId);
     }
+    notifyListeners();
+  }
+
+  Future<void> reorderWorkspaces(List<Workspace> reorderedWorkspaces) async {
+    // Update order field for each workspace
+    final updatedWorkspaces = <Workspace>[];
+    for (var i = 0; i < reorderedWorkspaces.length; i++) {
+      final workspace = reorderedWorkspaces[i];
+      if (workspace.order != i) {
+        final updated = workspace.copyWith(order: i);
+        await _useCases.updateWorkspace(updated);
+        updatedWorkspaces.add(updated);
+      } else {
+        updatedWorkspaces.add(workspace);
+      }
+    }
+    _workspaces = updatedWorkspaces;
     notifyListeners();
   }
 
