@@ -58,23 +58,21 @@ git push origin v1.0.0
 
 ## 📦 What Gets Built
 
-### Linux
+### Linux (x64 only)
 - `project_launcher-linux-x64.tar.gz` - Universal tarball
 - `project_launcher-linux-x64.AppImage` - Portable app
 - `project_launcher-linux-x64.deb` - Debian/Ubuntu
 - `project_launcher-linux-x64.rpm` - Fedora/RHEL
-- `project_launcher-linux-arm64.tar.gz` - ARM64
 
-### macOS
-- `project_launcher-macos-x64.zip` - Intel Macs
-- `project_launcher-macos-arm64.zip` - Apple Silicon
-- `project_launcher-macos-universal.zip` - Universal binary
-- `project_launcher-macos-universal.dmg` - Installer
+### macOS (Universal Binary - Intel & Apple Silicon)
+- `project_launcher-macos-universal.zip` - Application archive
+- `project_launcher-macos-universal.dmg` - Installer (recommended)
 
-### Windows
+### Windows (x64 only)
 - `project_launcher-windows-x64.zip` - Standard archive
-- `project_launcher-windows-x64-installer.exe` - Installer
-- `project_launcher-windows-arm64.zip` - ARM64
+- `project_launcher-windows-x64-installer.exe` - Installer (recommended)
+
+**Note**: ARM64 builds are not available because GitHub Actions runners are x64 only and Flutter desktop doesn't support cross-compilation. The macOS universal binary includes both Intel (x64) and Apple Silicon (ARM64) architectures.
 
 ---
 

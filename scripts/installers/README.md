@@ -25,6 +25,30 @@ sudo apt-get install -y \
 
 # Install create-dmg
 brew install create-dmg
+
+# Install Python dependencies for DMG background generation
+pip3 install -r requirements.txt
+# Or manually: pip3 install Pillow
+```
+
+**DMG Background Generation:**
+The macOS DMG installer includes a professional drag-and-drop background image. This is automatically generated using a Python script that creates:
+- Gradient background matching macOS Big Sur+ aesthetic
+- Curved arrow from app icon to Applications folder
+- "Drag to install" instructional text
+
+The background is generated automatically during the build process. To regenerate manually:
+```bash
+python3 generate-dmg-background.py
+```
+
+**Customization:**
+```bash
+# Custom text
+python3 generate-dmg-background.py --text "Drop to Applications"
+
+# Custom output path
+python3 generate-dmg-background.py --output custom-background.png
 ```
 
 ### Windows

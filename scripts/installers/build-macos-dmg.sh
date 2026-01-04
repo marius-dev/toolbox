@@ -70,6 +70,22 @@ cp -R "$APP_BUNDLE" "$DMG_TEMP_DIR/"
 # Create DMG with custom settings
 DMG_FILE="$OUTPUT_DIR/${APP_NAME}-${VERSION}-macos-universal.dmg"
 
+# Generate DMG background image if it doesn't exist
+DMG_BACKGROUND="$SCRIPT_DIR/dmg-background.png"
+if [ ! -f "$DMG_BACKGROUND" ]; then
+    echo "Generating DMG background..."
+    python3 "$SCRIPT_DIR/generate-dmg-background.py" || {
+        echo "Warning: Failed to generate DMG background, continuing without it..."
+        DMG_BACKGROUND=""
+    }
+fi
+
+# Prepare background argument for create-dmg
+BACKGROUND_ARGS=""
+if [ -n "$DMG_BACKGROUND" ] && [ -f "$DMG_BACKGROUND" ]; then
+    BACKGROUND_ARGS="--background $DMG_BACKGROUND"
+fi
+
 create-dmg \
   --volname "$APP_DISPLAY_NAME" \
   --volicon "assets/icon.png" \
@@ -79,7 +95,7 @@ create-dmg \
   --icon "$APP_BUNDLE_NAME" 200 190 \
   --hide-extension "$APP_BUNDLE_NAME" \
   --app-drop-link 600 185 \
-  --background "scripts/installers/dmg-background.png" \
+  $BACKGROUND_ARGS \
   --no-internet-enable \
   "$DMG_FILE" \
   "$DMG_TEMP_DIR/" \
@@ -156,37 +172,60 @@ Project Launcher - macOS Installation
 
 Version: $VERSION
 
+⚠️  IMPORTANT: First-Time Security Setup Required
+
+macOS will block this app because it's not signed with an Apple Developer
+certificate. This is normal for open-source apps.
+
+FIRST-TIME SETUP (Required):
+----------------------------
+Method 1 (Easiest):
+  1. Right-click on ${APP_DISPLAY_NAME}.app
+  2. Select "Open" from the menu
+  3. Click "Open" in the dialog that appears
+
+Method 2 (Terminal):
+  Open Terminal and run:
+  xattr -cr /Applications/${APP_NAME}.app
+
+Method 3 (System Settings - macOS 13+):
+  1. Try to open the app (it will be blocked)
+  2. Go to System Settings → Privacy & Security
+  3. Find "${APP_DISPLAY_NAME} was blocked" and click "Open Anyway"
+
+After the first time, the app will open normally with double-click.
+
 Installation Instructions:
+--------------------------
 
 Option 1: DMG Installer (Recommended)
---------------------------------------
 1. Double-click ${APP_NAME}-${VERSION}-macos-universal.dmg
-2. Drag the ${APP_DISPLAY_NAME} icon to the Applications folder
+2. Drag ${APP_DISPLAY_NAME} to the Applications folder
 3. Eject the DMG
-4. Open ${APP_DISPLAY_NAME} from Applications folder
-5. If you see a security warning, go to System Preferences > Security & Privacy
-   and click "Open Anyway"
+4. Follow the First-Time Setup above to open the app
 
 Option 2: ZIP Archive
----------------------
-1. Unzip ${APP_NAME}-${VERSION}-macos-universal.zip
-2. Move the .app bundle to /Applications
-3. Open the application from Applications folder
+1. Extract ${APP_NAME}-${VERSION}-macos-universal.zip
+2. Move ${APP_NAME}.app to /Applications
+3. Follow the First-Time Setup above to open the app
 
 System Requirements:
 -------------------
 - macOS 10.15 (Catalina) or later
-- Works on both Intel and Apple Silicon Macs
+- Universal Binary: Works on both Intel and Apple Silicon Macs
 
-Troubleshooting:
----------------
-- If the app won't open due to security settings:
-  Right-click the app → Open → Click "Open" in the dialog
+Why This Warning Appears:
+-------------------------
+This app is built by automated CI/CD without an Apple Developer certificate
+(\$99/year). The app is safe - it's open source and you can review the code.
 
-- To uninstall:
-  Drag the app from Applications to Trash
+For Developers: See MACOS-DISTRIBUTION.md for code signing setup.
 
-For more information, visit: https://github.com/your-repo/project_launcher
+Uninstall:
+----------
+Drag ${APP_DISPLAY_NAME}.app from Applications to Trash
+
+For more information: https://github.com/your-repo/project_launcher
 
 EOF
 

@@ -1,0 +1,5 @@
+# Python dependencies for installer build scripts
+# Install with: pip install -r requirements.txt
+
+# DMG background image generation (macOS)
+Pillow>=10.0.0

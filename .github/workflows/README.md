@@ -119,23 +119,24 @@ git push origin v1.0.0
 
 **Release Artifacts:**
 
-Linux:
+Linux (x64):
 - `project_launcher-{version}-linux-x64.tar.gz`
 - `project_launcher-{version}-linux-x64.AppImage`
 - `project_launcher-{version}-linux-x64.deb`
 - `project_launcher-{version}-linux-x64.rpm`
-- `project_launcher-{version}-linux-arm64.tar.gz`
 
-macOS:
-- `project_launcher-{version}-macos-x64.zip`
-- `project_launcher-{version}-macos-arm64.zip`
+macOS (Universal - Intel & Apple Silicon):
 - `project_launcher-{version}-macos-universal.zip`
 - `project_launcher-{version}-macos-universal.dmg`
 
-Windows:
+Windows (x64):
 - `project_launcher-{version}-windows-x64.zip`
 - `project_launcher-{version}-windows-x64-installer.exe`
-- `project_launcher-{version}-windows-arm64.zip`
+
+**Note**: ARM64 builds for Linux and Windows are not available because:
+1. GitHub Actions provides x64 runners only (no ARM64 runners in free tier)
+2. Flutter desktop doesn't support cross-compilation via `--target-platform`
+3. macOS universal binaries include both x64 and ARM64 architectures
 
 ---
 

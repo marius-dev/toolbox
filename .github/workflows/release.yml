@@ -126,15 +126,10 @@ jobs:
 
   # Build Linux packages
   build-linux:
-    name: Build Linux - ${{ matrix.arch }}
+    name: Build Linux - x64
     runs-on: ubuntu-latest
     needs: validate
     timeout-minutes: 45
-
-    strategy:
-      fail-fast: false
-      matrix:
-        arch: [x64, arm64]
 
     steps:
       - name: Checkout repository
@@ -164,13 +159,6 @@ jobs:
             alien \
             libfuse2
 
-      - name: Install ARM64 cross-compilation tools
-        if: matrix.arch == 'arm64'
-        run: |
-          sudo apt-get install -y \
-            gcc-aarch64-linux-gnu \
-            g++-aarch64-linux-gnu
-
       - name: Enable Linux desktop
         run: flutter config --enable-linux-desktop
 
@@ -183,20 +171,14 @@ jobs:
           sed -i "s/^version: .*/version: $VERSION/" pubspec.yaml
 
       - name: Build Linux application
-        run: |
-          if [ "${{ matrix.arch }}" == "x64" ]; then
-            flutter build linux --release
-          else
-            flutter build linux --release --target-platform linux-arm64
-          fi
+        run: flutter build linux --release
 
       - name: Create tarball
         run: |
-          cd build/linux/${{ matrix.arch }}/release/bundle
-          tar -czf ${{ github.workspace }}/${{ env.APP_NAME }}-linux-${{ matrix.arch }}.tar.gz *
+          cd build/linux/x64/release/bundle
+          tar -czf ${{ github.workspace }}/${{ env.APP_NAME }}-linux-x64.tar.gz *
 
-      - name: Create AppImage (x64 only)
-        if: matrix.arch == 'x64'
+      - name: Create AppImage
         run: |
           # Download appimagetool
           wget -O appimagetool https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
@@ -244,8 +226,7 @@ jobs:
           # Build AppImage
           ARCH=x86_64 ./appimagetool AppDir ${{ env.APP_NAME }}-linux-x64.AppImage
 
-      - name: Create DEB package (x64 only)
-        if: matrix.arch == 'x64'
+      - name: Create DEB package
         run: |
           VERSION="${{ needs.validate.outputs.version_number }}"
           PACKAGE_DIR="${{ env.APP_NAME }}_${VERSION}_amd64"
@@ -295,8 +276,7 @@ jobs:
           dpkg-deb --build $PACKAGE_DIR
           mv ${PACKAGE_DIR}.deb ${{ env.APP_NAME }}-linux-x64.deb
 
-      - name: Create RPM package (x64 only)
-        if: matrix.arch == 'x64'
+      - name: Create RPM package
         run: |
           # Convert DEB to RPM using alien
           sudo alien --to-rpm --keep-version ${{ env.APP_NAME }}-linux-x64.deb
@@ -307,31 +287,20 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: linux-${{ matrix.arch }}-packages
+          name: linux-x64-packages
           path: |
-            ${{ env.APP_NAME }}-linux-${{ matrix.arch }}.tar.gz
-            ${{ env.APP_NAME }}-linux-${{ matrix.arch }}.AppImage
-            ${{ env.APP_NAME }}-linux-${{ matrix.arch }}.deb
-            ${{ env.APP_NAME }}-linux-${{ matrix.arch }}.rpm
+            ${{ env.APP_NAME }}-linux-x64.tar.gz
+            ${{ env.APP_NAME }}-linux-x64.AppImage
+            ${{ env.APP_NAME }}-linux-x64.deb
+            ${{ env.APP_NAME }}-linux-x64.rpm
           retention-days: 90
 
   # Build macOS packages
   build-macos:
-    name: Build macOS - ${{ matrix.arch }}
+    name: Build macOS - Universal
     runs-on: macos-latest
     needs: validate
     timeout-minutes: 45
-
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - arch: x64
-            flutter_arch: x86_64
-          - arch: arm64
-            flutter_arch: arm64
-          - arch: universal
-            flutter_arch: universal
 
     steps:
       - name: Checkout repository
@@ -356,12 +325,7 @@ jobs:
           sed -i '' "s/^version: .*/version: $VERSION/" pubspec.yaml
 
       - name: Build macOS application
-        run: |
-          if [ "${{ matrix.arch }}" == "universal" ]; then
-            flutter build macos --release
-          else
-            flutter build macos --release --target-platform darwin-${{ matrix.flutter_arch }}
-          fi
+        run: flutter build macos --release
 
       # Note: Code signing requires Apple Developer certificates
       # - name: Sign macOS application
@@ -383,10 +347,15 @@ jobs:
       - name: Create ZIP archive
         run: |
           cd build/macos/Build/Products/Release
-          ditto -c -k --sequesterRsrc --keepParent *.app ${{ github.workspace }}/${{ env.APP_NAME }}-macos-${{ matrix.arch }}.zip
+          ditto -c -k --sequesterRsrc --keepParent *.app ${{ github.workspace }}/${{ env.APP_NAME }}-macos-universal.zip
 
-      - name: Create DMG installer (universal only)
-        if: matrix.arch == 'universal'
+      - name: Install DMG background dependencies
+        run: python3 -m pip install Pillow
+
+      - name: Generate DMG background
+        run: python3 scripts/installers/generate-dmg-background.py
+
+      - name: Create DMG installer
         run: |
           # Install create-dmg
           npm install -g create-dmg || brew install create-dmg
@@ -396,23 +365,23 @@ jobs:
             --volname "${{ env.APP_DISPLAY_NAME }}" \
             --volicon "assets/icon.png" \
             --window-pos 200 120 \
-            --window-size 800 400 \
+            --window-size 800 450 \
             --icon-size 100 \
             --icon "${{ env.APP_NAME }}.app" 200 190 \
             --hide-extension "${{ env.APP_NAME }}.app" \
             --app-drop-link 600 185 \
-            "${{ env.APP_NAME }}-macos-${{ matrix.arch }}.dmg" \
+            --background "scripts/installers/dmg-background.png" \
+            "${{ env.APP_NAME }}-macos-universal.dmg" \
             "build/macos/Build/Products/Release/" \
             || true  # create-dmg sometimes fails but creates valid DMG
 
       # - name: Notarize macOS application
-      #   if: matrix.arch == 'universal'
       #   env:
       #     APPLE_ID: ${{ secrets.APPLE_ID }}
       #     APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
       #     APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
       #   run: |
-      #     xcrun notarytool submit ${{ env.APP_NAME }}-macos-${{ matrix.arch }}.dmg \
+      #     xcrun notarytool submit ${{ env.APP_NAME }}-macos-universal.dmg \
       #       --apple-id "$APPLE_ID" \
       #       --password "$APPLE_ID_PASSWORD" \
       #       --team-id "$APPLE_TEAM_ID" \
@@ -421,23 +390,18 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: macos-${{ matrix.arch }}-packages
+          name: macos-universal-packages
           path: |
-            ${{ env.APP_NAME }}-macos-${{ matrix.arch }}.zip
-            ${{ env.APP_NAME }}-macos-${{ matrix.arch }}.dmg
+            ${{ env.APP_NAME }}-macos-universal.zip
+            ${{ env.APP_NAME }}-macos-universal.dmg
           retention-days: 90
 
   # Build Windows packages
   build-windows:
-    name: Build Windows - ${{ matrix.arch }}
+    name: Build Windows - x64
     runs-on: windows-latest
     needs: validate
     timeout-minutes: 45
-
-    strategy:
-      fail-fast: false
-      matrix:
-        arch: [x64, arm64]
 
     steps:
       - name: Checkout repository
@@ -462,25 +426,18 @@ jobs:
           (Get-Content pubspec.yaml) -replace '^version: .*', "version: $VERSION" | Set-Content pubspec.yaml
 
       - name: Build Windows application
-        run: |
-          if ("${{ matrix.arch }}" -eq "x64") {
-            flutter build windows --release
-          } else {
-            flutter build windows --release --target-platform windows-arm64
-          }
+        run: flutter build windows --release
 
       - name: Create ZIP archive
         run: |
-          Compress-Archive -Path build/windows/${{ matrix.arch }}/runner/Release/* -DestinationPath ${{ env.APP_NAME }}-windows-${{ matrix.arch }}.zip
+          Compress-Archive -Path build/windows/x64/runner/Release/* -DestinationPath ${{ env.APP_NAME }}-windows-x64.zip
 
-      - name: Install WiX Toolset (x64 only)
-        if: matrix.arch == 'x64'
+      - name: Install WiX Toolset
         run: |
           dotnet tool install --global wix
           wix --version
 
-      - name: Create MSI installer (x64 only)
-        if: matrix.arch == 'x64'
+      - name: Create MSI installer
         run: |
           # Create WiX source file
           $VERSION = "${{ needs.validate.outputs.version_number }}"
@@ -526,8 +483,7 @@ jobs:
           # Build MSI (this is a simplified version - full implementation needs all DLLs)
           # wix build installer.wxs -out ${{ env.APP_NAME }}-windows-${{ matrix.arch }}.msi
 
-      - name: Create Inno Setup installer (x64 only)
-        if: matrix.arch == 'x64'
+      - name: Create Inno Setup installer
         run: |
           # Install Inno Setup
           choco install innosetup -y
@@ -541,7 +497,7 @@ jobs:
           AppVersion=$VERSION
           DefaultDirName={autopf}\${{ env.APP_DISPLAY_NAME }}
           DefaultGroupName=${{ env.APP_DISPLAY_NAME }}
-          OutputBaseFilename=${{ env.APP_NAME }}-windows-${{ matrix.arch }}-installer
+          OutputBaseFilename=${{ env.APP_NAME }}-windows-x64-installer
           Compression=lzma2
           SolidCompression=yes
           ArchitecturesAllowed=x64
@@ -564,10 +520,10 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: windows-${{ matrix.arch }}-packages
+          name: windows-x64-packages
           path: |
-            ${{ env.APP_NAME }}-windows-${{ matrix.arch }}.zip
-            Output/${{ env.APP_NAME }}-windows-${{ matrix.arch }}-installer.exe
+            ${{ env.APP_NAME }}-windows-x64.zip
+            Output/${{ env.APP_NAME }}-windows-x64-installer.exe
           retention-days: 90
 
   # Create GitHub Release
@@ -616,23 +572,19 @@ jobs:
 
           ## Download Links
 
-          ### Linux
-          - **Tarball (x64)**: \`${{ env.APP_NAME }}-linux-x64.tar.gz\`
-          - **Tarball (ARM64)**: \`${{ env.APP_NAME }}-linux-arm64.tar.gz\`
-          - **AppImage (x64)**: \`${{ env.APP_NAME }}-linux-x64.AppImage\`
-          - **DEB Package (x64)**: \`${{ env.APP_NAME }}-linux-x64.deb\`
-          - **RPM Package (x64)**: \`${{ env.APP_NAME }}-linux-x64.rpm\`
+          ### Linux (x64)
+          - **Tarball**: \`${{ env.APP_NAME }}-linux-x64.tar.gz\`
+          - **AppImage**: \`${{ env.APP_NAME }}-linux-x64.AppImage\` ⭐ Recommended
+          - **DEB Package**: \`${{ env.APP_NAME }}-linux-x64.deb\` (Debian/Ubuntu)
+          - **RPM Package**: \`${{ env.APP_NAME }}-linux-x64.rpm\` (Fedora/RHEL)
 
-          ### macOS
-          - **ZIP (x64)**: \`${{ env.APP_NAME }}-macos-x64.zip\` (Intel Macs)
-          - **ZIP (ARM64)**: \`${{ env.APP_NAME }}-macos-arm64.zip\` (Apple Silicon)
-          - **ZIP (Universal)**: \`${{ env.APP_NAME }}-macos-universal.zip\` ⭐ Recommended
-          - **DMG Installer**: \`${{ env.APP_NAME }}-macos-universal.dmg\`
+          ### macOS (Universal Binary - Intel & Apple Silicon)
+          - **DMG Installer**: \`${{ env.APP_NAME }}-macos-universal.dmg\` ⭐ Recommended
+          - **ZIP Archive**: \`${{ env.APP_NAME }}-macos-universal.zip\`
 
-          ### Windows
-          - **ZIP (x64)**: \`${{ env.APP_NAME }}-windows-x64.zip\`
-          - **ZIP (ARM64)**: \`${{ env.APP_NAME }}-windows-arm64.zip\`
-          - **Installer (x64)**: \`${{ env.APP_NAME }}-windows-x64-installer.exe\`
+          ### Windows (x64)
+          - **Installer**: \`${{ env.APP_NAME }}-windows-x64-installer.exe\` ⭐ Recommended
+          - **ZIP Archive**: \`${{ env.APP_NAME }}-windows-x64.zip\`
 
           ## Installation Instructions
 
