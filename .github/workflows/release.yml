@@ -369,8 +369,12 @@ jobs:
 
       - name: Create DMG installer
         run: |
-          # Install create-dmg
-          npm install -g create-dmg || brew install create-dmg
+          # Install create-dmg from Homebrew (more reliable than npm version)
+          brew install create-dmg
+
+          # Verify create-dmg is installed
+          which create-dmg
+          create-dmg --help || true
 
           # Create DMG (create-dmg sometimes returns error even on success)
           set +e  # Don't exit on error
