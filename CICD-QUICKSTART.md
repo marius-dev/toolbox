@@ -326,7 +326,7 @@ Enable notifications:
 ### Build Failing
 
 **Check:**
-1. Flutter version in workflows (currently 3.27.0)
+1. Flutter version in workflows (currently 3.38.5)
 2. Dependencies: `flutter pub get`
 3. Platform-specific requirements (see installer scripts README)
 
