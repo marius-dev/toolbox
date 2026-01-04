@@ -29,6 +29,11 @@ brew install create-dmg
 # Install Python dependencies for DMG background generation
 pip3 install -r requirements.txt
 # Or manually: pip3 install Pillow
+
+# Note: On newer macOS/Python versions with externally-managed environments:
+# pip3 install --break-system-packages Pillow
+# Or use a virtual environment (recommended for development):
+# python3 -m venv venv && source venv/bin/activate && pip install Pillow
 ```
 
 **DMG Background Generation:**
@@ -77,8 +82,8 @@ chmod +x build-linux-packages.sh
 Output files in `dist/linux/`:
 - `project_launcher-{version}-linux-x64.tar.gz` - Universal tarball
 - `project_launcher-{version}-linux-x64.AppImage` - Portable AppImage
-- `project_launcher-{version}-linux-x64.deb` - Debian/Ubuntu package
-- `project_launcher-{version}-linux-x64.rpm` - Fedora/RHEL package
+- `project-launcher-{version}-linux-x64.deb` - Debian/Ubuntu package (note: uses hyphens)
+- `project-launcher-{version}-linux-x64.rpm` - Fedora/RHEL package (note: uses hyphens)
 
 ### macOS DMG
 

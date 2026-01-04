@@ -11,7 +11,6 @@ import '../../core/theme/theme_extensions.dart';
 import '../../core/constants/workspace_icons.dart';
 import '../../core/di/service_locator.dart';
 import '../../core/services/window_service.dart';
-import '../../core/theme/design_tokens.dart';
 import '../../domain/models/project.dart';
 import '../../domain/models/tool.dart';
 import '../../domain/models/workspace.dart';

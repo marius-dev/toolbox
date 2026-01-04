@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import '../../core/theme/theme_extensions.dart';
 
 import '../../core/constants/workspace_icons.dart';
-import '../../core/theme/design_tokens.dart';
 import '../../core/theme/glass_style.dart';
 import '../../domain/models/workspace.dart';
 

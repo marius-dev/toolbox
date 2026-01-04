@@ -61,8 +61,8 @@ git push origin v1.0.0
 ### Linux (x64 only)
 - `project_launcher-linux-x64.tar.gz` - Universal tarball
 - `project_launcher-linux-x64.AppImage` - Portable app
-- `project_launcher-linux-x64.deb` - Debian/Ubuntu
-- `project_launcher-linux-x64.rpm` - Fedora/RHEL
+- `project-launcher-linux-x64.deb` - Debian/Ubuntu (note: uses hyphens)
+- `project-launcher-linux-x64.rpm` - Fedora/RHEL (note: uses hyphens)
 
 ### macOS (Universal Binary - Intel & Apple Silicon)
 - `project_launcher-macos-universal.zip` - Application archive

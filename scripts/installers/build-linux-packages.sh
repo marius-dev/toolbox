@@ -21,6 +21,7 @@ cd "$PROJECT_ROOT"
 # Get version from pubspec.yaml if not provided
 VERSION=${1:-$(grep '^version:' pubspec.yaml | awk '{print $2}' | cut -d'+' -f1)}
 APP_NAME="project_launcher"
+PACKAGE_NAME="project-launcher"  # Debian-compliant name (no underscores)
 APP_DISPLAY_NAME="Project Launcher"
 BUILD_DIR="$PROJECT_ROOT/build/linux/x64/release/bundle"
 
@@ -114,7 +115,7 @@ rm -rf AppDir
 # ============================================================
 echo "Creating DEB package..."
 
-PACKAGE_DIR="${APP_NAME}_${VERSION}_amd64"
+PACKAGE_DIR="${PACKAGE_NAME}_${VERSION}_amd64"
 rm -rf "$PACKAGE_DIR"
 
 # Create package structure
@@ -150,7 +151,7 @@ ln -s "/opt/${APP_NAME}/${APP_NAME}" "$PACKAGE_DIR/usr/bin/${APP_NAME}"
 # Create control file
 INSTALLED_SIZE=$(du -sk "$PACKAGE_DIR/opt/${APP_NAME}" | cut -f1)
 cat > "$PACKAGE_DIR/DEBIAN/control" << EOF
-Package: ${APP_NAME}
+Package: ${PACKAGE_NAME}
 Version: ${VERSION}
 Section: utils
 Priority: optional
@@ -196,8 +197,8 @@ chmod +x "$PACKAGE_DIR/DEBIAN/prerm"
 
 # Build DEB package
 dpkg-deb --build "$PACKAGE_DIR"
-mv "${PACKAGE_DIR}.deb" "$OUTPUT_DIR/${APP_NAME}-${VERSION}-linux-x64.deb"
-echo "✓ DEB package created: ${APP_NAME}-${VERSION}-linux-x64.deb"
+mv "${PACKAGE_DIR}.deb" "$OUTPUT_DIR/${PACKAGE_NAME}-${VERSION}-linux-x64.deb"
+echo "✓ DEB package created: ${PACKAGE_NAME}-${VERSION}-linux-x64.deb"
 
 # Clean up
 rm -rf "$PACKAGE_DIR"
@@ -209,14 +210,14 @@ echo "Creating RPM package..."
 
 if command -v alien &> /dev/null; then
     cd "$OUTPUT_DIR"
-    alien --to-rpm --keep-version "${APP_NAME}-${VERSION}-linux-x64.deb"
+    alien --to-rpm --keep-version "${PACKAGE_NAME}-${VERSION}-linux-x64.deb"
 
     # Rename to consistent name
-    if [ -f "${APP_NAME}-${VERSION}-1.x86_64.rpm" ]; then
-        mv "${APP_NAME}-${VERSION}-1.x86_64.rpm" "${APP_NAME}-${VERSION}-linux-x64.rpm"
+    if [ -f "${PACKAGE_NAME}-${VERSION}-1.x86_64.rpm" ]; then
+        mv "${PACKAGE_NAME}-${VERSION}-1.x86_64.rpm" "${PACKAGE_NAME}-${VERSION}-linux-x64.rpm"
     fi
 
-    echo "✓ RPM package created: ${APP_NAME}-${VERSION}-linux-x64.rpm"
+    echo "✓ RPM package created: ${PACKAGE_NAME}-${VERSION}-linux-x64.rpm"
 else
     echo "Warning: alien not found. Skipping RPM creation."
     echo "Install alien: sudo apt-get install alien"
@@ -236,6 +237,6 @@ echo ""
 echo "Installation commands:"
 echo "  Tarball:   tar -xzf ${APP_NAME}-${VERSION}-linux-x64.tar.gz"
 echo "  AppImage:  chmod +x ${APP_NAME}-${VERSION}-linux-x64.AppImage && ./${APP_NAME}-${VERSION}-linux-x64.AppImage"
-echo "  DEB:       sudo dpkg -i ${APP_NAME}-${VERSION}-linux-x64.deb"
-echo "  RPM:       sudo rpm -i ${APP_NAME}-${VERSION}-linux-x64.rpm"
+echo "  DEB:       sudo dpkg -i ${PACKAGE_NAME}-${VERSION}-linux-x64.deb"
+echo "  RPM:       sudo rpm -i ${PACKAGE_NAME}-${VERSION}-linux-x64.rpm"
 echo ""

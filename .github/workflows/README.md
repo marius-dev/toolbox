@@ -122,8 +122,8 @@ git push origin v1.0.0
 Linux (x64):
 - `project_launcher-{version}-linux-x64.tar.gz`
 - `project_launcher-{version}-linux-x64.AppImage`
-- `project_launcher-{version}-linux-x64.deb`
-- `project_launcher-{version}-linux-x64.rpm`
+- `project-launcher-{version}-linux-x64.deb` (note: package name uses hyphens for Debian compliance)
+- `project-launcher-{version}-linux-x64.rpm` (note: package name uses hyphens for RPM compliance)
 
 macOS (Universal - Intel & Apple Silicon):
 - `project_launcher-{version}-macos-universal.zip`
@@ -133,10 +133,13 @@ Windows (x64):
 - `project_launcher-{version}-windows-x64.zip`
 - `project_launcher-{version}-windows-x64-installer.exe`
 
-**Note**: ARM64 builds for Linux and Windows are not available because:
-1. GitHub Actions provides x64 runners only (no ARM64 runners in free tier)
-2. Flutter desktop doesn't support cross-compilation via `--target-platform`
-3. macOS universal binaries include both x64 and ARM64 architectures
+**Notes**:
+- **ARM64 builds** for Linux and Windows are not available because:
+  1. GitHub Actions provides x64 runners only (no ARM64 runners in free tier)
+  2. Flutter desktop doesn't support cross-compilation via `--target-platform`
+  3. macOS universal binaries include both x64 and ARM64 architectures
+
+- **Package naming**: DEB and RPM packages use `project-launcher` (with hyphens) instead of `project_launcher` (with underscores) to comply with Debian package naming policy. Debian package names must only contain lowercase letters, digits, hyphens, plus signs, and periods. The application binary and directories still use `project_launcher` with underscores.
 
 ---
 

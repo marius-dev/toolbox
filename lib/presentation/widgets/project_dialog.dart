@@ -5,7 +5,6 @@ import '../../core/theme/theme_extensions.dart';
 import '../../core/di/service_locator.dart';
 import '../../core/services/tool_discovery_service.dart';
 import '../../core/services/window_service.dart';
-import '../../core/theme/design_tokens.dart';
 import '../../core/theme/glass_style.dart';
 import '../../domain/models/project.dart';
 import '../../domain/models/tool.dart';

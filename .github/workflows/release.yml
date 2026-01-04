@@ -14,6 +14,7 @@ on:
 env:
   FLUTTER_VERSION: '3.38.5'
   APP_NAME: 'project_launcher'
+  PACKAGE_NAME: 'project-launcher'  # Debian-compliant name (no underscores)
   APP_DISPLAY_NAME: 'Project Launcher'
 
 permissions:
@@ -229,7 +230,7 @@ jobs:
       - name: Create DEB package
         run: |
           VERSION="${{ needs.validate.outputs.version_number }}"
-          PACKAGE_DIR="${{ env.APP_NAME }}_${VERSION}_amd64"
+          PACKAGE_DIR="${{ env.PACKAGE_NAME }}_${VERSION}_amd64"
 
           # Create package structure
           mkdir -p $PACKAGE_DIR/DEBIAN
@@ -261,7 +262,7 @@ jobs:
 
           # Create control file
           cat > $PACKAGE_DIR/DEBIAN/control << EOF
-          Package: ${{ env.APP_NAME }}
+          Package: ${{ env.PACKAGE_NAME }}
           Version: $VERSION
           Section: utils
           Priority: optional
@@ -274,15 +275,15 @@ jobs:
 
           # Build DEB package
           dpkg-deb --build $PACKAGE_DIR
-          mv ${PACKAGE_DIR}.deb ${{ env.APP_NAME }}-linux-x64.deb
+          mv ${PACKAGE_DIR}.deb ${{ env.PACKAGE_NAME }}-linux-x64.deb
 
       - name: Create RPM package
         run: |
           # Convert DEB to RPM using alien
-          sudo alien --to-rpm --keep-version ${{ env.APP_NAME }}-linux-x64.deb
+          sudo alien --to-rpm --keep-version ${{ env.PACKAGE_NAME }}-linux-x64.deb
 
           # Rename to consistent name
-          mv ${{ env.APP_NAME }}-*.rpm ${{ env.APP_NAME }}-linux-x64.rpm || true
+          mv ${{ env.PACKAGE_NAME }}-*.rpm ${{ env.PACKAGE_NAME }}-linux-x64.rpm || true
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
@@ -291,8 +292,8 @@ jobs:
           path: |
             ${{ env.APP_NAME }}-linux-x64.tar.gz
             ${{ env.APP_NAME }}-linux-x64.AppImage
-            ${{ env.APP_NAME }}-linux-x64.deb
-            ${{ env.APP_NAME }}-linux-x64.rpm
+            ${{ env.PACKAGE_NAME }}-linux-x64.deb
+            ${{ env.PACKAGE_NAME }}-linux-x64.rpm
           retention-days: 90
 
   # Build macOS packages
@@ -350,7 +351,7 @@ jobs:
           ditto -c -k --sequesterRsrc --keepParent *.app ${{ github.workspace }}/${{ env.APP_NAME }}-macos-universal.zip
 
       - name: Install DMG background dependencies
-        run: python3 -m pip install Pillow
+        run: python3 -m pip install --break-system-packages Pillow
 
       - name: Generate DMG background
         run: python3 scripts/installers/generate-dmg-background.py
@@ -575,8 +576,8 @@ jobs:
           ### Linux (x64)
           - **Tarball**: \`${{ env.APP_NAME }}-linux-x64.tar.gz\`
           - **AppImage**: \`${{ env.APP_NAME }}-linux-x64.AppImage\` ⭐ Recommended
-          - **DEB Package**: \`${{ env.APP_NAME }}-linux-x64.deb\` (Debian/Ubuntu)
-          - **RPM Package**: \`${{ env.APP_NAME }}-linux-x64.rpm\` (Fedora/RHEL)
+          - **DEB Package**: \`${{ env.PACKAGE_NAME }}-linux-x64.deb\` (Debian/Ubuntu)
+          - **RPM Package**: \`${{ env.PACKAGE_NAME }}-linux-x64.rpm\` (Fedora/RHEL)
 
           ### macOS (Universal Binary - Intel & Apple Silicon)
           - **DMG Installer**: \`${{ env.APP_NAME }}-macos-universal.dmg\` ⭐ Recommended
@@ -590,8 +591,8 @@ jobs:
 
           ### Linux
           - **AppImage**: \`chmod +x ${{ env.APP_NAME }}-linux-x64.AppImage && ./${{ env.APP_NAME }}-linux-x64.AppImage\`
-          - **DEB**: \`sudo dpkg -i ${{ env.APP_NAME }}-linux-x64.deb\`
-          - **RPM**: \`sudo rpm -i ${{ env.APP_NAME }}-linux-x64.rpm\`
+          - **DEB**: \`sudo dpkg -i ${{ env.PACKAGE_NAME }}-linux-x64.deb\`
+          - **RPM**: \`sudo rpm -i ${{ env.PACKAGE_NAME }}-linux-x64.rpm\`
           - **Tarball**: Extract and run the executable
 
           ### macOS

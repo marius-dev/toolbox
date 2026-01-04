@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import '../../core/theme/app_colors.dart';
-import '../../core/theme/design_tokens.dart';
 import '../../core/theme/glass_style.dart';
 import '../../core/theme/theme_extensions.dart';
 
