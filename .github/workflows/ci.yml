@@ -1,0 +1,243 @@
+name: Continuous Integration
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+# Cancel in-progress runs when a new workflow with the same group name starts
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  FLUTTER_VERSION: '3.38.5'
+
+jobs:
+  # Code quality and analysis
+  analyze:
+    name: Code Analysis & Formatting
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+          cache: true
+          cache-key: 'flutter-:os:-:channel:-:version:-:arch:-:hash:'
+          cache-path: '${{ runner.tool_cache }}/flutter/:channel:-:version:-:arch:'
+
+      - name: Verify Flutter installation
+        run: |
+          flutter --version
+          flutter doctor -v
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Verify dependencies
+        run: flutter pub get --offline
+
+      - name: Check for outdated dependencies
+        run: flutter pub outdated || true
+        continue-on-error: true
+
+      - name: Verify formatting
+        run: dart format --output=none --set-exit-if-changed .
+
+      - name: Analyze code
+        run: flutter analyze --no-fatal-infos --no-fatal-warnings
+
+      - name: Check for code smells
+        run: |
+          dart analyze --fatal-infos --fatal-warnings || true
+        continue-on-error: true
+
+  # Testing
+  test:
+    name: Unit & Widget Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Run tests with coverage
+        run: flutter test --coverage --reporter=expanded
+
+      - name: Check test coverage threshold
+        run: |
+          # Install lcov if not available
+          sudo apt-get update
+          sudo apt-get install -y lcov
+
+          # Generate coverage report
+          if [ -f "coverage/lcov.info" ]; then
+            genhtml coverage/lcov.info -o coverage/html
+
+            # Calculate coverage percentage
+            COVERAGE=$(lcov --summary coverage/lcov.info 2>&1 | grep "lines" | awk '{print $2}' | sed 's/%//')
+            echo "Code coverage: $COVERAGE%"
+
+            # Optional: Fail if coverage is below threshold
+            # THRESHOLD=80
+            # if (( $(echo "$COVERAGE < $THRESHOLD" | bc -l) )); then
+            #   echo "Coverage $COVERAGE% is below threshold $THRESHOLD%"
+            #   exit 1
+            # fi
+          else
+            echo "No coverage file generated"
+          fi
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        continue-on-error: true
+        with:
+          files: ./coverage/lcov.info
+          flags: unittests
+          name: codecov-project-launcher
+          fail_ci_if_error: false
+          verbose: true
+
+      - name: Upload coverage artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-report
+          path: coverage/
+          retention-days: 30
+
+  # Build verification for all platforms
+  build-verification:
+    name: Build Check - ${{ matrix.platform }} (${{ matrix.arch }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    needs: [analyze, test]
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Linux builds
+          - platform: Linux
+            os: ubuntu-latest
+            arch: x64
+            build_command: flutter build linux --release
+
+          # macOS builds
+          - platform: macOS
+            os: macos-latest
+            arch: universal
+            build_command: flutter build macos --release
+
+          # Windows builds
+          - platform: Windows
+            os: windows-latest
+            arch: x64
+            build_command: flutter build windows --release
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+          cache: true
+
+      - name: Install Linux dependencies
+        if: matrix.platform == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            clang \
+            cmake \
+            ninja-build \
+            pkg-config \
+            libgtk-3-dev \
+            liblzma-dev \
+            libstdc++-12-dev \
+            libkeybinder-3.0-dev \
+            libayatana-appindicator3-dev
+
+      - name: Enable desktop support
+        run: |
+          if [ "${{ matrix.platform }}" == "Linux" ]; then
+            flutter config --enable-linux-desktop
+          elif [ "${{ matrix.platform }}" == "macOS" ]; then
+            flutter config --enable-macos-desktop
+          elif [ "${{ matrix.platform }}" == "Windows" ]; then
+            flutter config --enable-windows-desktop
+          fi
+        shell: bash
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Build application
+        run: ${{ matrix.build_command }}
+
+      - name: Verify build output
+        run: |
+          if [ "${{ matrix.platform }}" == "Linux" ]; then
+            test -f build/linux/x64/release/bundle/project_launcher || exit 1
+          elif [ "${{ matrix.platform }}" == "macOS" ]; then
+            test -d build/macos/Build/Products/Release/project_launcher.app || exit 1
+          elif [ "${{ matrix.platform }}" == "Windows" ]; then
+            test -f build/windows/x64/runner/Release/project_launcher.exe || exit 1
+          fi
+        shell: bash
+
+  # Summary job
+  ci-success:
+    name: CI Pipeline Success
+    runs-on: ubuntu-latest
+    needs: [analyze, test, build-verification]
+    if: always()
+
+    steps:
+      - name: Check all jobs status
+        run: |
+          if [[ "${{ needs.analyze.result }}" != "success" ]] || \
+             [[ "${{ needs.test.result }}" != "success" ]] || \
+             [[ "${{ needs.build-verification.result }}" != "success" ]]; then
+            echo "One or more CI jobs failed!"
+            exit 1
+          fi
+          echo "All CI checks passed successfully!"
+
+      - name: Post status comment (PR only)
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        continue-on-error: true
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '✅ All CI checks passed successfully! Ready for review.'
+            })

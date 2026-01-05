@@ -1,0 +1,160 @@
+name: Version Bump
+
+on:
+  workflow_dispatch:
+    inputs:
+      bump_type:
+        description: 'Version bump type'
+        required: true
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+        default: 'patch'
+      prerelease:
+        description: 'Pre-release identifier (e.g., alpha, beta, rc) - leave empty for stable release'
+        required: false
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  bump-version:
+    name: Bump Version
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Get current version
+        id: current_version
+        run: |
+          CURRENT_VERSION=$(grep '^version:' pubspec.yaml | awk '{print $2}')
+          echo "current=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+          echo "Current version: $CURRENT_VERSION"
+
+      - name: Calculate new version
+        id: new_version
+        run: |
+          CURRENT="${{ steps.current_version.outputs.current }}"
+
+          # Extract version parts (remove build number if exists)
+          VERSION_BASE=$(echo $CURRENT | cut -d'+' -f1)
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION_BASE"
+
+          # Remove any pre-release suffix from patch
+          PATCH=$(echo $PATCH | cut -d'-' -f1)
+
+          # Bump version based on type
+          case "${{ github.event.inputs.bump_type }}" in
+            major)
+              MAJOR=$((MAJOR + 1))
+              MINOR=0
+              PATCH=0
+              ;;
+            minor)
+              MINOR=$((MINOR + 1))
+              PATCH=0
+              ;;
+            patch)
+              PATCH=$((PATCH + 1))
+              ;;
+          esac
+
+          NEW_VERSION="$MAJOR.$MINOR.$PATCH"
+
+          # Add pre-release identifier if provided
+          if [ -n "${{ github.event.inputs.prerelease }}" ]; then
+            NEW_VERSION="$NEW_VERSION-${{ github.event.inputs.prerelease }}"
+          fi
+
+          # Add build number
+          BUILD_NUMBER=$(echo $CURRENT | cut -d'+' -f2)
+          if [ "$BUILD_NUMBER" != "$CURRENT" ]; then
+            BUILD_NUMBER=$((BUILD_NUMBER + 1))
+          else
+            BUILD_NUMBER=1
+          fi
+
+          NEW_VERSION_WITH_BUILD="$NEW_VERSION+$BUILD_NUMBER"
+
+          echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "version_with_build=$NEW_VERSION_WITH_BUILD" >> $GITHUB_OUTPUT
+          echo "tag=v$NEW_VERSION" >> $GITHUB_OUTPUT
+
+          echo "New version: $NEW_VERSION_WITH_BUILD (tag: v$NEW_VERSION)"
+
+      - name: Update pubspec.yaml
+        run: |
+          sed -i "s/^version: .*/version: ${{ steps.new_version.outputs.version_with_build }}/" pubspec.yaml
+
+          echo "Updated pubspec.yaml:"
+          grep '^version:' pubspec.yaml
+
+      - name: Update CHANGELOG.md
+        run: |
+          VERSION="${{ steps.new_version.outputs.version }}"
+          DATE=$(date +%Y-%m-%d)
+
+          # Create or update CHANGELOG.md
+          if [ ! -f CHANGELOG.md ]; then
+            echo "# Changelog" > CHANGELOG.md
+            echo "" >> CHANGELOG.md
+            echo "All notable changes to this project will be documented in this file." >> CHANGELOG.md
+            echo "" >> CHANGELOG.md
+          fi
+
+          # Add new version entry
+          sed -i "4i\\
+          ## [$VERSION] - $DATE\\
+          \\
+          ### Added\\
+          - New features go here\\
+          \\
+          ### Changed\\
+          - Changes go here\\
+          \\
+          ### Fixed\\
+          - Bug fixes go here\\
+          \\
+          " CHANGELOG.md
+
+      - name: Commit version bump
+        run: |
+          git add pubspec.yaml CHANGELOG.md
+          git commit -m "chore: bump version to ${{ steps.new_version.outputs.version }}"
+          git push origin main
+
+      - name: Create and push tag
+        run: |
+          git tag -a "${{ steps.new_version.outputs.tag }}" -m "Release ${{ steps.new_version.outputs.tag }}"
+          git push origin "${{ steps.new_version.outputs.tag }}"
+
+      - name: Create summary
+        run: |
+          cat >> $GITHUB_STEP_SUMMARY << EOF
+          # Version Bumped Successfully! 🎉
+
+          - **Previous version**: ${{ steps.current_version.outputs.current }}
+          - **New version**: ${{ steps.new_version.outputs.version_with_build }}
+          - **Git tag**: ${{ steps.new_version.outputs.tag }}
+          - **Bump type**: ${{ github.event.inputs.bump_type }}
+
+          ## Next Steps
+
+          1. Update the CHANGELOG.md with actual changes for this version
+          2. The release workflow will automatically trigger when the tag is pushed
+          3. Check the [Releases](https://github.com/${{ github.repository }}/releases) page for the new release
+
+          EOF

@@ -1,0 +1,680 @@
+name: Release Pipeline
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g., v1.0.0)'
+        required: true
+        type: string
+
+env:
+  FLUTTER_VERSION: '3.38.5'
+  APP_NAME: 'project_launcher'
+  PACKAGE_NAME: 'project-launcher'  # Debian-compliant name (no underscores)
+  APP_DISPLAY_NAME: 'Project Launcher'
+
+permissions:
+  contents: write
+  discussions: write
+
+jobs:
+  # Validate release
+  validate:
+    name: Validate Release
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.get_version.outputs.version }}
+      version_number: ${{ steps.get_version.outputs.version_number }}
+      is_prerelease: ${{ steps.get_version.outputs.is_prerelease }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get version from tag or input
+        id: get_version
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            VERSION="${{ github.event.inputs.version }}"
+          else
+            VERSION=${GITHUB_REF#refs/tags/}
+          fi
+
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "version_number=${VERSION#v}" >> $GITHUB_OUTPUT
+
+          # Check if prerelease (alpha, beta, rc)
+          if [[ "$VERSION" =~ (alpha|beta|rc) ]]; then
+            echo "is_prerelease=true" >> $GITHUB_OUTPUT
+          else
+            echo "is_prerelease=false" >> $GITHUB_OUTPUT
+          fi
+
+          echo "Release version: $VERSION"
+
+      - name: Validate version format
+        run: |
+          VERSION="${{ steps.get_version.outputs.version }}"
+          if [[ ! "$VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.]+)?(\+[a-zA-Z0-9.]+)?$ ]]; then
+            echo "Invalid version format: $VERSION"
+            echo "Expected format: v1.0.0 or v1.0.0-beta.1 or v1.0.0+build.123"
+            exit 1
+          fi
+
+      - name: Check if tag exists
+        run: |
+          VERSION="${{ steps.get_version.outputs.version }}"
+          if git rev-parse "$VERSION" >/dev/null 2>&1; then
+            echo "Tag $VERSION already exists"
+          else
+            echo "Tag $VERSION does not exist yet"
+          fi
+
+  # Generate changelog
+  changelog:
+    name: Generate Changelog
+    runs-on: ubuntu-latest
+    needs: validate
+    outputs:
+      changelog: ${{ steps.changelog.outputs.changelog }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          # Get previous tag
+          PREVIOUS_TAG=$(git describe --abbrev=0 --tags $(git rev-list --tags --skip=1 --max-count=1) 2>/dev/null || echo "")
+
+          if [ -z "$PREVIOUS_TAG" ]; then
+            echo "No previous tag found, using initial commit"
+            PREVIOUS_TAG=$(git rev-list --max-parents=0 HEAD)
+          fi
+
+          # Generate changelog
+          CHANGELOG=$(git log $PREVIOUS_TAG..HEAD --pretty=format:"- %s (%h)" --no-merges)
+
+          # Create formatted changelog
+          cat > /tmp/changelog.md << EOF
+          ## What's Changed
+
+          $CHANGELOG
+
+          **Full Changelog**: https://github.com/${{ github.repository }}/compare/$PREVIOUS_TAG...${{ needs.validate.outputs.version }}
+          EOF
+
+          # Output changelog
+          echo "changelog<<EOF" >> $GITHUB_OUTPUT
+          cat /tmp/changelog.md >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Upload changelog
+        uses: actions/upload-artifact@v4
+        with:
+          name: changelog
+          path: /tmp/changelog.md
+          retention-days: 90
+
+  # Build Linux packages
+  build-linux:
+    name: Build Linux - x64
+    runs-on: ubuntu-latest
+    needs: validate
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+          cache: true
+
+      - name: Install Linux build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            clang \
+            cmake \
+            ninja-build \
+            pkg-config \
+            libgtk-3-dev \
+            liblzma-dev \
+            libstdc++-12-dev \
+            libkeybinder-3.0-dev \
+            libayatana-appindicator3-dev \
+            rpm \
+            alien \
+            libfuse2
+
+      - name: Enable Linux desktop
+        run: flutter config --enable-linux-desktop
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Update version in pubspec.yaml
+        run: |
+          VERSION="${{ needs.validate.outputs.version_number }}"
+          sed -i "s/^version: .*/version: $VERSION/" pubspec.yaml
+
+      - name: Build Linux application
+        run: flutter build linux --release
+
+      - name: Create tarball
+        run: |
+          cd build/linux/x64/release/bundle
+          tar -czf ${{ github.workspace }}/${{ env.APP_NAME }}-linux-x64.tar.gz *
+
+      - name: Create AppImage
+        run: |
+          # Download appimagetool
+          wget -O appimagetool https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
+          chmod +x appimagetool
+
+          # Create AppDir structure
+          mkdir -p AppDir/usr/bin
+          mkdir -p AppDir/usr/share/applications
+          mkdir -p AppDir/usr/share/icons/hicolor/256x256/apps
+          mkdir -p AppDir/usr/lib
+
+          # Copy application files
+          cp -r build/linux/x64/release/bundle/* AppDir/usr/bin/
+
+          # Copy icon
+          cp assets/icon.png AppDir/usr/share/icons/hicolor/256x256/apps/${{ env.APP_NAME }}.png
+          cp assets/icon.png AppDir/${{ env.APP_NAME }}.png
+
+          # Create desktop file
+          cat > AppDir/usr/share/applications/${{ env.APP_NAME }}.desktop << EOF
+          [Desktop Entry]
+          Name=${{ env.APP_DISPLAY_NAME }}
+          Exec=${{ env.APP_NAME }}
+          Icon=${{ env.APP_NAME }}
+          Type=Application
+          Categories=Utility;Development;
+          Comment=A lightweight cross-platform IDE project management tool
+          Terminal=false
+          EOF
+
+          # Create AppRun script
+          cat > AppDir/AppRun << 'EOF'
+          #!/bin/bash
+          SELF=$(readlink -f "$0")
+          HERE=${SELF%/*}
+          export PATH="${HERE}/usr/bin:${PATH}"
+          export LD_LIBRARY_PATH="${HERE}/usr/lib:${LD_LIBRARY_PATH}"
+          exec "${HERE}/usr/bin/${{ env.APP_NAME }}" "$@"
+          EOF
+          chmod +x AppDir/AppRun
+
+          # Create symlink
+          ln -s usr/share/applications/${{ env.APP_NAME }}.desktop AppDir/${{ env.APP_NAME }}.desktop
+
+          # Build AppImage
+          ARCH=x86_64 ./appimagetool AppDir ${{ env.APP_NAME }}-linux-x64.AppImage
+
+      - name: Create DEB package
+        run: |
+          VERSION="${{ needs.validate.outputs.version_number }}"
+          PACKAGE_DIR="${{ env.PACKAGE_NAME }}_${VERSION}_amd64"
+
+          # Create package structure
+          mkdir -p $PACKAGE_DIR/DEBIAN
+          mkdir -p $PACKAGE_DIR/opt/${{ env.APP_NAME }}
+          mkdir -p $PACKAGE_DIR/usr/share/applications
+          mkdir -p $PACKAGE_DIR/usr/share/icons/hicolor/256x256/apps
+          mkdir -p $PACKAGE_DIR/usr/bin
+
+          # Copy application files
+          cp -r build/linux/x64/release/bundle/* $PACKAGE_DIR/opt/${{ env.APP_NAME }}/
+
+          # Copy icon
+          cp assets/icon.png $PACKAGE_DIR/usr/share/icons/hicolor/256x256/apps/${{ env.APP_NAME }}.png
+
+          # Create desktop file
+          cat > $PACKAGE_DIR/usr/share/applications/${{ env.APP_NAME }}.desktop << EOF
+          [Desktop Entry]
+          Name=${{ env.APP_DISPLAY_NAME }}
+          Exec=/opt/${{ env.APP_NAME }}/${{ env.APP_NAME }}
+          Icon=${{ env.APP_NAME }}
+          Type=Application
+          Categories=Utility;Development;
+          Comment=A lightweight cross-platform IDE project management tool
+          Terminal=false
+          EOF
+
+          # Create symlink
+          ln -s /opt/${{ env.APP_NAME }}/${{ env.APP_NAME }} $PACKAGE_DIR/usr/bin/${{ env.APP_NAME }}
+
+          # Create control file
+          cat > $PACKAGE_DIR/DEBIAN/control << EOF
+          Package: ${{ env.PACKAGE_NAME }}
+          Version: $VERSION
+          Section: utils
+          Priority: optional
+          Architecture: amd64
+          Maintainer: Project Launcher Team
+          Description: A lightweight cross-platform IDE project management tool
+           Project Launcher helps you manage your IDE projects efficiently
+           across different development environments.
+          EOF
+
+          # Build DEB package
+          dpkg-deb --build $PACKAGE_DIR
+          mv ${PACKAGE_DIR}.deb ${{ env.PACKAGE_NAME }}-linux-x64.deb
+
+      - name: Create RPM package
+        run: |
+          # Convert DEB to RPM using alien
+          sudo alien --to-rpm --keep-version ${{ env.PACKAGE_NAME }}-linux-x64.deb
+
+          # Rename to consistent name
+          mv ${{ env.PACKAGE_NAME }}-*.rpm ${{ env.PACKAGE_NAME }}-linux-x64.rpm || true
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-x64-packages
+          path: |
+            ${{ env.APP_NAME }}-linux-x64.tar.gz
+            ${{ env.APP_NAME }}-linux-x64.AppImage
+            ${{ env.PACKAGE_NAME }}-linux-x64.deb
+            ${{ env.PACKAGE_NAME }}-linux-x64.rpm
+          retention-days: 90
+
+  # Build macOS packages
+  build-macos:
+    name: Build macOS - Universal
+    runs-on: macos-latest
+    needs: validate
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+          cache: true
+
+      - name: Enable macOS desktop
+        run: flutter config --enable-macos-desktop
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Update version in pubspec.yaml
+        run: |
+          VERSION="${{ needs.validate.outputs.version_number }}"
+          sed -i '' "s/^version: .*/version: $VERSION/" pubspec.yaml
+
+      - name: Build macOS application
+        run: flutter build macos --release
+
+      # Note: Code signing requires Apple Developer certificates
+      # - name: Sign macOS application
+      #   env:
+      #     MACOS_CERTIFICATE: ${{ secrets.MACOS_CERTIFICATE }}
+      #     MACOS_CERTIFICATE_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
+      #   run: |
+      #     # Import certificate
+      #     echo $MACOS_CERTIFICATE | base64 --decode > certificate.p12
+      #     security create-keychain -p actions temp.keychain
+      #     security default-keychain -s temp.keychain
+      #     security unlock-keychain -p actions temp.keychain
+      #     security import certificate.p12 -k temp.keychain -P $MACOS_CERTIFICATE_PASSWORD -T /usr/bin/codesign
+      #     security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k actions temp.keychain
+      #
+      #     # Sign application
+      #     /usr/bin/codesign --force -s "Developer ID Application" --options runtime build/macos/Build/Products/Release/*.app -v
+
+      - name: Create ZIP archive
+        run: |
+          cd build/macos/Build/Products/Release
+          ditto -c -k --sequesterRsrc --keepParent *.app ${{ github.workspace }}/${{ env.APP_NAME }}-macos-universal.zip
+
+      - name: Install DMG background dependencies
+        run: python3 -m pip install --break-system-packages Pillow
+
+      - name: Generate DMG background
+        run: |
+          python3 scripts/installers/generate-dmg-background.py
+
+          # Verify background was created
+          if [ -f "scripts/installers/dmg-background.png" ]; then
+            echo "✓ DMG background generated successfully"
+            ls -lh scripts/installers/dmg-background.png
+            file scripts/installers/dmg-background.png
+          else
+            echo "Warning: DMG background generation failed"
+            exit 1
+          fi
+
+      - name: Create DMG installer
+        run: |
+          # Install create-dmg from Homebrew (more reliable than npm version)
+          brew install create-dmg
+
+          # Create temporary directory with only the app bundle
+          DMG_TEMP_DIR=$(mktemp -d)
+          echo "Copying app bundle to temporary directory: $DMG_TEMP_DIR"
+          cp -R "build/macos/Build/Products/Release/${{ env.APP_NAME }}.app" "$DMG_TEMP_DIR/"
+
+          # Verify app bundle was copied
+          ls -la "$DMG_TEMP_DIR"
+
+          # Create DMG (create-dmg sometimes returns error even on success)
+          set +e  # Don't exit on error
+          create-dmg \
+            --volname "${{ env.APP_DISPLAY_NAME }}" \
+            --volicon "assets/icon.png" \
+            --window-pos 200 120 \
+            --window-size 800 450 \
+            --icon-size 100 \
+            --icon "${{ env.APP_NAME }}.app" 200 190 \
+            --hide-extension "${{ env.APP_NAME }}.app" \
+            --app-drop-link 600 185 \
+            --background "scripts/installers/dmg-background.png" \
+            "${{ env.APP_NAME }}-macos-universal.dmg" \
+            "$DMG_TEMP_DIR/"
+
+          DMG_EXIT_CODE=$?
+          set -e  # Re-enable exit on error
+
+          # Clean up temporary directory
+          rm -rf "$DMG_TEMP_DIR"
+
+          # Check if DMG was created (create-dmg often returns non-zero even on success)
+          if [ -f "${{ env.APP_NAME }}-macos-universal.dmg" ]; then
+            echo "✓ DMG created successfully"
+            ls -lh "${{ env.APP_NAME }}-macos-universal.dmg"
+          else
+            echo "Error: DMG creation failed (exit code: $DMG_EXIT_CODE)"
+            exit 1
+          fi
+
+      # - name: Notarize macOS application
+      #   env:
+      #     APPLE_ID: ${{ secrets.APPLE_ID }}
+      #     APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
+      #     APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+      #   run: |
+      #     xcrun notarytool submit ${{ env.APP_NAME }}-macos-universal.dmg \
+      #       --apple-id "$APPLE_ID" \
+      #       --password "$APPLE_ID_PASSWORD" \
+      #       --team-id "$APPLE_TEAM_ID" \
+      #       --wait
+
+      - name: Verify macOS artifacts
+        run: |
+          echo "Verifying macOS build artifacts..."
+          ls -lh ${{ env.APP_NAME }}-macos-universal.*
+          echo "ZIP file:"
+          file ${{ env.APP_NAME }}-macos-universal.zip
+          echo "DMG file:"
+          file ${{ env.APP_NAME }}-macos-universal.dmg
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-universal-packages
+          path: |
+            ${{ env.APP_NAME }}-macos-universal.zip
+            ${{ env.APP_NAME }}-macos-universal.dmg
+          retention-days: 90
+
+  # Build Windows packages
+  build-windows:
+    name: Build Windows - x64
+    runs-on: windows-latest
+    needs: validate
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+          cache: true
+
+      - name: Enable Windows desktop
+        run: flutter config --enable-windows-desktop
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Update version in pubspec.yaml
+        run: |
+          $VERSION = "${{ needs.validate.outputs.version_number }}"
+          (Get-Content pubspec.yaml) -replace '^version: .*', "version: $VERSION" | Set-Content pubspec.yaml
+
+      - name: Build Windows application
+        run: flutter build windows --release
+
+      - name: Create ZIP archive
+        run: |
+          Compress-Archive -Path build/windows/x64/runner/Release/* -DestinationPath ${{ env.APP_NAME }}-windows-x64.zip
+
+      - name: Install WiX Toolset
+        run: |
+          dotnet tool install --global wix
+          wix --version
+
+      - name: Create MSI installer
+        run: |
+          # Create WiX source file
+          $VERSION = "${{ needs.validate.outputs.version_number }}"
+
+          @"
+          <?xml version="1.0" encoding="UTF-8"?>
+          <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+            <Product Id="*" Name="${{ env.APP_DISPLAY_NAME }}" Language="1033" Version="$VERSION"
+                     Manufacturer="Project Launcher Team" UpgradeCode="YOUR-GUID-HERE">
+              <Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />
+
+              <MajorUpgrade DowngradeErrorMessage="A newer version is already installed." />
+              <MediaTemplate EmbedCab="yes" />
+
+              <Feature Id="ProductFeature" Title="${{ env.APP_DISPLAY_NAME }}" Level="1">
+                <ComponentGroupRef Id="ProductComponents" />
+              </Feature>
+
+              <Directory Id="TARGETDIR" Name="SourceDir">
+                <Directory Id="ProgramFiles64Folder">
+                  <Directory Id="INSTALLFOLDER" Name="${{ env.APP_DISPLAY_NAME }}" />
+                </Directory>
+                <Directory Id="ProgramMenuFolder">
+                  <Directory Id="ApplicationProgramsFolder" Name="${{ env.APP_DISPLAY_NAME }}"/>
+                </Directory>
+              </Directory>
+
+              <ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
+                <Component Id="MainExecutable" Guid="*">
+                  <File Id="ExecutableFile" Source="build/windows/x64/runner/Release/${{ env.APP_NAME }}.exe" KeyPath="yes">
+                    <Shortcut Id="StartMenuShortcut" Directory="ApplicationProgramsFolder"
+                              Name="${{ env.APP_DISPLAY_NAME }}" WorkingDirectory="INSTALLFOLDER"
+                              Icon="AppIcon.exe" IconIndex="0" Advertise="yes" />
+                  </File>
+                </Component>
+              </ComponentGroup>
+
+              <Icon Id="AppIcon.exe" SourceFile="build/windows/x64/runner/Release/${{ env.APP_NAME }}.exe" />
+            </Product>
+          </Wix>
+          "@ | Out-File -FilePath installer.wxs -Encoding UTF8
+
+          # Build MSI (this is a simplified version - full implementation needs all DLLs)
+          # wix build installer.wxs -out ${{ env.APP_NAME }}-windows-${{ matrix.arch }}.msi
+
+      - name: Create Inno Setup installer
+        run: |
+          # Install Inno Setup
+          choco install innosetup -y
+
+          $VERSION = "${{ needs.validate.outputs.version_number }}"
+
+          # Create Inno Setup script
+          @"
+          [Setup]
+          AppName=${{ env.APP_DISPLAY_NAME }}
+          AppVersion=$VERSION
+          DefaultDirName={autopf}\${{ env.APP_DISPLAY_NAME }}
+          DefaultGroupName=${{ env.APP_DISPLAY_NAME }}
+          OutputBaseFilename=${{ env.APP_NAME }}-windows-x64-installer
+          Compression=lzma2
+          SolidCompression=yes
+          ArchitecturesAllowed=x64
+          ArchitecturesInstallIn64BitMode=x64
+
+          [Files]
+          Source: "build\windows\x64\runner\Release\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs
+
+          [Icons]
+          Name: "{group}\${{ env.APP_DISPLAY_NAME }}"; Filename: "{app}\${{ env.APP_NAME }}.exe"
+          Name: "{autodesktop}\${{ env.APP_DISPLAY_NAME }}"; Filename: "{app}\${{ env.APP_NAME }}.exe"
+
+          [Run]
+          Filename: "{app}\${{ env.APP_NAME }}.exe"; Description: "Launch ${{ env.APP_DISPLAY_NAME }}"; Flags: nowait postinstall skipifsilent
+          "@ | Out-File -FilePath installer.iss -Encoding UTF8
+
+          # Compile installer
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer.iss
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-x64-packages
+          path: |
+            ${{ env.APP_NAME }}-windows-x64.zip
+            Output/${{ env.APP_NAME }}-windows-x64-installer.exe
+          retention-days: 90
+
+  # Create GitHub Release
+  create-release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    needs: [validate, changelog, build-linux, build-macos, build-windows]
+    if: always() && needs.validate.result == 'success'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Display artifact structure
+        run: |
+          echo "=== Artifact directory structure ==="
+          ls -R artifacts
+          echo ""
+          echo "=== All DMG files ==="
+          find artifacts -name "*.dmg" -ls
+          echo ""
+          echo "=== All ZIP files ==="
+          find artifacts -name "*.zip" -ls
+          echo ""
+          echo "=== macOS packages specifically ==="
+          ls -lh artifacts/macos-universal-packages/ || echo "macOS packages directory not found"
+
+      - name: Create release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ needs.validate.outputs.version }}
+          name: Release ${{ needs.validate.outputs.version }}
+          body: ${{ needs.changelog.outputs.changelog }}
+          draft: false
+          prerelease: ${{ needs.validate.outputs.is_prerelease }}
+          generate_release_notes: true
+          files: |
+            artifacts/**/*.tar.gz
+            artifacts/**/*.zip
+            artifacts/**/*.AppImage
+            artifacts/**/*.deb
+            artifacts/**/*.rpm
+            artifacts/**/*.dmg
+            artifacts/**/*.exe
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create release summary
+        run: |
+          cat >> $GITHUB_STEP_SUMMARY << EOF
+          # Release ${{ needs.validate.outputs.version }} Created Successfully! 🎉
+
+          ## Download Links
+
+          ### Linux (x64)
+          - **Tarball**: \`${{ env.APP_NAME }}-linux-x64.tar.gz\`
+          - **AppImage**: \`${{ env.APP_NAME }}-linux-x64.AppImage\` ⭐ Recommended
+          - **DEB Package**: \`${{ env.PACKAGE_NAME }}-linux-x64.deb\` (Debian/Ubuntu)
+          - **RPM Package**: \`${{ env.PACKAGE_NAME }}-linux-x64.rpm\` (Fedora/RHEL)
+
+          ### macOS (Universal Binary - Intel & Apple Silicon)
+          - **DMG Installer**: \`${{ env.APP_NAME }}-macos-universal.dmg\` ⭐ Recommended
+          - **ZIP Archive**: \`${{ env.APP_NAME }}-macos-universal.zip\`
+
+          ### Windows (x64)
+          - **Installer**: \`${{ env.APP_NAME }}-windows-x64-installer.exe\` ⭐ Recommended
+          - **ZIP Archive**: \`${{ env.APP_NAME }}-windows-x64.zip\`
+
+          ## Installation Instructions
+
+          ### Linux
+          - **AppImage**: \`chmod +x ${{ env.APP_NAME }}-linux-x64.AppImage && ./${{ env.APP_NAME }}-linux-x64.AppImage\`
+          - **DEB**: \`sudo dpkg -i ${{ env.PACKAGE_NAME }}-linux-x64.deb\`
+          - **RPM**: \`sudo rpm -i ${{ env.PACKAGE_NAME }}-linux-x64.rpm\`
+          - **Tarball**: Extract and run the executable
+
+          ### macOS
+          - **DMG**: Double-click to mount and drag to Applications
+          - **ZIP**: Extract and move to Applications folder
+
+          ### Windows
+          - **Installer**: Run the .exe installer
+          - **ZIP**: Extract and run the executable
+
+          EOF
+
+  # Publish to distribution channels (optional)
+  # publish:
+  #   name: Publish to Distribution Channels
+  #   runs-on: ubuntu-latest
+  #   needs: create-release
+  #   if: needs.validate.outputs.is_prerelease == 'false'
+  #
+  #   steps:
+  #     - name: Publish to Snapcraft
+  #       run: echo "Publish to Snapcraft"
+  #
+  #     - name: Publish to Flathub
+  #       run: echo "Publish to Flathub"
+  #
+  #     - name: Publish to Homebrew
+  #       run: echo "Publish to Homebrew"
+  #
+  #     - name: Publish to Chocolatey
+  #       run: echo "Publish to Chocolatey"

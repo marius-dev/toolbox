@@ -1,0 +1,295 @@
+name: Security Scanning
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  schedule:
+    # Run every Monday at 9 AM UTC
+    - cron: '0 9 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+  actions: read
+
+jobs:
+  # Dependency scanning
+  dependency-check:
+    name: Dependency Vulnerability Scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.38.5'
+          channel: 'stable'
+          cache: true
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Check for known vulnerabilities
+        run: |
+          # Analyze pub dependencies for known vulnerabilities
+          flutter pub outdated --mode=null-safety || true
+
+          echo "Checking for security advisories..."
+          # This will show outdated packages that may have security issues
+          flutter pub outdated --mode=null-safety --show-all || true
+
+      - name: Run dart pub audit (if available)
+        run: |
+          # Check if pub audit command exists (requires Dart 3.5+)
+          if dart pub audit --help &> /dev/null; then
+            dart pub audit || true
+          else
+            echo "dart pub audit not available in this Dart version"
+          fi
+        continue-on-error: true
+
+      - name: Generate dependency graph
+        run: |
+          flutter pub deps --style=compact > dependency-graph.txt
+          echo "## Dependency Graph" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          head -n 50 dependency-graph.txt >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+
+      - name: Upload dependency graph
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-graph
+          path: dependency-graph.txt
+          retention-days: 30
+
+  # Static application security testing
+  sast-scan:
+    name: Static Security Analysis
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.38.5'
+          channel: 'stable'
+          cache: true
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Run security-focused analysis
+        run: |
+          echo "Running security-focused static analysis..."
+
+          # Run analyzer with all checks
+          flutter analyze --no-fatal-infos || true
+
+          # Check for common security issues
+          echo "Checking for common security issues..."
+
+          # Look for hardcoded secrets
+          echo "Searching for potential hardcoded secrets..."
+          grep -r -i -E '(password|secret|api_key|token|auth).*=.*["\047]' lib/ || echo "No obvious secrets found"
+
+          # Look for SQL injection vulnerabilities
+          echo "Checking for SQL injection risks..."
+          grep -r -i 'rawQuery\|execute' lib/ || echo "No SQL queries found"
+
+          # Look for insecure random number generation
+          echo "Checking for insecure random usage..."
+          grep -r 'Random()' lib/ || echo "No Random() usage found"
+
+      - name: Check for TODO/FIXME security markers
+        run: |
+          echo "Searching for security-related TODOs..."
+          grep -r -i 'TODO.*security\|FIXME.*security\|XXX.*security' lib/ || echo "No security TODOs found"
+
+      - name: Scan for sensitive files
+        run: |
+          echo "Checking for sensitive files..."
+
+          SENSITIVE_FILES=(
+            "*.key"
+            "*.pem"
+            "*.p12"
+            "*.jks"
+            "*.keystore"
+            ".env"
+            "credentials.json"
+            "service-account.json"
+          )
+
+          for pattern in "${SENSITIVE_FILES[@]}"; do
+            if find . -name "$pattern" -not -path "./.git/*" | grep -q .; then
+              echo "WARNING: Found potentially sensitive files matching: $pattern"
+              find . -name "$pattern" -not -path "./.git/*"
+            fi
+          done
+
+  # CodeQL analysis
+  codeql-analysis:
+    name: CodeQL Security Analysis
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      security-events: write
+      actions: read
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Note: CodeQL doesn't directly support Dart/Flutter yet
+      # This is a placeholder for when support is added
+      # For now, it will analyze any JavaScript/TypeScript/Python scripts
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript
+        continue-on-error: true
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        continue-on-error: true
+
+  # License compliance check
+  license-check:
+    name: License Compliance Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.38.5'
+          channel: 'stable'
+          cache: true
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Check licenses
+        run: |
+          echo "Checking dependency licenses..."
+          flutter pub deps --style=compact | grep -E '(MIT|Apache|BSD)' || true
+
+          # Generate license report
+          echo "## License Report" > license-report.md
+          echo "" >> license-report.md
+          echo "Generated on: $(date)" >> license-report.md
+          echo "" >> license-report.md
+
+          # Extract license information
+          flutter pub deps --json > deps.json || true
+
+      - name: Check for GPL/AGPL licenses
+        run: |
+          echo "Checking for GPL/AGPL licensed dependencies..."
+
+          # This is a basic check - you may want to use a more sophisticated tool
+          if flutter pub deps | grep -i -E '(GPL|AGPL)'; then
+            echo "WARNING: GPL/AGPL licensed dependencies found!"
+            echo "Please review these licenses for compatibility with your project."
+          else
+            echo "No GPL/AGPL licenses detected in dependencies."
+          fi
+        continue-on-error: true
+
+      - name: Upload license report
+        uses: actions/upload-artifact@v4
+        with:
+          name: license-report
+          path: |
+            license-report.md
+            deps.json
+          retention-days: 30
+
+  # Secret scanning
+  secret-scan:
+    name: Secret Scanning
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: TruffleHog Secret Scan
+        uses: trufflesecurity/trufflehog@main
+        continue-on-error: true
+        with:
+          extra_args: --only-verified
+
+      - name: Gitleaks Secret Scan
+        uses: gitleaks/gitleaks-action@v2
+        continue-on-error: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # Security summary
+  security-summary:
+    name: Security Scan Summary
+    runs-on: ubuntu-latest
+    needs: [dependency-check, sast-scan, license-check, secret-scan]
+    if: always()
+
+    steps:
+      - name: Generate security summary
+        run: |
+          cat >> $GITHUB_STEP_SUMMARY << EOF
+          # Security Scan Summary
+
+          ## Job Results
+          - **Dependency Check**: ${{ needs.dependency-check.result }}
+          - **Static Analysis**: ${{ needs.sast-scan.result }}
+          - **License Check**: ${{ needs.license-check.result }}
+          - **Secret Scan**: ${{ needs.secret-scan.result }}
+
+          ## Recommendations
+          1. Review any warnings or failures above
+          2. Update dependencies regularly to patch vulnerabilities
+          3. Ensure all dependencies use compatible licenses
+          4. Never commit secrets or credentials to the repository
+
+          ## Next Steps
+          - Check the individual job logs for detailed results
+          - Download artifacts for detailed reports
+          - Address any security issues found
+
+          ---
+          *Scanned on: $(date)*
+          EOF
+
+      - name: Check for failures
+        run: |
+          if [[ "${{ needs.dependency-check.result }}" == "failure" ]] || \
+             [[ "${{ needs.sast-scan.result }}" == "failure" ]] || \
+             [[ "${{ needs.license-check.result }}" == "failure" ]] || \
+             [[ "${{ needs.secret-scan.result }}" == "failure" ]]; then
+            echo "❌ One or more security scans failed!"
+            echo "Please review the logs and address the issues."
+            exit 1
+          fi
+          echo "✅ All security scans completed successfully!"
