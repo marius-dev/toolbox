@@ -46,12 +46,11 @@ class DMGBackgroundConfig:
     APP_ICON_SIZE = 100
     APPS_FOLDER_POS = (600, 185)
 
-    # Visual design - macOS Big Sur+ aesthetic
-    BACKGROUND_TOP = "#F5F5F7"      # Light gray
-    BACKGROUND_BOTTOM = "#FFFFFF"   # White
+    # Visual design - Simple transparent background
+    BACKGROUND_COLOR = (255, 255, 255, 0)  # Fully transparent (RGBA)
 
-    # Arrow styling
-    ARROW_COLOR = (0, 0, 0, 64)     # Semi-transparent dark gray (RGBA)
+    # Arrow styling - disabled
+    ARROW_COLOR = None  # No arrow
     ARROW_WIDTH = 3
     ARROW_HEAD_SIZE = 12
 
@@ -79,29 +78,9 @@ class DMGBackgroundGenerator:
         return tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4))
 
     def create_gradient_background(self):
-        """Create smooth linear gradient background"""
-        top_color = self.hex_to_rgb(self.config.BACKGROUND_TOP)
-        bottom_color = self.hex_to_rgb(self.config.BACKGROUND_BOTTOM)
-
-        # Create base image
-        self.image = Image.new('RGB', (self.config.WIDTH, self.config.HEIGHT))
-
-        # Draw gradient line by line
-        for y in range(self.config.HEIGHT):
-            # Calculate interpolation factor (0.0 at top, 1.0 at bottom)
-            factor = y / self.config.HEIGHT
-
-            # Interpolate between top and bottom colors
-            r = int(top_color[0] + (bottom_color[0] - top_color[0]) * factor)
-            g = int(top_color[1] + (bottom_color[1] - top_color[1]) * factor)
-            b = int(top_color[2] + (bottom_color[2] - top_color[2]) * factor)
-
-            # Draw horizontal line
-            for x in range(self.config.WIDTH):
-                self.image.putpixel((x, y), (r, g, b))
-
-        # Convert to RGBA for transparency support
-        self.image = self.image.convert('RGBA')
+        """Create transparent background"""
+        # Create transparent RGBA image
+        self.image = Image.new('RGBA', (self.config.WIDTH, self.config.HEIGHT), self.config.BACKGROUND_COLOR)
         self.draw = ImageDraw.Draw(self.image)
 
     def calculate_bezier_point(self, t: float, p0: tuple, p1: tuple, p2: tuple, p3: tuple) -> tuple:
@@ -263,14 +242,15 @@ class DMGBackgroundGenerator:
         print(f"  App icon position: {self.config.APP_ICON_POS}")
         print(f"  Applications position: {self.config.APPS_FOLDER_POS}")
 
-        # Layer 1: Gradient background
+        # Layer 1: Transparent background
         self.create_gradient_background()
 
         # Layer 2: Icon hints (optional, very subtle)
         # self.draw_icon_hints()  # Commented out by default
 
-        # Layer 3: Curved arrow
-        self.draw_curved_arrow()
+        # Layer 3: Curved arrow (skip if disabled)
+        if self.config.ARROW_COLOR is not None:
+            self.draw_curved_arrow()
 
         # Layer 4: Text
         self.draw_text()

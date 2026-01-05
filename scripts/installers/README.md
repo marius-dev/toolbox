@@ -37,9 +37,8 @@ pip3 install -r requirements.txt
 ```
 
 **DMG Background Generation:**
-The macOS DMG installer includes a professional drag-and-drop background image. This is automatically generated using a Python script that creates:
-- Gradient background matching macOS Big Sur+ aesthetic
-- Curved arrow from app icon to Applications folder
+The macOS DMG installer includes a simple drag-and-drop background with instructional text. This is automatically generated using a Python script that creates:
+- Transparent background
 - "Drag to install" instructional text
 
 The background is generated automatically during the build process. To regenerate manually:

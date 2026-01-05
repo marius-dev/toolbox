@@ -372,9 +372,13 @@ jobs:
           # Install create-dmg from Homebrew (more reliable than npm version)
           brew install create-dmg
 
-          # Verify create-dmg is installed
-          which create-dmg
-          create-dmg --help || true
+          # Create temporary directory with only the app bundle
+          DMG_TEMP_DIR=$(mktemp -d)
+          echo "Copying app bundle to temporary directory: $DMG_TEMP_DIR"
+          cp -R "build/macos/Build/Products/Release/${{ env.APP_NAME }}.app" "$DMG_TEMP_DIR/"
+
+          # Verify app bundle was copied
+          ls -la "$DMG_TEMP_DIR"
 
           # Create DMG (create-dmg sometimes returns error even on success)
           set +e  # Don't exit on error
@@ -389,10 +393,13 @@ jobs:
             --app-drop-link 600 185 \
             --background "scripts/installers/dmg-background.png" \
             "${{ env.APP_NAME }}-macos-universal.dmg" \
-            "build/macos/Build/Products/Release/"
+            "$DMG_TEMP_DIR/"
 
           DMG_EXIT_CODE=$?
           set -e  # Re-enable exit on error
+
+          # Clean up temporary directory
+          rm -rf "$DMG_TEMP_DIR"
 
           # Check if DMG was created (create-dmg often returns non-zero even on success)
           if [ -f "${{ env.APP_NAME }}-macos-universal.dmg" ]; then
@@ -400,8 +407,6 @@ jobs:
             ls -lh "${{ env.APP_NAME }}-macos-universal.dmg"
           else
             echo "Error: DMG creation failed (exit code: $DMG_EXIT_CODE)"
-            echo "Checking for app bundle..."
-            ls -la "build/macos/Build/Products/Release/"
             exit 1
           fi
 
