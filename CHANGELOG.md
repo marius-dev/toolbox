@@ -1,6 +1,18 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [2.0.0] - 2026-01-05
+
+### Added
+- New features go here
+
+### Changed
+- Changes go here
+
+### Fixed
+- Bug fixes go here
+
+
 ## [1.0.5] - 2026-01-05
 
 ### Added
