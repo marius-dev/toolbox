@@ -184,6 +184,9 @@ class ProjectLaunchService {
       case ToolId.cursor:
         command = 'cursor';
         break;
+      case ToolId.zed:
+        command = 'zed';
+        break;
       case ToolId.intellij:
         command = 'idea';
         break;

@@ -240,6 +240,8 @@ class ToolDiscoveryService {
           macSearchKeywords: const ['cursor'],
           windowsSearchKeywords: const ['cursor'],
         );
+      case ToolId.zed:
+        return _zedPaths();
       default:
         return const [];
     }
@@ -429,6 +431,8 @@ class ToolDiscoveryService {
         return ['antigravity', 'antigravity'];
       case ToolId.cursor:
         return ['cursor'];
+      case ToolId.zed:
+        return ['zed'];
       default:
         return const [];
     }
@@ -514,6 +518,101 @@ class ToolDiscoveryService {
       }
     }
 
+    return paths.toList();
+  }
+
+  List<String> _zedPaths() {
+    if (Platform.isMacOS) {
+      return _zedMacPaths();
+    }
+
+    if (Platform.isWindows) {
+      return _zedWindowsPaths();
+    }
+
+    return _zedLinuxPaths();
+  }
+
+  List<String> _zedMacPaths() {
+    final paths = LinkedHashSet<String>();
+    final home = Platform.environment['HOME'];
+    const appNames = ['Zed', 'Zed Beta', 'Zed Nightly'];
+
+    for (final appName in appNames) {
+      paths.add('/Applications/$appName.app');
+      if (home != null) {
+        paths.add('$home/Applications/$appName.app');
+      }
+    }
+
+    paths.addAll(_commandLauncherCandidates('zed'));
+    return paths.toList();
+  }
+
+  List<String> _zedWindowsPaths() {
+    final paths = LinkedHashSet<String>();
+    final programDirs = {
+      Platform.environment['ProgramFiles'],
+      Platform.environment['ProgramFiles(x86)'],
+    }.whereType<String>();
+    final localAppData = Platform.environment['LOCALAPPDATA'];
+    final userProfile = Platform.environment['USERPROFILE'];
+
+    final windowsBases = <String>{
+      ...programDirs,
+      if (localAppData != null) '$localAppData/Programs',
+      if (userProfile != null) '$userProfile/AppData/Local/Programs',
+    };
+
+    const relativeExePaths = [
+      'Zed.exe',
+      'zed.exe',
+      'Zed/Zed.exe',
+      'Zed/bin/Zed.exe',
+      'Zed-nightly/Zed.exe',
+      'Zed Beta/Zed.exe',
+    ];
+
+    for (final base in windowsBases) {
+      for (final relative in relativeExePaths) {
+        paths.add('$base/$relative');
+      }
+    }
+
+    if (localAppData != null) {
+      paths.add('$localAppData/Zed/Zed.exe');
+      paths.add('$localAppData/Zed/zed.exe');
+    }
+
+    paths.addAll(
+      _searchWindowsExecutablesByKeyword(windowsBases, const ['zed']),
+    );
+
+    return paths.toList();
+  }
+
+  List<String> _zedLinuxPaths() {
+    final paths = LinkedHashSet<String>();
+    final home = Platform.environment['HOME'];
+
+    paths.addAll([
+      '/usr/bin/zed',
+      '/usr/local/bin/zed',
+      '/snap/bin/zed',
+      '/opt/zed/zed',
+      '/opt/zed-nightly/zed',
+      '/opt/Zed/zed',
+    ]);
+
+    if (home != null) {
+      paths.add('$home/.local/bin/zed');
+      paths.add('$home/.zed/zed');
+      paths.add('$home/Zed/zed');
+      paths.add('$home/.local/share/zed/zed');
+      paths.add('$home/.cache/zed/zed');
+    }
+
+    paths.addAll(_commandLauncherCandidates('zed'));
     return paths.toList();
   }
 
@@ -622,6 +721,8 @@ class ToolDiscoveryService {
         return 'Antigravity';
       case ToolId.cursor:
         return 'Cursor';
+      case ToolId.zed:
+        return 'Zed';
       case ToolId.vscode:
         return 'VS Code';
       default:

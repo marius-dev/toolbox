@@ -24,6 +24,7 @@ class ToolIcon extends StatelessWidget {
     ToolId.vscode,
     ToolId.antigravity,
     ToolId.cursor,
+    ToolId.zed,
   };
 
   final Tool tool;

@@ -4,6 +4,7 @@ enum ToolId {
   vscode,
   antigravity,
   cursor,
+  zed,
   intellij,
   webstorm,
   phpstorm,

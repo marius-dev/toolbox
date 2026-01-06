@@ -1,2 +1,8 @@
 {
+    "folder-color.pathColors": [
+        {
+            "folderPath": "project_launcher/lib/",
+            "color": "foldercolorizer.color_99cccc"
+        }
+    ]
 }
